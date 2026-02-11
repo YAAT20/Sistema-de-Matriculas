@@ -1,0 +1,129 @@
+{% extends 'base_matriculas.html' %}
+{% load form_tags_mat %}
+
+{% block title %}Registrar Alumno{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <h2 class="text-3xl font-bold text-center text-blue-700 mb-8 flex items-center justify-center gap-2">
+        <i class="bi bi-person-plus-fill"></i> Registrar Nuevo Alumno
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Datos Personales -->
+        <div class="bg-white shadow-md rounded-lg p-6 border border-blue-100">
+            <h3 class="text-lg font-semibold text-blue-700 flex items-center gap-2 mb-4">
+                <i class="bi bi-person-vcard"></i> Datos Personales
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for field in form.visible_fields %}
+                    {% if field.name in "nombres_completos dni fecha_nacimiento sexo direccion_alumno grado_estudios colegio_de_procedencia carrera_tentativa fondo_social" %}
+                        <div class="{% if field.name == 'colegio_de_procedencia' %}md:col-span-2{% endif %}">
+                            {% if field.name == "fondo_social" %}
+                                <!-- Campo especial: Fondo Social -->
+                                <div class="flex items-center mt-4">
+                                    {{ field }}
+                                    <label for="{{ field.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
+                                        {{ field.label }}
+                                    </label>
+                                </div>
+                                {% if field.errors %}
+                                    <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
+                                {% endif %}
+                            {% else %}
+                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                    {{ field.label }}
+                                </label>
+                                {{ field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                                {% if field.help_text %}
+                                    <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+                                {% endif %}
+                                {% if field.errors %}
+                                    <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-700 flex items-center gap-2 mb-4">
+                <i class="bi bi-telephone-fill"></i> Información de Contacto
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% for field in form.visible_fields %}
+                    {% if field.name in "celular_llamadas numero_whatsapp" %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ field.label }}
+                            </label>
+                            {{ field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm" }}
+                            {% if field.errors %}
+                                <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Fotografías -->
+        <div class="bg-white shadow-md rounded-lg p-6 border border-blue-100">
+            <h3 class="text-lg font-semibold text-blue-500 flex items-center gap-2 mb-4">
+                <i class="bi bi-camera-fill"></i> Fotografías del Alumno
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for field in form.visible_fields %}
+                    {% if field.name in "foto_previa foto_frente foto_corte" %}
+                        <div>
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ field.label }}
+                            </label>
+                            {{ field|add_class:"mt-1 block w-full text-sm border rounded-md p-2" }}
+                            {% if field.errors %}
+                                <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <script>
+            // Asegura que los inputs de foto tengan los atributos correctos
+            document.addEventListener('DOMContentLoaded', function() {
+                const fotoInputs = ['id_foto_previa', 'id_foto_frente', 'id_foto_corte'];
+                fotoInputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        input.setAttribute('accept', 'image/*');
+                        input.setAttribute('capture', 'environment');
+                    }
+                });
+            });
+        </script>
+
+        <!-- Errores globales -->
+        {% if form.non_field_errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <!-- Botones -->
+        <div class="flex justify-end space-x-3 pt-4">
+            <a href="{% url 'matriculas:alumno_list' %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+            <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow">
+                <i class="bi bi-check-circle"></i> Guardar Alumno
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

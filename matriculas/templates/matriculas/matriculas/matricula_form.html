@@ -1,0 +1,269 @@
+{% extends 'base_matriculas.html' %}
+{% load form_tags_mat %}
+{% load form_filters %}
+
+{% block title %}{% if object %}Editar{% else %}Registrar{% endif %} Matrícula{% endblock %}
+
+{% block content %}
+<div class="container mx-auto">
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- Header -->
+        <div class="bg-primary px-4 py-4 text-white">
+            <h3 class="text-xl font-bold">{% if object %}Editar{% else %}Registrar{% endif %} Matrícula</h3>
+        </div>
+        <div class="px-6 pt-0 pb-4">
+            <form method="post" enctype="multipart/form-data" novalidate class="space-y-6">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for field in form %}
+                    {% if not field.is_hidden %}
+                    <div class="space-y-2">
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+
+                        {{ field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" }}
+                        {% if field.help_text %}
+                        <p class="text-xs text-gray-500">{{ field.help_text }}</p>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                        <p class="text-sm text-red-600">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    {{ field }}
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-6">
+                    <h4 class="text-lg font-medium text-gray-800 mb-4">Configuración de Cuotas</h4>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="id_cuotas" class="block text-sm font-medium text-gray-700">
+                                Número de cuotas
+                                <span class="text-red-500">*</span>
+                            </label>
+                            {{ monto_form.cuotas }}
+                        </div>
+
+                        <div id="cuotas-container" class="space-y-3">
+                            {% for field in monto_form %}
+                                {% if 'monto_cuota_' in field.name %}
+                                    {% with cuota_num=field.name|slice:"12:" %}
+                                        {% with fecha_field_name='fecha_cuota_'|add:cuota_num %}
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <!-- Campo Monto -->
+                                                <div>
+                                                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                                        Monto Cuota {{ cuota_num }}
+                                                        <span class="text-red-500">*</span>
+                                                    </label>
+                                                    {{ field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" }}
+                                                    {% for error in field.errors %}
+                                                    <p class="text-sm text-red-600">{{ error }}</p>
+                                                    {% endfor %}
+                                                </div>
+                                                
+                                                <!-- Campo Fecha -->
+                                                <div>
+                                                    {% for fecha_field in monto_form %}
+                                                        {% if fecha_field.name == fecha_field_name %}
+                                                            <label for="{{ fecha_field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                                                Fecha Vencimiento {{ cuota_num }}
+                                                                <span class="text-red-500">*</span>
+                                                            </label>
+                                                            {{ fecha_field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" }}
+                                                            {% for error in fecha_field.errors %}
+                                                            <p class="text-sm text-red-600">{{ error }}</p>
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endwith %}
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <div class="pt-2 border-t border-gray-200">
+                            <strong class="text-gray-700">Total: </strong>
+                            <span id="total-monto" class="font-bold text-lg">0.00</span> S/
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between pt-6 border-t border-gray-200">
+                    <button type="submit"
+                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                        <i class="bi bi-save mr-2"></i>Guardar
+                    </button>
+                    <a href="{% if object %}{% url 'matriculas:matricula_detail' object.pk %}{% else %}{% url 'matriculas:matricula_list' %}{% endif %}"
+                        class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                        <i class="bi bi-x-circle mr-2"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Calcular total inicial con valores existentes
+        calcularTotal();
+        
+        // Inicializar Select2 solo si existe jQuery y el plugin
+        if (window.jQuery && $.fn.select2) {
+            const alumnoSelect = $('#id_alumno');
+            const apoderadoSelect = $('#id_apoderado');
+
+            function initSelect2(element, url) {
+                return element.select2({
+                    placeholder: `Buscar ${element.attr('id') === 'id_alumno' ? 'alumno' : 'apoderado'}...`,
+                    allowClear: true,
+                    ajax: {
+                        url: url,
+                        dataType: 'json',
+                        delay: 250,
+                        data: params => ({ q: params.term }),
+                        processResults: data => ({
+                            results: data.map(item => ({ id: item.id, text: item.nombre }))
+                        })
+                    },
+                    minimumInputLength: 2,
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
+            }
+
+            // Inicializar ambos campos select
+            const urlApoderadoPorAlumno = "{% url 'matriculas:ajax_apoderado_por_alumno' %}";
+            const urlAlumnosPorApoderado = "{% url 'matriculas:ajax_alumnos_por_apoderado' %}";
+        
+            // Inicializar ambos campos select
+            if (alumnoSelect.length) initSelect2(alumnoSelect, "{% url 'matriculas:ajax_buscar_alumnos' %}");
+            if (apoderadoSelect.length) initSelect2(apoderadoSelect, "{% url 'matriculas:ajax_buscar_apoderados' %}");
+
+
+            // Handlers de selección
+            alumnoSelect.on('select2:select', function (e) {
+                const alumnoId = e.params.data.id;
+                fetch(`${urlApoderadoPorAlumno}?alumno_id=${alumnoId}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.id) {
+                            const exists = apoderadoSelect.find(`option[value='${data.id}']`).length > 0;
+                            if (!exists) {
+                                const newOption = new Option(data.nombre, data.id, true, true);
+                                apoderadoSelect.append(newOption);
+                            }
+                            apoderadoSelect.val(data.id).trigger('change.select2');
+                        } else {
+                            apoderadoSelect.val(null).trigger('change.select2');
+                        }
+                    })
+                    .catch(err => console.error('Error al cargar apoderado:', err));
+            });
+
+            alumnoSelect.on('select2:clear', function () {
+                apoderadoSelect.val(null).trigger('change.select2');
+            });
+
+            apoderadoSelect.on('select2:select', function (e) {
+                const apoderadoId = e.params.data.id;
+                fetch(`${urlAlumnosPorApoderado}?apoderado_id=${apoderadoId}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        alumnoSelect.empty();
+                        data.alumnos.forEach(alumno => {
+                            const option = new Option(alumno.nombre, alumno.id, false, false);
+                            alumnoSelect.append(option);
+                        });
+                        alumnoSelect.trigger('change.select2');
+                    })
+                    .catch(err => console.error('Error al cargar alumnos:', err));
+            });
+
+            apoderadoSelect.on('select2:clear', function () {
+                alumnoSelect.val(null).trigger('change.select2');
+            });
+        }
+    });
+
+    function actualizarCamposCuotas() {
+        const numCuotas = parseInt(document.getElementById('id_cuotas').value) || 1;
+        const container = document.getElementById('cuotas-container');
+        
+        // Guardar valores existentes ANTES de limpiar
+        const valoresExistentes = {};
+        for (let i = 1; i <= 6; i++) {
+            const montoInput = document.querySelector(`[name="monto_cuota_${i}"]`);
+            const fechaInput = document.querySelector(`[name="fecha_cuota_${i}"]`);
+            if (montoInput) valoresExistentes[`monto_cuota_${i}`] = montoInput.value;
+            if (fechaInput) valoresExistentes[`fecha_cuota_${i}`] = fechaInput.value;
+        }
+        
+        container.innerHTML = '';
+
+        for (let i = 1; i <= numCuotas; i++) {
+            const montoName = `monto_cuota_${i}`;
+            const fechaName = `fecha_cuota_${i}`;
+
+            const initialMonto = valoresExistentes[montoName] || '';
+            const initialFecha = valoresExistentes[fechaName] || '';
+
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+
+            div.innerHTML = `
+                <div>
+                    <label for="id_${montoName}" class="block text-sm font-medium text-gray-700">
+                        Monto Cuota ${i} <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" name="${montoName}" id="id_${montoName}" 
+                        step="0.01" min="0" value="${initialMonto}"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                        oninput="calcularTotal()" required>
+                </div>
+                <div>
+                    <label for="id_${fechaName}" class="block text-sm font-medium text-gray-700">
+                        Fecha Vencimiento ${i} <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="${fechaName}" id="id_${fechaName}" 
+                        value="${initialFecha}"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                        required>
+                </div>
+            `;
+
+            container.appendChild(div);
+        }
+
+        calcularTotal();
+    }
+
+    function calcularTotal() {
+        const montos = document.querySelectorAll('[name^="monto_cuota_"]');
+        let total = 0;
+
+        montos.forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+
+        document.getElementById('total-monto').textContent = total.toFixed(2);
+    }
+</script>
+{% endblock %}

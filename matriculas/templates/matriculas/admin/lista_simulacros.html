@@ -1,0 +1,41 @@
+{% extends 'base_matriculas.html' %}
+{% block content %}
+<div class="container mx-auto p-6">
+    <div class="flex justify-between align-items-center mb-6">
+        <h2 class="text-2xl font-bold">Simulacros Programados</h2>
+        <a href="{% url 'matriculas:crear_simulacro' %}" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition">
+            <i class="bi bi-plus-lg mr-2"></i>Nuevo Simulacro
+        </a>
+    </div>
+    
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <table class="min-w-full leading-normal">
+            <thead>
+                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                    <th class="py-3 px-6 text-left">Nombre</th>
+                    <th class="py-3 px-6 text-left">Fecha</th>
+                    <th class="py-3 px-6 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="text-gray-600 text-sm font-light">
+                {% for sim in simulacros %}
+                <tr class="border-b border-gray-200 hover:bg-gray-100">
+                    <td class="py-3 px-6 text-left font-medium">{{ sim.nombre }}</td>
+                    <td class="py-3 px-6 text-left">{{ sim.fecha|date:"d/m/Y" }}</td>
+                    <td class="py-3 px-6 text-center">
+                        <a href="{% url 'matriculas:gestionar_simulacro' sim.id %}" 
+                           class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition">
+                            Gestionar Pagos
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="py-6 text-center text-gray-500">No hay simulacros creados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

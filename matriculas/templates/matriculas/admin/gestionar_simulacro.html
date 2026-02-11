@@ -1,0 +1,166 @@
+{% extends 'base_matriculas.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">{{ simulacro.nombre }}</h2>
+            <p class="text-sm text-gray-500 mt-1 flex items-center">
+                <i class="bi bi-calendar-event mr-2"></i> {{ simulacro.fecha }}
+            </p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" name="cargar_alumnos" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                <span class="mr-2">⚡</span> Cargar Alumnos del Ciclo
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200">
+            <div class="p-6 text-center group hover:bg-green-50/50 transition-colors">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Caja (Sí)</p>
+                <div class="flex flex-col items-center justify-center">
+                    <span class="text-3xl font-bold text-green-600">S/ {{ simulacro.ganancia }}</span>
+                    <div class="h-1 w-12 bg-green-500 rounded-full mt-2 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+            </div>
+            <div class="p-6 text-center group hover:bg-blue-50/50 transition-colors">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Fondo Social</p>
+                <div class="flex flex-col items-center justify-center">
+                    <span class="text-3xl font-bold text-blue-600">S/ {{ simulacro.total_fondo }}</span>
+                    <div class="h-1 w-12 bg-blue-500 rounded-full mt-2 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+            </div>
+            <div class="p-6 text-center group hover:bg-red-50/50 transition-colors">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Deuda (Deben)</p>
+                <div class="flex flex-col items-center justify-center">
+                    <span class="text-3xl font-bold text-red-600">S/ {{ simulacro.deuda }}</span>
+                    <div class="h-1 w-12 bg-red-500 rounded-full mt-2 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="bi bi-search text-gray-400"></i>
+        </div>
+        <input type="text" 
+               id="buscadorAlumnos" 
+               class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+               placeholder="Buscar por nombre o código..."
+               onkeydown="return event.key != 'Enter';"> </div>
+
+    <form method="post" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {% csrf_token %}
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="tablaAlumnos">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white-500 uppercase tracking-wider">Código</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white-500 uppercase tracking-wider">Alumno</th>
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-white-500 uppercase tracking-wider">Fondo Social</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white-500 uppercase tracking-wider w-48">Estado de Pago</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for asis in asistencias %}
+                    <tr class="hover:bg-gray-50 transition-colors fila-alumno">
+                        <td class="px-6 py-4 whitespace-nowrap text-lg font-medium text-gray-900 codigo-alumno">
+                            {{ asis.matricula.alumno.codigo}}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-lg text-gray-700 nombre-alumno">
+                            {{ asis.matricula.alumno.nombres_completos }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                            {% if asis.matricula.alumno.fondo_social %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">SÍ</span>
+                            {% else %}
+                                <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <select name="pago_{{ asis.id }}" 
+                                    class="block w-full pl-3 pr-10 py-1.5 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+                                <option value="no_dio" {% if asis.pago == 'no_dio' %}selected{% endif %}>No dió</option>
+                                <option value="si" {% if asis.pago == 'si' %}selected{% endif %}>Pagó</option>
+                                <option value="fondo" {% if asis.pago == 'fondo' %}selected{% endif %}>Fondo</option>
+                                <option value="debe" {% if asis.pago == 'debe' %}selected{% endif %}>Debe</option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                            <div class="flex flex-col items-center justify-center">
+                                <i class="bi bi-people text-4xl mb-3 text-gray-300"></i>
+                                <p>No hay alumnos cargados.</p>
+                                <p class="text-sm">Presiona el botón "Cargar Alumnos" arriba.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div id="noResultados" class="hidden px-6 py-12 text-center text-gray-500">
+                <i class="bi bi-search text-2xl mb-2 block"></i>
+                No se encontraron alumnos con ese nombre o código.
+            </div>
+        </div>
+
+        {% if asistencias %}
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+            <button type="submit" name="guardar_asistencia" 
+                    class="w-full sm:w-auto float-right inline-flex justify-center items-center px-6 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                💾 Guardar Cambios de Pago
+            </button>
+            <div class="clearfix"></div>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputBusqueda = document.getElementById('buscadorAlumnos');
+        const filas = document.querySelectorAll('.fila-alumno');
+        const mensajeNoResultados = document.getElementById('noResultados');
+
+        if(inputBusqueda) {
+            inputBusqueda.addEventListener('keyup', function(e) {
+                const termino = e.target.value.toLowerCase();
+                let hayResultados = false;
+
+                filas.forEach(fila => {
+                    // Obtenemos el texto del código y del nombre
+                    const codigo = fila.querySelector('.codigo-alumno').textContent.toLowerCase();
+                    const nombre = fila.querySelector('.nombre-alumno').textContent.toLowerCase();
+
+                    // Si coincide con alguno, mostramos la fila
+                    if (codigo.includes(termino) || nombre.includes(termino)) {
+                        fila.style.display = '';
+                        hayResultados = true;
+                    } else {
+                        fila.style.display = 'none';
+                    }
+                });
+
+                // Mostrar mensaje si no hay coincidencias
+                if (!hayResultados && filas.length > 0) {
+                    mensajeNoResultados.classList.remove('hidden');
+                } else {
+                    mensajeNoResultados.classList.add('hidden');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends 'base_matriculas.html' %}
+{% load humanize %} 
+
+{% block title %}Reporte Comercial - Devengado{% endblock %}
+
+{% block content %}
+<div class="space-y-8 animate-fade-in-down">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Reporte Comercial</h1>
+            <p class="text-gray-500 mt-1">Análisis de ventas basado en fecha de matrícula (Devengado)</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+            <a href="{% url 'matriculas:reporte_financiero_anual' %}?anio={{ anio_consulta }}" 
+               class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-md transition-colors">
+               <i class="bi bi-wallet2 mr-1"></i> Ver Caja
+            </a>
+            
+            <div class="h-6 w-px bg-gray-300 hidden sm:block"></div>
+
+            <form method="get" class="flex items-center">
+                <select name="anio" onchange="this.form.submit()" 
+                        class="bg-white border-gray-300 text-gray-700 text-sm rounded-md focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5 shadow-sm font-bold">
+                    {% for a in anios_disponibles %}
+                        <option value="{{ a }}" {% if a == anio_consulta %}selected{% endif %}>Año {{ a }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-lg shadow-indigo-200 relative overflow-hidden">
+            <div class="relative z-10">
+                <p class="text-indigo-100 text-sm font-medium uppercase tracking-wider mb-1">Venta Total Anual</p>
+                <h3 class="text-3xl font-bold">S/ {{ totales.programado|floatformat:2 }}</h3>
+                <p class="text-xs text-indigo-200 mt-2">100% de lo matriculado en {{ anio_consulta }}</p>
+            </div>
+            <i class="bi bi-graph-up absolute -bottom-4 -right-4 text-8xl text-white opacity-10 transform rotate-12"></i>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium uppercase tracking-wider mb-1">Recuperado</p>
+                    <h3 class="text-3xl font-bold text-gray-800">S/ {{ totales.pagado|floatformat:2 }}</h3>
+                </div>
+                <div class="p-3 bg-green-50 rounded-full text-green-600">
+                    <i class="bi bi-check-lg text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
+                {% widthratio totales.pagado totales.programado 100 as pct_pagado %}
+                <div class="bg-green-500 h-2 rounded-full" style="width: {{ pct_pagado }}%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2"><span class="font-bold text-green-600">{{ pct_pagado }}%</span> cobrado del total</p>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm relative overflow-hidden">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-gray-500 text-sm font-medium uppercase tracking-wider mb-1">Cartera por Cobrar</p>
+                    <h3 class="text-3xl font-bold text-gray-800">S/ {{ totales.deuda|floatformat:2 }}</h3>
+                </div>
+                <div class="p-3 bg-orange-50 rounded-full text-orange-500">
+                    <i class="bi bi-hourglass-split text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 w-full bg-gray-100 rounded-full h-2">
+                {% widthratio totales.deuda totales.programado 100 as pct_deuda %}
+                <div class="bg-orange-500 h-2 rounded-full" style="width: {{ pct_deuda }}%"></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2"><span class="font-bold text-orange-500">{{ pct_deuda }}%</span> pendiente de cobro</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+        <div class="p-5 border-b border-gray-200 bg-gray-50/50 flex justify-between items-center">
+            <h3 class="font-bold text-gray-700">Desglose Mensual</h3>
+            <span class="text-xs text-gray-500 bg-white border px-2 py-1 rounded">Cifras en Soles (S/)</span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-100 z-10 shadow-sm border-r">Concepto</th>
+                        {% for mes in tabla_mensual %}
+                            <th class="px-3 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider min-w-[110px]">{{ mes.nombre }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    
+                    <tr class="hover:bg-indigo-50/30 transition-colors group">
+                        <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white group-hover:bg-indigo-50/30 z-10 border-r border-gray-100">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-8 w-1 rounded-full bg-indigo-600 mr-3"></div>
+                                <div>
+                                    <div class="text-sm font-bold text-gray-900">Venta Nueva</div>
+                                    <div class="text-xs text-gray-400">Total Programado</div>
+                                </div>
+                            </div>
+                        </td>
+                        {% for mes in tabla_mensual %}
+                        <td class="px-2 py-4 text-center">
+                            <div class="flex flex-col items-center">
+                                <span class="text-sm font-bold text-indigo-700">
+                                    {{ mes.programado.monto|floatformat:0 }}
+                                </span>
+                                <div class="w-full bg-gray-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                                    <div class="bg-indigo-500 h-1.5 rounded-full" style="width: {{ mes.programado.pct }}%"></div>
+                                </div>
+                                <span class="text-[10px] text-gray-400 mt-1">{{ mes.programado.pct|floatformat:1 }}%</span>
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <tr class="hover:bg-green-50/30 transition-colors group">
+                        <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white group-hover:bg-green-50/30 z-10 border-r border-gray-100">
+                            <div class="flex items-center pl-4 border-l-2 border-gray-200 ml-1">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">Cobrado</div>
+                                    <div class="text-xs text-gray-400">Efectivo real</div>
+                                </div>
+                            </div>
+                        </td>
+                        {% for mes in tabla_mensual %}
+                        <td class="px-2 py-4 text-center">
+                            <span class="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                                {{ mes.pagado.monto|floatformat:0 }}
+                            </span>
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                    <tr class="hover:bg-orange-50/30 transition-colors group">
+                        <td class="px-6 py-4 whitespace-nowrap sticky left-0 bg-white group-hover:bg-orange-50/30 z-10 border-r border-gray-100">
+                            <div class="flex items-center pl-4 border-l-2 border-gray-200 ml-1">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-600">Por Cobrar</div>
+                                    <div class="text-xs text-gray-400">Saldo pendiente</div>
+                                </div>
+                            </div>
+                        </td>
+                        {% for mes in tabla_mensual %}
+                        <td class="px-2 py-4 text-center">
+                            {% if mes.deuda.monto > 0 %}
+                                <span class="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">
+                                    {{ mes.deuda.monto|floatformat:0 }}
+                                </span>
+                            {% else %}
+                                <span class="text-xs text-gray-300">-</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+
+                </tbody>
+                <tfoot class="bg-gray-50 border-t border-gray-200">
+                   <tr>
+                       <td class="px-6 py-3 font-bold text-gray-700 sticky left-0 bg-gray-50 border-r">TOTALES</td>
+                       {% for mes in tabla_mensual %}
+                           <td class="px-2 py-3 text-center text-xs font-bold text-gray-500">
+                               </td>
+                       {% endfor %}
+                   </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

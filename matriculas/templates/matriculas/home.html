@@ -1,0 +1,450 @@
+{% extends 'base_matriculas.html' %}
+
+{% block title %}Inicio | Academia Robert Hooke{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50/50">
+<div class="bg-slate-900 pb-32 pt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <div
+                class="inline-flex items-center justify-center p-3 bg-white/10 backdrop-blur-sm rounded-full mb-6 ring-1 ring-white/20">
+                <i class="bi bi-mortarboard-fill text-3xl text-blue-400"></i>
+            </div>
+            <h1 class="text-4xl font-extrabold text-white sm:text-5xl sm:tracking-tight lg:text-6xl">
+                Academia <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Robert
+                    Hooke</span>
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-400">
+                Sistema Integral de Gestión Académica
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 pb-12">
+    <div class="flex flex-wrap justify-center gap-5 mb-10">
+        <div class="w-full sm:w-[48%] lg:w-[22%] bg-white overflow-hidden shadow-lg rounded-xl border-l-4 border-blue-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-50 p-3 rounded-lg">
+                        <i class="bi bi-people-fill text-blue-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate uppercase tracking-wider">Alumnos</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-3xl font-bold text-gray-900">{{ total_alumnos }}</div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <a href="{% url 'matriculas:alumno_list' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors flex items-center justify-between group">
+                    Ver listado completo
+                    <i class="bi bi-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="w-full sm:w-[48%] lg:w-[22%] bg-white overflow-hidden shadow-lg rounded-xl border-l-4 border-emerald-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-emerald-50 p-3 rounded-lg">
+                        <i class="bi bi-journal-check text-emerald-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate uppercase tracking-wider">Activas</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-3xl font-bold text-gray-900">{{ matriculas_activas }}</div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <a href="{% url 'matriculas:matricula_list' %}" class="text-sm font-medium text-emerald-600 hover:text-emerald-800 transition-colors flex items-center justify-between group">
+                    Gestionar matrículas
+                    <i class="bi bi-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+        
+        {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+        <div class="w-full sm:w-[48%] lg:w-[22%] bg-white overflow-hidden shadow-lg rounded-xl border-l-4 border-amber-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-amber-50 p-3 rounded-lg">
+                        <i class="bi bi-cash-coin text-amber-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate uppercase tracking-wider">Ingresos Mes</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-3xl font-bold text-gray-900">S/ {{ pagos_mes|default:"0" }}</div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-5 py-3">
+                <a href="{% url 'matriculas:resumen_general_pagos' %}" class="text-sm font-medium text-amber-600 hover:text-amber-800 transition-colors flex items-center justify-between group">
+                    Ver reporte financiero
+                    <i class="bi bi-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="w-full sm:w-[48%] lg:w-[22%] bg-white overflow-hidden shadow-lg rounded-xl border-l-4 border-violet-500 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="p-5">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-violet-50 p-3 rounded-lg">
+                        <i class="bi bi-calendar-week text-violet-600 text-2xl"></i>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate uppercase tracking-wider">Ciclo Actual</dt>
+                            <dd class="flex items-baseline">
+                                <div class="text-2xl font-bold text-gray-900 truncate" title="{{ ciclo_actual }}">{{ ciclo_actual|default:"-"|truncatechars:12 }}</div>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+            <div class="bg-gray-50 px-5 py-3">
+                <a href="{% url 'matriculas:ciclo_list' %}" class="text-sm font-medium text-violet-600 hover:text-violet-800 transition-colors flex items-center justify-between group">
+                    Configurar ciclos
+                    <i class="bi bi-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="max-w-screen-2xl mx-auto grid grid-cols-1 gap-8 sm:grid-cols-2
+        {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+            lg:grid-cols-3
+        {% else %}
+            lg:grid-cols-2 xl:grid-cols-4
+        {% endif %}">
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg hover:shadow-2xl transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="bi bi-people-fill mr-2 text-blue-600"></i>Alumnos
+                    </h3>
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                        {{ total_alumnos }} matriculados
+                    </span>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'matriculas:alumno_create' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors">
+                                <i class="bi bi-plus-lg text-blue-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Nuevo Alumno</span>
+                                <span class="block text-xs text-gray-500 mt-1">Registrar nuevo estudiante</span>
+                            </div>
+                        </div>
+                        <i
+                            class="bi bi-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:alumno_list' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors">
+                                <i class="bi bi-list-ul text-blue-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Alumnos Matriculados</span>
+                                <span class="block text-xs text-gray-500 mt-1">Ver todos los matriculados</span>
+                            </div>
+                        </div>
+                        <i
+                            class="bi bi-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:alumno_total_list' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors">
+                                <i class="bi bi-list-ul text-blue-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Histórico</span>
+                                <span class="block text-xs text-gray-500 mt-1">Ver todos los alumnos</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-blue-500 transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg hover:shadow-2xl transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="bi bi-person-bounding-box mr-2 text-red-600"></i>Apoderados
+                    </h3>
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                        {{ total_apoderados }} registrados
+                    </span>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'matriculas:apoderado_create' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-red-100 p-3 rounded-lg mr-4 group-hover:bg-red-200 transition-colors">
+                                <i class="bi bi-plus-lg text-red-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Nuevo Apoderado</span>
+                                <span class="block text-xs text-gray-500 mt-1">Registrar nuevo responsable</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-red-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:apoderado_list' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-red-100 p-3 rounded-lg mr-4 group-hover:bg-red-200 transition-colors">
+                                <i class="bi bi-list-ul text-red-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Lista de Apoderados</span>
+                                <span class="block text-xs text-gray-500 mt-1">Ver todos los registros</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-red-500 transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg hover:shadow-2xl transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="bi bi-journal-text mr-2 text-green-600"></i>Matrículas
+                    </h3>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        {{ matriculas_activas }} activas
+                    </span>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'matriculas:matricula_create' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div
+                                class="bg-green-100 p-3 rounded-lg mr-4 group-hover:bg-green-200 transition-colors">
+                                <i class="bi bi-plus-lg text-green-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Nueva Matrícula</span>
+                                <span class="block text-xs text-gray-500 mt-1">Registrar nueva matrícula</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-green-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:matricula_list' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div
+                                class="bg-green-100 p-3 rounded-lg mr-4 group-hover:bg-green-200 transition-colors">
+                                <i class="bi bi-list-ul text-green-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Lista de Matrículas</span>
+                                <span class="block text-xs text-gray-500 mt-1">Ver todas las matrículas</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-green-500 transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-yellow-100/50">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <div class="bg-yellow-100/20 p-2 rounded-lg mr-3 border border-yellow-200/50">
+                            <i class="bi bi-cash-stack text-yellow-600 text-xl"></i>
+                        </div>
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 to-yellow-800">
+                            Gestión de Pagos
+                        </span>
+                    </h3>
+                    <div class="flex flex-col items-end">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100/80 text-yellow-800 backdrop-blur-sm">
+                            <i class="bi bi-exclamation-circle mr-1"></i> {{ total_cuotas_pendientes_mes }} cuotas pendientes
+                        </span>
+                        <span class="mt-1 text-sm font-semibold text-yellow-700">
+                            S/ {{ total_monto_cuotas_pendientes_mes|default:"0.00" }} por cobrar
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'matriculas:resumen_general_pagos' %}"class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-yellow-400 hover:bg-gradient-to-r from-yellow-50/50 to-white transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-100 p-3 rounded-lg mr-4 group-hover:bg-yellow-200 transition-colors shadow-sm">
+                                <i class="bi bi-bar-chart text-yellow-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Resumen Financiero</span>
+                                <span class="block text-xs text-gray-500 mt-1">Estado general de pagos y
+                                    cobranzas</span>
+                            </div>
+                        </div>
+                        <i
+                            class="bi bi-chevron-right text-gray-400 group-hover:text-yellow-600 transition-colors"></i>
+                    </a>
+
+                    <a href="{% url 'matriculas:cobranzas_vencidas' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-400 hover:bg-gradient-to-r from-green-50/50 to-white transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-green-100 p-3 rounded-lg mr-4 group-hover:bg-green-200 transition-colors shadow-sm">
+                                <i class="bi bi-whatsapp text-green-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Cobranzas WhatsApp</span>
+                                <span class="block text-xs text-gray-500 mt-1">Enviar recordatorios de pago</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full mr-2">
+                                {{ total_cuotas_pendientes_mes }} pendientes
+                            </span>
+                            <i  class="bi bi-chevron-right text-gray-400 group-hover:text-green-600 transition-colors"></i>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'matriculas:reporte_financiero_anual' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-gradient-to-r from-blue-50/50 to-white transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors shadow-sm">
+                                <i class="bi bi-file-earmark-pdf text-blue-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Reporte Monteratio Anual</span>
+                                <span class="block text-xs text-gray-500 mt-1">Generar reporte mensual en PDF</span>
+                            </div>
+                        </div>
+                        <i
+                            class="bi bi-chevron-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:reporte_devengado' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-gradient-to-r from-blue-50/50 to-white transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors shadow-sm">
+                                <i class="bi bi-file-earmark-pdf text-blue-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Reporte Monetario Devengado</span>
+                                <span class="block text-xs text-gray-500 mt-1">Generar reporte financiero</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-blue-600 transition-colors"></i>
+                    </a>                        
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg hover:shadow-2xl transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="bi bi-gear mr-2 text-purple-600"></i>Configuración
+                    </h3>
+                    <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+                        Administración
+                    </span>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'matriculas:ciclo_list' %}"
+                        class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div
+                                class="bg-purple-100 p-3 rounded-lg mr-4 group-hover:bg-purple-200 transition-colors">
+                                <i class="bi bi-book text-purple-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Gestionar Ciclos</span>
+                                <span class="block text-xs text-gray-500 mt-1">Configurar periodos académicos</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-purple-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:turno_list' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-purple-100 p-3 rounded-lg mr-4 group-hover:bg-purple-200 transition-colors">
+                                <i class="bi bi-clock text-purple-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Gestionar Turnos</span>
+                                <span class="block text-xs text-gray-500 mt-1">Configurar horarios</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-purple-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:horario_list' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-purple-100 p-3 rounded-lg mr-4 group-hover:bg-purple-200 transition-colors">
+                                <i class="bi bi-calendar-event text-purple-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Gestionar Horarios</span>
+                                <span class="block text-xs text-gray-500 mt-1">Configurar disponibilidad</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-purple-500 transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white overflow-hidden shadow-xl rounded-lg hover:shadow-2xl transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                        <i class="bi bi-shield-lock mr-2 text-indigo-600"></i>Administración
+                    </h3>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                        Sistema
+                    </span>
+                </div>
+                <div class="mt-6 space-y-3">
+                    <a href="{% url 'admin:index' %}" target="_blank" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-100 p-3 rounded-lg mr-4 group-hover:bg-indigo-200 transition-colors">
+                                <i class="bi bi-shield-lock text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Panel de Administración</span>
+                                <span class="block text-xs text-gray-500 mt-1">Acceso completo al sistema</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-box-arrow-up-right text-gray-400 group-hover:text-indigo-500 transition-colors"></i>
+                    </a>
+                    <a href="{% url 'matriculas:editar_mensaje_whatsapp' %}" class="group flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200">
+                        <div class="flex items-center">
+                            <div class="bg-green-100 p-3 rounded-lg mr-4 group-hover:bg-green-200 transition-colors">
+                                <i class="bi bi-whatsapp text-green-600"></i>
+                            </div>
+                            <div>
+                                <span class="block font-medium text-gray-700">Mensajes de Cobranza</span>
+                                <span class="block text-xs text-gray-500 mt-1">Personalizar plantillas</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-gray-400 group-hover:text-green-500 transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

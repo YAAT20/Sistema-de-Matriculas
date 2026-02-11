@@ -1,0 +1,192 @@
+{% extends 'base_matriculas.html' %}
+
+{% block title %}Lista de Apoderados{% endblock %}
+
+{% block content %}
+
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-6 px-4">
+        <h1 class="text-3xl font-bold text-gray-900">Lista de Apoderados</h1>
+        
+        <div class="flex gap-2">
+            {% if user.is_authenticated and user.perfil.tipo == 'admin' %}             
+            <a href="{% url 'matriculas:exportar_apoderados_excel' %}?search={{ request.GET.search|default:'' }}"
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 shadow-sm transition-all duration-200 hover:shadow-md">
+                <i class="fa-solid fa-file-excel text-lg"></i>
+                Excel
+            </a>
+            {% endif %}
+            <a href="{% url 'matriculas:apoderado_create' %}"
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 shadow-sm transition-all duration-200 hover:shadow-md">
+                <i class="fa-solid fa-plus text-lg"></i>
+                Nuevo Apoderado
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="mb-4 px-4">
+        <div class="flex rounded-md shadow-sm">
+            <input type="text" name="search" placeholder="Buscar por nombre, DNI o código"
+                value="{{ request.GET.search }}"
+                class="flex-1 px-4 py-2 border border-gray-300 rounded-l-md focus:ring-indigo-500 focus:border-indigo-500">
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition">
+                <i class="fa-solid fa-magnifying-glass mr-2"></i> Buscar
+            </button>
+        </div>
+    </form>
+
+    <div class="hidden lg:block bg-white rounded-lg shadow-md overflow-hidden px-1 py-1 border border-gray-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-800">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Código</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Nombre</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">DNI</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Celular</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Parentesco</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Alumnos</th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-white uppercase tracking-wider">Gestión</th>
+                    </tr>
+                </thead>
+
+                <tbody class="bg-white divide-y divide-gray-200 text-base text-gray-800">
+                    {% for apoderado in apoderados %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-3 font-semibold">{{ apoderado.codigo }}</td>
+                        <td class="px-4 py-3">{{ apoderado.nombre_completo }}</td>
+                        <td class="px-4 py-3">{{ apoderado.dni }}</td>
+                        <td class="px-4 py-3">{{ apoderado.celular }}</td>
+                        <td class="px-4 py-3">{{ apoderado.parentesco }}</td>
+
+                        <td class="px-4 py-3">
+                            {% for alumno in apoderado.alumnos.all %}
+                            <span class="inline-flex px-2.5 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800 mr-1 mb-1">
+                                {{ alumno.nombres_completos }}
+                            </span>
+                            {% empty %}
+                            <span class="italic text-gray-400 text-sm">Sin alumnos</span>
+                            {% endfor %}
+                        </td>
+
+                        <td class="px-4 py-3 text-center min-w-[120px]">
+                            <div class="flex justify-center gap-2">
+                                <a href="{% url 'matriculas:apoderado_detail' apoderado.pk %}" 
+                                class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Ver detalles">
+                                    <i class="fa-solid fa-eye text-xl"></i>
+                                </a>
+                                {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+                                <a href="{% url 'matriculas:apoderado_update' apoderado.pk %}" 
+                                class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Editar">
+                                    <i class="fa-solid fa-pen-to-square text-xl"></i>
+                                </a>
+
+                                <button data-id="{{ apoderado.id }}" data-nombre="{{ apoderado.nombre_completo }}"
+                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors btn-delete-apoderado" title="Eliminar">
+                                    <i class="fa-solid fa-trash text-xl"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                            <p class="text-lg font-medium">No hay apoderados registrados</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="block lg:hidden space-y-4 px-4">
+        {% for apoderado in apoderados %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+            <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4">
+                <div class="col-span-1 sm:col-span-2 flex justify-between items-center border-b pb-2 mb-2">
+                     <h3 class="font-bold text-gray-900">{{ apoderado.nombre_completo }}</h3>
+                     <span class="text-xs font-mono bg-gray-100 px-2 py-1 rounded">{{ apoderado.codigo }}</span>
+                </div>
+                <div>
+                    <span class="block text-xs font-medium text-gray-500 uppercase">DNI</span>
+                    <span class="text-base text-gray-800">{{ apoderado.dni }}</span>
+                </div>
+                <div>
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Celular</span>
+                    <span class="text-base text-gray-800">{{ apoderado.celular|default:"-" }}</span>
+                </div>
+                <div class="sm:col-span-2">
+                    <span class="block text-xs font-medium text-gray-500 uppercase">Parentesco</span>
+                    <span class="text-base text-gray-800">{{ apoderado.parentesco }}</span>
+                </div>
+
+                <div class="sm:col-span-2 mt-2">
+                    <span class="block text-xs font-medium text-gray-500 uppercase mb-2">Alumnos</span>
+                    <div class="flex flex-wrap gap-2">
+                        {% for alumno in apoderado.alumnos.all %}
+                        <span class="inline-flex px-2.5 py-1 text-sm font-medium rounded-full bg-blue-100 text-blue-800">
+                            {{ alumno.nombres_completos }}
+                        </span>
+                        {% empty %}
+                        <span class="italic text-gray-400 text-sm">Sin alumnos</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-gray-50 border-t border-gray-200">
+                <div class="flex justify-end gap-2">
+                    <a href="{% url 'matriculas:apoderado_detail' apoderado.pk %}" 
+                    class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors" title="Ver detalles">
+                        <i class="fa-solid fa-eye text-xl"></i>
+                    </a>
+                    {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+                    <a href="{% url 'matriculas:apoderado_update' apoderado.pk %}" 
+                    class="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors" title="Editar">
+                        <i class="fa-solid fa-pen-to-square text-xl"></i>
+                    </a>
+
+                    <button data-id="{{ apoderado.id }}" data-nombre="{{ apoderado.nombre_completo }}"
+                    class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors btn-delete-apoderado" title="Eliminar">
+                        <i class="fa-solid fa-trash text-xl"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="bg-white rounded-lg shadow-md p-12 text-center text-gray-500">
+            <p class="text-lg font-medium">No hay apoderados registrados</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <div class="mt-6 flex justify-center flex-wrap gap-2 pb-8"> 
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+            class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Anterior</a>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+        <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-3 py-1 rounded 
+            {% if page_obj.number == num %}
+                bg-indigo-600 text-white
+            {% else %}
+                bg-gray-200 text-gray-800
+            {% endif %}
+            hover:bg-indigo-500 hover:text-white">
+            {{ num }}
+        </a>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+            class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Siguiente</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+{% endblock %}

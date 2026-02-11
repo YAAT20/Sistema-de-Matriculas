@@ -1,0 +1,14 @@
+venv/
+.env
+
+db.sqlite3
+
+pycache__/
+*.pyc
+
+staticfiles/
+media/
+
+*.log
+
+docker-compose.override.yml

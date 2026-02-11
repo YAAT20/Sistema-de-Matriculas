@@ -1,0 +1,59 @@
+{% extends 'base_matriculas.html' %}
+{% load form_tags_mat %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-12 px-6">
+    <div class="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-5">
+            <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                <i class="bi bi-person-plus-fill text-white text-lg"></i>
+                Registrar nuevo usuario
+            </h2>
+        </div>
+
+        <!-- Mensaje de cuenta creada -->
+        {% if password_inicial %}
+        <div class="px-6 pt-6">
+            <div class="mb-4 px-4 py-3 rounded-md text-sm font-medium bg-green-100 text-green-800">
+                <strong>Usuario creado correctamente.</strong><br>
+                <strong>Usuario:</strong> {{ username }}<br>
+                <strong>Contraseña inicial:</strong> <span class="text-red-600">{{ password_inicial }}</span><br>
+                <small class="text-gray-600">Por seguridad, esta contraseña solo se mostrará una vez.</small>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Formulario -->
+        <div class="px-6 pb-8">
+            <form method="post" class="space-y-6" novalidate>
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-1">
+                            {{ field.label }}
+                        </label>
+                        {{ field|add_class:"w-full px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm" }}
+                        {% if field.errors %}
+                            <p class="text-sm text-red-500 mt-1">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <!-- Botones -->
+                <div class="flex justify-end items-center pt-4 space-x-2">
+                    <a href="{% url 'matriculas:home' %}"
+                       class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-all text-sm">
+                        Cancelar
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium shadow transition-all">
+                        <i class="bi bi-person-check-fill mr-2"></i> Registrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

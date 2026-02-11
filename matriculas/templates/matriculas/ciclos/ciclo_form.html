@@ -1,0 +1,128 @@
+{% extends 'base_matriculas.html' %}
+{% load form_tags_mat %}
+
+{% block title %}{% if object %}Editar{% else %}Registrar{% endif %} Ciclo{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-8 bg-white shadow rounded-lg overflow-hidden">
+    <div class="bg-blue-600 px-6 py-4">
+        <h2 class="text-white text-xl font-semibold">{% if object %}Editar{% else %}Registrar{% endif %} Ciclo</h2>
+    </div>
+    <div class="p-6">
+        <form method="post" class="space-y-6" novalidate>
+            {% csrf_token %}
+
+            <!-- Campo Nombre -->
+            <div>
+                <label for="{{ form.nombre.id_for_label }}" class="block text-sm font-medium text-gray-700">Nombre del Ciclo*</label>
+                {{ form.nombre|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                {% for error in form.nombre.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Fechas -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="{{ form.fecha_inicio.id_for_label }}" class="block text-sm font-medium text-gray-700">Fecha de Inicio*</label>
+                    {{ form.fecha_inicio|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                    {% for error in form.fecha_inicio.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                <div>
+                    <label for="{{ form.fecha_fin.id_for_label }}" class="block text-sm font-medium text-gray-700">Fecha de Fin*</label>
+                    {{ form.fecha_fin|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
+                    {% for error in form.fecha_fin.errors %}
+                        <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Turnos -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Turnos Disponibles*</label>
+                <div class="border border-gray-300 rounded-md p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        {% for turno in form.turnos %}
+                            <div class="flex items-center space-x-2">
+                                {{ turno.tag|safe }}
+                                <label for="{{ turno.id_for_label }}" class="text-gray-700">{{ turno.choice_label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% for error in form.turnos.errors %}
+                    <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Campo Activo -->
+            <div class="flex items-center">
+                {{ form.activo }}
+                <label for="{{ form.activo.id_for_label }}" class="ml-2 text-sm text-gray-700">Ciclo Activo</label>
+                {% for error in form.activo.errors %}
+                    <p class="text-sm text-red-600 ml-2">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Errores no asociados -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Botones -->
+            <div class="flex justify-between items-center mt-6">
+                <a href="{% url 'matriculas:ciclo_list' %}" class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
+                    ← Cancelar
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded shadow">
+                    {% if object %}Actualizar{% else %}Registrar{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-control, .form-select {
+        border-radius: 0.375rem;
+    }
+    .form-check-input {
+        margin-top: 0.2em;
+    }
+    .invalid-feedback {
+        font-size: 0.875em;
+    }
+    .border {
+        border: 1px solid #dee2e6!important;
+    }
+</style>
+
+<script>
+    // Validación del lado del cliente
+    (function() {
+        'use strict'
+        
+        // Seleccionar todos los formularios con clase needs-validation
+        var forms = document.querySelectorAll('.needs-validation')
+        
+        // Validar al enviar
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+</script>
+{% endblock %}

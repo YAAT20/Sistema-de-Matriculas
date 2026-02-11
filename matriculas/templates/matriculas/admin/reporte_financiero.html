@@ -1,0 +1,137 @@
+{% extends 'base_matriculas.html' %}
+{% load humanize %} 
+
+{% block title %}Reporte Financiero Anual{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Reporte Financiero Anual</h2>
+            <p class="text-sm text-gray-500">Distribución porcentual de ingresos y deuda por mes</p>
+        </div>
+        
+        <form method="get" class="mt-4 sm:mt-0 flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Año:</label>
+            <select name="anio" onchange="this.form.submit()" class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 py-2 pl-3 pr-10 text-base">
+                {% for a in anios_disponibles %}
+                    <option value="{{ a }}" {% if a == anio_consulta %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-300">
+                <thead>
+                    <tr class="bg-gray-800 text-white">
+                        <th class="py-4 px-4 text-left text-sm font-semibold uppercase tracking-wider w-32 sticky left-0 bg-gray-800 z-10">Concepto</th>
+                        {% for mes in tabla_mensual %}
+                            <th class="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider min-w-[100px]">{{ mes.nombre }}</th>
+                        {% endfor %}
+                        <th class="px-4 py-3 text-right text-sm font-bold uppercase tracking-wider bg-gray-900 w-40">TOTAL ANUAL</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4 text-sm font-bold text-gray-900 sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <div class="flex items-center">
+                                <span class="w-2 h-8 bg-green-500 rounded mr-2"></span>
+                                Ingresos (Pagado)
+                            </div>
+                        </td>
+                        {% for mes in tabla_mensual %}
+                        <td class="px-2 py-3 text-center relative group">
+                            <div class="absolute bottom-0 left-0 h-1 bg-green-500/30 transition-all duration-500" style="width: {{ mes.pagado.pct }}%"></div>
+                            
+                            <div class="flex flex-col items-center justify-center">
+                                <span class="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full mb-1">
+                                    {{ mes.pagado.pct|floatformat:1 }}%
+                                </span>
+                                <span class="text-sm font-medium text-gray-600">
+                                    {{ mes.pagado.monto|floatformat:0 }} </span>
+                            </div>
+                            
+                            <div class="hidden group-hover:block absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap">
+                                S/ {{ mes.pagado.monto|floatformat:2 }}
+                            </div>
+                        </td>
+                        {% endfor %}
+                        <td class="px-4 py-3 text-right bg-gray-50">
+                            <div class="flex flex-col items-end">
+                                <span class="text-xs font-bold text-gray-500">100%</span>
+                                <span class="text-base font-bold text-green-700">S/ {{ totales.pagado|floatformat:2 }}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-4 px-4 text-sm font-bold text-gray-900 sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <div class="flex items-center">
+                                <span class="w-2 h-8 bg-red-500 rounded mr-2"></span>
+                                Por Cobrar (Deuda)
+                            </div>
+                        </td>
+                        {% for mes in tabla_mensual %}
+                        <td class="px-2 py-3 text-center relative group">
+                            <div class="absolute bottom-0 left-0 h-1 bg-red-500/30 transition-all duration-500" style="width: {{ mes.deuda.pct }}%"></div>
+                            
+                            <div class="flex flex-col items-center justify-center">
+                                <span class="text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full mb-1">
+                                    {{ mes.deuda.pct|floatformat:1 }}%
+                                </span>
+                                <span class="text-sm font-medium text-gray-600">
+                                    {{ mes.deuda.monto|floatformat:0 }}
+                                </span>
+                            </div>
+                            <div class="hidden group-hover:block absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap">
+                                S/ {{ mes.deuda.monto|floatformat:2 }}
+                            </div>
+                        </td>
+                        {% endfor %}
+                        <td class="px-4 py-3 text-right bg-gray-50">
+                            <div class="flex flex-col items-end">
+                                <span class="text-xs font-bold text-gray-500">100%</span>
+                                <span class="text-base font-bold text-red-700">S/ {{ totales.deuda|floatformat:2 }}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr class="bg-blue-50/50 hover:bg-blue-50 transition-colors border-t-2 border-gray-300">
+                        <td class="py-4 px-4 text-sm font-bold text-gray-900 sticky left-0 bg-blue-50/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <div class="flex items-center">
+                                <span class="w-2 h-8 bg-blue-600 rounded mr-2"></span>
+                                Total Esperado
+                            </div>
+                        </td>
+                        {% for mes in tabla_mensual %}
+                        <td class="px-2 py-3 text-center relative group">
+                            <div class="flex flex-col items-center justify-center">
+                                <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full mb-1">
+                                    {{ mes.programado.pct|floatformat:1 }}%
+                                </span>
+                                <span class="text-sm font-bold text-gray-800">
+                                    {{ mes.programado.monto|floatformat:0 }}
+                                </span>
+                            </div>
+                             <div class="hidden group-hover:block absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap">
+                                S/ {{ mes.programado.monto|floatformat:2 }}
+                            </div>
+                        </td>
+                        {% endfor %}
+                        <td class="px-4 py-3 text-right bg-blue-100">
+                            <div class="flex flex-col items-end">
+                                <span class="text-xs font-bold text-gray-500">100%</span>
+                                <span class="text-lg font-extrabold text-blue-800">S/ {{ totales.programado|floatformat:2 }}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

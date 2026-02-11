@@ -1,0 +1,85 @@
+{% extends 'base_matriculas.html' %}
+
+{% block title %}Detalle del Apoderado{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 px-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+
+        <!-- Encabezado -->
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-600 px-6 py-5 flex justify-between items-center flex-wrap gap-2">
+            <h2 class="text-white text-2xl font-bold flex items-center gap-2">
+                <i class="bi bi-person-circle text-white text-3xl"></i>
+                Detalle del Apoderado
+            </h2>
+            <span class="bg-white/90 text-gray-800 text-sm font-semibold px-3 py-1 rounded-lg shadow-sm">
+                {{ apoderado.nombre_completo }}
+            </span>
+        </div>
+
+        <!-- Contenido -->
+        <div class="p-6 space-y-6">
+
+            <!-- Información general -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-xl shadow-sm p-5 hover:shadow-md transition-shadow">
+                    <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2">
+                        <i class="bi bi-person-badge text-blue-600 text-lg"></i>
+                        Información General
+                    </h5>
+                    <div class="space-y-1 text-gray-700">
+                        <p><span class="font-medium">DNI:</span> {{ apoderado.dni }}</p>
+                        <p><span class="font-medium">Celular:</span> {{ apoderado.celular }}</p>
+                        <p><span class="font-medium">Parentesco:</span> {{ apoderado.parentesco }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl shadow-sm p-5 hover:shadow-md transition-shadow">
+                    <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2">
+                        <i class="bi bi-geo-alt text-indigo-600 text-lg"></i>
+                        Dirección & Registro
+                    </h5>
+                    <div class="space-y-1 text-gray-700">
+                        <p><span class="font-medium">Dirección:</span></p>
+                        <p class="text-gray-600">{{ apoderado.direccion|default:"—" }}</p>
+                        <p><span class="font-medium">Fecha de registro:</span> {{ apoderado.fecha_registro|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de alumnos -->
+            {% if apoderado.alumnos.exists %}
+            <div class="bg-gray-50 rounded-xl shadow-sm p-5 hover:shadow-md transition-shadow">
+                <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2">
+                    <i class="bi bi-people-fill text-green-600 text-lg"></i>
+                    Apoderado de
+                </h5>
+
+                <ul class="divide-y divide-gray-200">
+                    {% for alumno in apoderado.alumnos.all %}
+                    <li class="py-2 flex items-center justify-between hover:bg-gray-100 px-2 rounded transition">
+                        <div class="flex items-center gap-2 text-gray-800">
+                            <i class="bi bi-person-fill text-blue-600"></i>
+                            <a href="{% url 'matriculas:alumno_detail' alumno.pk %}" class="text-blue-700 font-medium hover:underline">
+                                {{ alumno.nombres_completos }}
+                            </a>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Botón de volver -->
+            <div class="flex justify-end mt-8">
+                <a href="{% url 'matriculas:apoderado_list' %}"
+                   class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-5 py-2 rounded-lg shadow transition">
+                    <i class="bi bi-arrow-left-short text-lg"></i>
+                    Volver a la lista
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

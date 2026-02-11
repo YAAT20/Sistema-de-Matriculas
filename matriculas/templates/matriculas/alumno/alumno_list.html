@@ -1,0 +1,230 @@
+{% extends 'base_matriculas.html' %}
+
+{% block title %}Lista de Alumnos{% endblock %}
+
+{% block content %}
+
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6 px-4">
+    <h1 class="text-3xl font-bold text-gray-900">Lista de Alumnos</h1>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'matriculas:alumno_create' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 shadow-sm transition-all duration-200 hover:shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Nuevo Alumno
+        </a>
+        {% if user.is_authenticated and user.perfil.tipo == 'admin' %} 
+        <a href="{% url 'matriculas:exportar_alumnos_excel' %}{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}{% if request.GET.search %}&{% else %}?{% endif %}grado={{ request.GET.grado }}{% endif %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 shadow-sm transition-all duration-200 hover:shadow-md">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+            Exportar a Excel
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<form method="get" class="mb-4 px-4">
+    <div class="flex flex-col sm:flex-row gap-2">
+        <input type="text" name="search" class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Buscar por nombre, DNI o código" value="{{ request.GET.search }}">
+        <button type="submit" class="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors duration-200 shadow-sm hover:shadow-md">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span>Buscar</span>
+        </button>
+
+        {% if request.GET.search %}
+        <a href="{% url 'matriculas:alumno_list' %}" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+            <i class="fa-solid fa-xmark"></i>
+            <span>Limpiar</span>
+        </a>
+        {% endif %}
+    </div>
+</form>
+
+<div class="flex flex-wrap gap-2 mb-4 px-4">
+    {% for valor, nombre in grado_opciones %}
+        <a href="?grado={{ valor }}{% if request.GET.search %} & search={{ request.GET.search }}{% endif %}" class="px-3 py-1.5 rounded-full text-sm font-medium border
+                {% if request.GET.grado == valor %}
+                    bg-indigo-600 text-white border-indigo-600
+                {% else %}
+                    bg-white text-gray-700 border-gray-300 hover:bg-gray-100
+                {% endif %}">
+        {{ nombre }}
+        </a>
+    {% endfor %}
+    {% if request.GET.grado %}
+        <a href="?{% if request.GET.search %}search={{ request.GET.search }}{% endif %}" class="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">
+        Todos
+        </a>
+    {% endif %}
+</div>
+
+<!-- Tabla escritorio -->
+<div class="hidden lg:block bg-white rounded-lg shadow-md overflow-hidden px-1 py-1 border border-gray-200 ">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-800">
+                <tr>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Código</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Nombre Completo</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">DNI</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Grado</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Celular</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Estado</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold text-white uppercase tracking-wider">Gestión</th>
+                </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-gray-200 text-base text-gray-800">
+                {% for alumno in alumnos %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-semibold">{{ alumno.codigo }}</td>
+                    <td class="px-4 py-3">{{ alumno.nombres_completos }}</td>
+                    <td class="px-4 py-3">{{ alumno.dni }}</td>
+                    <td class="px-4 py-3">{{ alumno.get_grado_estudios_display }}</td>
+                    <td class="px-4 py-3">{{ alumno.celular_llamadas|default:"-" }}</td>
+
+                    <td class="px-4 py-3">
+                        <span class="inline-flex px-2.5 py-1 text-sm font-medium rounded-full
+                            {% if alumno.activo %} bg-green-100 text-green-800
+                            {% else %} bg-red-100 text-red-800 {% endif %}">
+                            {{ alumno.activo|yesno:"Activo,Inactivo" }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-center min-w-[120px]">
+                        <div class="flex justify-center gap-2">
+                            <a href="{% url 'matriculas:alumno_detail' alumno.pk %}" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver detalles">
+                                <i class="fa-solid fa-eye fa-lg"></i>
+                            </a>
+                            {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+                            <a href="{% url 'matriculas:alumno_update' alumno.pk %}" class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
+                                <i class="fa-solid fa-pen-to-square fa-lg"></i>
+                            </a>
+                            <button data-id="{{ alumno.id }}" data-nombre="{{ alumno.nombres_completos }}"  class="p-2 text-red-600 hover:bg-red-50 rounded-lg btn-delete-alumno" title="Eliminar">
+                                <i class="fa-solid fa-trash fa-lg"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-4 py-12 text-center text-gray-500">
+                        <p class="text-lg font-medium">No hay alumnos registrados</p>
+                        {% if request.GET.search %}
+                        <p class="text-sm text-gray-400">Intenta con otros términos de búsqueda</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Vista móvil -->
+<div class="block lg:hidden px-4">
+    <div class="grid grid-cols-2 gap-2">
+        {% for alumno in alumnos %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 relative" x-data="{ open: false }">
+            <div class="p-2">
+                <div class="mb-2">
+                    <!-- Fila superior: código, estado, menú -->
+                    <div class="flex items-center justify-between gap-1 mb-1">
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs font-mono text-gray-500 truncate">{{ alumno.codigo }}</span>
+                            <span class="flex-shrink-0 px-1.5 py-0.5 text-[10px] font-medium rounded-full
+                                {% if alumno.activo %} bg-green-100 text-green-700
+                                {% else %} bg-red-100 text-red-700 {% endif %}">
+                                {{ alumno.activo|yesno:"ACTIVO,INACTIVO" }}
+                            </span>
+                        </div>
+
+                        <!-- Botón menú -->
+                        <button @click="open = !open" class="relative z-20 p-1 rounded-full hover:bg-gray-100">
+                            <i class="fa-solid fa-ellipsis-vertical text-gray-600 text-sm"></i>
+                        </button>
+
+                        <!-- Menú flotante -->
+                        <div x-show="open" x-cloak @click.outside="open = false" x-transition class="absolute right-2 top-6 bg-white border border-gray-200 rounded-lg shadow-md z-30 w-28 py-1 text-sm">
+                            <a href="{% url 'matriculas:alumno_detail' alumno.pk %}" class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 text-blue-600">
+                                <i class="fa-solid fa-eye text-xs"></i> Ver
+                            </a>
+                            {% if user.is_authenticated and user.perfil.tipo == 'admin' %} 
+                            <a href="{% url 'matriculas:alumno_update' alumno.pk %}" class="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 text-amber-600">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i> Editar
+                            </a>
+                            <button data-id="{{ alumno.id }}" data-nombre="{{ alumno.nombres_completos }}" class="flex items-center gap-2 px-3 py-1.5 w-full text-left hover:bg-gray-50 text-red-600 btn-delete-alumno">
+                                <i class="fa-solid fa-trash text-xs"></i> Eliminar
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Nombre del alumno -->
+                    <a href="{% url 'matriculas:alumno_detail' alumno.pk %}" class="text-sm font-semibold text-indigo-700 leading-tight line-clamp-2 hover:text-indigo-900 hover:underline cursor-pointer block">
+                        {{ alumno.nombres_completos }}
+                    </a>
+                </div>
+
+                <!-- Datos secundarios -->
+                <div class="space-y-1 text-sm text-gray-700">
+                    <div class="flex items-center gap-1">
+                        <i class="fa-solid fa-id-card fa-fw text-gray-400 text-xs"></i>
+                        <span class="truncate">{{ alumno.dni }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <i class="fa-solid fa-graduation-cap fa-fw text-gray-400 text-xs"></i>
+                        <span class="truncate">{{ alumno.get_grado_estudios_display }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <i class="fa-solid fa-phone fa-fw text-gray-400 text-xs"></i>
+                        <span class="truncate">{{ alumno.celular_llamadas|default:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not alumnos %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <i class="fa-solid fa-users text-3xl text-gray-300 mb-2"></i>
+        <p class="text-base font-medium text-gray-600">No hay alumnos registrados</p>
+        {% if request.GET.search %}
+        <p class="text-sm text-gray-400 mt-1">Intenta con otros términos de búsqueda</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Paginación -->
+{% if is_paginated %}
+<div class="mt-6 flex justify-center">
+    <nav class="inline-flex rounded-md shadow-sm isolate" aria-label="Pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+            Anterior
+        </a>
+        {% endif %}
+
+        {% for num in paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 border border-indigo-600">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+            Siguiente
+        </a>
+        {% endif %}
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}

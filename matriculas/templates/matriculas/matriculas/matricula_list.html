@@ -1,0 +1,377 @@
+{% extends 'base_matriculas.html' %}
+
+{% block title %}Lista de Matrículas{% endblock %}
+
+{% block content %}
+<!-- Encabezado -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 px-4">
+    <h1 class="text-3xl font-bold text-gray-900">Matrículas</h1>
+    <a href="{% url 'matriculas:matricula_create' %}" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 shadow-sm hover:shadow-md transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <span>Nueva matrícula</span>
+    </a>
+</div>
+
+<!-- Buscador -->
+<div class="mb-6 px-4">
+    <form method="get" class="relative">
+        <div class="flex flex-col sm:flex-row gap-2">
+
+            <!-- Input búsqueda -->
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                </span>
+                <input type="text"
+                    name="search"
+                    placeholder="Buscar por alumno, código o apoderado..."
+                    value="{{ request.GET.search }}"
+                    class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            </div>
+
+            <!-- Botón buscar -->
+            <button type="submit"
+                    class="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg 
+                            hover:bg-indigo-700 transition-colors duration-200 shadow-sm hover:shadow-md">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Buscar</span>
+            </button>
+
+            <!-- Botón limpiar -->
+            {% if request.GET.search %}
+            <a href="{% url 'matriculas:matricula_list' %}"
+                class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg 
+                        hover:bg-gray-200 transition-colors duration-200">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Limpiar</span>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+
+    <div class="mb-6 px-4 py-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            
+            <div class="flex flex-col gap-2">
+                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Grado:</span>
+                <div class="flex flex-wrap gap-2">
+                    
+                    <a href="?{% if request.GET.search %}search={{ request.GET.search }}{% endif %}{% if request.GET.fondo %}&fondo={{ request.GET.fondo }}{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if not request.GET.grado %}
+                        bg-gray-800 text-white border-gray-800
+                    {% else %}
+                        bg-white text-gray-600 border-gray-300 hover:bg-gray-50
+                    {% endif %}">
+                    Todos
+                    </a>
+
+                    {% with current_search=request.GET.search current_fondo=request.GET.fondo %}
+                    
+                    <a href="?grado=5p{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '5p' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    5° Primaria
+                    </a>
+                    <a href="?grado=6p{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '6p' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    6° Primaria
+                    </a>
+
+                    <a href="?grado=1s{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '1s' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    1° Secundaria
+                    </a>
+                    <a href="?grado=2s{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '2s' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    2° Secundaria
+                    </a>
+                    <a href="?grado=3s{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '3s' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    3° Secundaria
+                    </a>
+                    <a href="?grado=4s{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '4s' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    4° Secundaria
+                    </a>
+                    <a href="?grado=5s{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == '5s' %} bg-indigo-600 text-white border-indigo-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-indigo-50 {% endif %}">
+                    5° Secundaria
+                    </a>
+
+                    <a href="?grado=pre{% if current_search %}&search={{ current_search }}{% endif %}{% if current_fondo == 'true' %}&fondo=true{% endif %}"
+                    class="px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm
+                    {% if request.GET.grado == 'pre' %} bg-teal-600 text-white border-teal-600 {% else %} bg-white text-gray-600 border-gray-300 hover:bg-teal-50 {% endif %}">
+                    Pre-Universitario
+                    </a>
+
+                    {% endwith %}
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Especial:</span>
+                
+                <a href="?{% if request.GET.fondo == 'true' %}{% else %}fondo=true&{% endif %}{% if request.GET.grado %}grado={{ request.GET.grado }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}{% endif %}"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all shadow-sm whitespace-nowrap
+                {% if request.GET.fondo == 'true' %} 
+                    bg-amber-600 text-white border-amber-600 ring-2 ring-amber-300 ring-offset-1
+                {% else %} 
+                    bg-white text-gray-600 border-gray-300 hover:bg-amber-50 hover:text-amber-700 
+                {% endif %}">
+                <i class="fa-solid fa-hand-holding-heart"></i> 
+                Fondo Social
+                {% if request.GET.fondo == 'true' %}
+                <i class="fa-solid fa-check ml-1 text-xs"></i>
+                {% endif %}
+                </a>
+                
+                <a href="?" class="text-xs text-gray-400 hover:text-red-500 text-center mt-1 underline">
+                    Limpiar todo
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>  
+
+</div>
+
+<!-- Vista de escritorio -->
+<div class="hidden lg:block bg-white rounded-lg shadow-md overflow-hidden px-1 py-1 border border-gray-200">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-800">
+                <tr>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-white uppercase tracking-wider">Código</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-white uppercase tracking-wider">Alumno</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-white uppercase tracking-wider">Apoderado</th>
+                    <th class="px-3 py-2 text-left text-sm font-semibold text-white uppercase tracking-wider">Turno</th>
+                    <th class="px-3 py-2 text-center text-sm font-semibold text-white uppercase tracking-wider">Gestión</th>
+                    <th class="px-3 py-2 text-center text-sm font-semibold text-white uppercase tracking-wider">Ficha</th>
+                    <th class="px-3 py-2 text-center text-sm font-semibold text-white uppercase tracking-wider">WhatsApp Padre</th>
+                    <th class="px-3 py-2 text-center text-sm font-semibold text-white uppercase tracking-wider">WhatsApp Alumno</th>                    
+                </tr>
+            </thead>
+
+            <tbody class="bg-white divide-y divide-gray-200 text-base text-gray-800">
+                {% for matricula in matriculas %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-3 py-2 font-semibold">{{ matricula.codigo }}</td>
+                    <td class="px-3 py-2">{{ matricula.alumno.nombres_completos }}</td>
+                    <td class="px-3 py-2">{{ matricula.apoderado.nombre_completo }}</td>
+                    <td class="px-3 py-2">{{ matricula.turno|title }}</td>
+                    <td class="px-4 py-3 text-center min-w-[120px]">
+                        <div class="flex justify-center gap-2">
+                            <a href="{% url 'matriculas:matricula_detail' matricula.id %}" 
+                               class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver detalles">
+                                <i class="fa-solid fa-eye text-lg"></i>
+                            </a>
+                            {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+                            <a href="{% url 'matriculas:matricula_update' matricula.id %}" 
+                               class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
+                                <i class="fa-solid fa-pen-to-square text-lg"></i>
+                            </a>
+                            <button data-id="{{ matricula.id }}" data-nombre="{{ matricula.codigo }}"
+                                class="p-2 text-red-600 hover:bg-red-50 rounded-lg btn-delete-matricula" title="Eliminar">
+                                <i class="fa-solid fa-trash text-lg"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <td class="px-4 py-3 text-center">
+                        <a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}" 
+                           class="inline-flex justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg" 
+                           target="_blank" title="Ficha PDF">
+                            <i class="fa-solid fa-file-pdf text-lg"></i>
+                        </a>
+                    </td>
+
+                    <td class="px-4 py-3 text-center">
+                        <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp' matricula.id %}" 
+                           class="inline-flex justify-center p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                           target="_blank" title="Enviar por WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </a>
+                    </td>
+
+                    <td class="px-4 py-3 text-center">
+                        <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp_estudiante' matricula.id %}" 
+                           class="inline-flex justify-center p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                           target="_blank" title="Enviar por WhatsApp">
+                            <i class="fa-brands fa-whatsapp text-lg"></i>
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="11" class="px-4 py-12 text-center text-gray-500">
+                        <p class="text-lg font-medium">No hay matrículas registradas</p>
+                        {% if request.GET.search %}
+                        <p class="text-sm text-gray-400">Intenta con otros términos de búsqueda</p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Vista móvil -->
+<div class="block lg:hidden space-y-4 px-4">
+    {% for matricula in matriculas %}
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition relative" x-data="{ open: false }">
+
+        <!-- Encabezado -->
+        <div class="p-4 border-b border-gray-100 bg-gray-50 relative">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-semibold text-indigo-700 leading-tight">
+                        {{ matricula.alumno.nombres_completos }}
+                    </h2>
+                    <span class="block mt-1 font-mono text-xs text-gray-500">{{ matricula.codigo }}</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="flex-shrink-0 inline-flex px-2.5 py-1 text-xs font-medium rounded-full
+                        {% if matricula.estado == 'activo' %} bg-green-100 text-green-700
+                        {% elif matricula.estado == 'inactivo' %} bg-red-100 text-red-700
+                        {% else %} bg-gray-100 text-gray-700 {% endif %}">
+                        {{ matricula.estado|title }}
+                    </span>
+
+                    <!-- Botón menú -->
+                    <button @click="open = !open" class="relative z-20 p-1.5 rounded-full hover:bg-gray-100 focus:outline-none">
+                        <i class="fa-solid fa-ellipsis-vertical text-gray-600 text-sm"></i>
+                    </button>
+
+                    <!-- Menú flotante -->
+                    <div x-show="open" x-cloak @click.outside="open = false" x-transition
+                        class="absolute right-3 top-10 bg-white border border-gray-200 rounded-lg shadow-md z-30 w-40 py-1 text-sm">
+                        <a href="{% url 'matriculas:matricula_detail' matricula.id %}"
+                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-blue-600">
+                            <i class="fa-solid fa-eye text-xs"></i> Ver detalles
+                        </a>
+                        {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+                        <a href="{% url 'matriculas:matricula_update' matricula.id %}"
+                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-amber-600">
+                            <i class="fa-solid fa-pen-to-square text-xs"></i> Editar
+                        </a>
+                        <button data-id="{{ matricula.id }}" data-nombre="{{ matricula.codigo }}"
+                                class="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-gray-50 text-red-600 btn-delete-matricula">
+                            <i class="fa-solid fa-trash text-xs"></i> Eliminar
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}" target="_blank"
+                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-rose-600">
+                            <i class="fa-solid fa-file-pdf text-xs"></i> Generar PDF
+                        </a>
+                        <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp' matricula.id %}" target="_blank"
+                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-green-600">
+                            <i class="fa-brands fa-whatsapp text-xs"></i> Enviar a padre
+                        </a>
+                        <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp_estudiante' matricula.id %}" target="_blank"
+                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-green-600">
+                            <i class="fa-brands fa-whatsapp text-xs"></i> Enviar a alumno
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 text-sm">
+            <div>
+                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Apoderado</span>
+                <span class="text-base text-gray-800">{{ matricula.apoderado.nombre_completo }}</span>
+            </div>
+
+            <div>
+                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Ciclo</span>
+                <span class="text-base text-gray-800">{{ matricula.ciclo }}</span>
+            </div>
+
+            <div>
+                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Turno</span>
+                <span class="text-base text-gray-800">{{ matricula.turno|title }}</span>
+            </div>
+        </div>
+
+    </div>
+
+    {% empty %}
+    <div class="bg-white rounded-lg shadow-md p-12 text-center text-gray-500">
+        <p class="text-lg font-medium">No hay matrículas registradas</p>
+        {% if request.GET.search %}
+        <p class="text-sm text-gray-400">Intenta con otros términos de búsqueda</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="mt-6 flex flex-col items-center justify-center gap-4 px-4 pb-8">
+    
+    <span class="text-sm text-gray-700">
+        Mostrando de <span class="font-semibold text-gray-900">{{ page_obj.start_index }}</span> a <span class="font-semibold text-gray-900">{{ page_obj.end_index }}</span> de <span class="font-semibold text-gray-900">{{ paginator.count }}</span> resultados
+    </span>
+
+    <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+        
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}" 
+           class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+            <span class="sr-only">Anterior</span>
+            <i class="fa-solid fa-chevron-left h-5 w-5 flex items-center justify-center"></i>
+        </a>
+        {% else %}
+        <span class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed">
+            <i class="fa-solid fa-chevron-left h-5 w-5 flex items-center justify-center"></i>
+        </span>
+        {% endif %}
+
+        {% for num in paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span aria-current="page" 
+                      class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    {{ num }}
+                </span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}" 
+                   class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}" 
+           class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+            <span class="sr-only">Siguiente</span>
+            <i class="fa-solid fa-chevron-right h-5 w-5 flex items-center justify-center"></i>
+        </a>
+        {% else %}
+        <span class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-inset ring-gray-300 cursor-not-allowed">
+            <i class="fa-solid fa-chevron-right h-5 w-5 flex items-center justify-center"></i>
+        </span>
+        {% endif %}
+        
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}

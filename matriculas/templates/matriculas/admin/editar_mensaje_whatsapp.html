@@ -1,0 +1,23 @@
+{% extends 'base_matriculas.html' %}
+{% block title %}Editar Mensaje de WhatsApp{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto mt-10 bg-white shadow rounded-lg p-6">
+    <h2 class="text-xl font-bold mb-4 text-gray-700">Editar mensaje de WhatsApp</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block font-semibold mb-1">Nombre</label>
+            {{ form.nombre }}
+        </div>
+        <div class="mb-4">
+            <label class="block font-semibold mb-1">Mensaje (usa <code>{apoderado}</code>, <code>{alumno}</code>, <code>{numero_cuota}</code>, <code>{monto}</code>, <code>{fecha_vencimiento}</code>)</label>
+            {{ form.template }}
+        </div>
+        <div class="mb-4 flex items-center">
+            {{ form.activo }}
+            <label class="ml-2">Activo</label>
+        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold">Guardar</button>
+    </form>
+</div>
+{% endblock %}

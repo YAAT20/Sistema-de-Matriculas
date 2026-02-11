@@ -1,0 +1,177 @@
+{% extends 'base_matriculas.html' %}
+{% load form_tags_mat %}
+
+{% block title %}Detalle del Alumno{% endblock %}
+
+{% block content %}
+<div class="container mx-auto mt-6 px-3 md:px-6">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+
+        <div class="bg-gradient-to-r from-blue-700 to-indigo-600 text-white px-4 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-mortarboard-fill text-2xl sm:text-3xl"></i>
+                <h4 class="text-xl sm:text-2xl font-bold leading-tight">Detalle del Alumno</h4>
+            </div>
+            <span class="bg-white/90 text-gray-800 text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg shadow-sm">
+                Código: {{ alumno.codigo }}
+            </span>
+        </div>
+
+        <div class="p-4 sm:p-6 space-y-6">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+
+                <div class="bg-gray-50 rounded-xl shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow">
+                    <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2 text-base sm:text-lg">
+                        <i class="bi bi-person-fill text-blue-600"></i> Información Personal
+                    </h5>
+                    <div class="space-y-1 text-gray-700 text-sm sm:text-base">
+                        <p><span class="font-medium">Nombre:</span> {{ alumno.nombres_completos }}</p>
+                        <p><span class="font-medium">DNI:</span> {{ alumno.dni }}</p>
+                        <p><span class="font-medium">Sexo:</span> {{ alumno.get_sexo_display }}</p>
+                        <p><span class="font-medium">Nacimiento:</span> {{ alumno.fecha_nacimiento|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow">
+                    <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2 text-base sm:text-lg">
+                        <i class="bi bi-book-half text-indigo-600"></i> Académico & Contacto
+                    </h5>
+                    <div class="space-y-1 text-gray-700 text-sm sm:text-base">
+                        <p><span class="font-medium">Celular:</span> {{ alumno.celular_llamadas }}</p>
+                        <p><span class="font-medium">WhatsApp:</span> {{ alumno.numero_whatsapp }}</p>
+                        <p><span class="font-medium">Grado:</span> {{ alumno.get_grado_estudios_display }}</p>
+                        <p><span class="font-medium">Colegio:</span> {{ alumno.colegio_de_procedencia }}</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-xl shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow relative overflow-hidden">
+                    <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2 text-base sm:text-lg relative z-10">
+                        <i class="bi bi-people-fill text-green-600"></i> Apoderado
+                    </h5>
+                    
+                    {% with apoderado=alumno.apoderados.first %}
+                        {% if apoderado %}
+                            <div class="relative z-10">
+                                <div class="mb-3">
+                                    <p class="text-xs text-green-700 font-bold uppercase tracking-wider mb-0.5">Nombre Completo</p>
+                                    <p class="text-gray-900 font-medium text-lg leading-tight">{{ apoderado.nombre_completo }}</p>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-2 mb-3">
+                                    <div>
+                                        <p class="text-xs text-gray-500 uppercase">Parentesco</p>
+                                        <p class="text-gray-700 font-medium">{{ apoderado.parentesco }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 uppercase">Celular</p>
+                                        <p class="text-gray-700 font-medium">{{ apoderado.celular }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 uppercase">DNI</p>
+                                        <p class="text-gray-700">{{ apoderado.dni }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2 border-t border-gray-200">
+                                    <a href="{% url 'matriculas:apoderado_detail' apoderado.pk %}" 
+                                       class="inline-flex items-center text-sm text-green-700 hover:text-green-800 font-semibold hover:underline">
+                                        <i class="bi bi-person-badge mr-1"></i> Ver perfil completo
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="absolute -right-4 -bottom-4 text-green-100 opacity-50">
+                                <i class="bi bi-person-fill text-9xl"></i>
+                            </div>
+
+                        {% else %}
+                            <div class="flex flex-col items-center justify-center h-40 text-center relative z-10">
+                                <div class="bg-gray-200 rounded-full p-3 mb-2">
+                                    <i class="bi bi-person-x text-2xl text-gray-500"></i>
+                                </div>
+                                <p class="text-gray-500 text-sm italic mb-3">Este alumno no tiene apoderado asignado.</p>
+                                <a href="{% url 'matriculas:asignar_apoderado' alumno.pk %}" 
+                                   class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow transition">
+                                    <i class="bi bi-plus-lg"></i> Asignar Apoderado
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+            </div>
+
+            <div class="bg-gray-50 rounded-xl shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow">
+                <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2 text-base sm:text-lg">
+                    <i class="bi bi-camera-fill text-sky-600"></i> Fotografías
+                </h5>
+
+                {% if alumno.foto_previa or alumno.foto_frente or alumno.foto_corte %}
+                <div class="flex overflow-x-auto gap-3 scrollbar-hide snap-x pb-2">
+                    {% if alumno.foto_previa %}
+                    <div class="snap-start flex-shrink-0 w-48 text-center">
+                        <p class="font-medium text-gray-700 text-sm mb-2">Foto Previa</p>
+                        <img src="{{ alumno.foto_previa.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
+                    </div>
+                    {% endif %}
+                    {% if alumno.foto_frente %}
+                    <div class="snap-start flex-shrink-0 w-48 text-center">
+                        <p class="font-medium text-gray-700 text-sm mb-2">Foto de Frente</p>
+                        <img src="{{ alumno.foto_frente.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
+                    </div>
+                    {% endif %}
+                    {% if alumno.foto_corte %}
+                    <div class="snap-start flex-shrink-0 w-48 text-center">
+                        <p class="font-medium text-gray-700 text-sm mb-2">Foto con Corte</p>
+                        <img src="{{ alumno.foto_corte.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-gray-500 italic text-center py-4">No hay fotografías registradas.</p>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3 border-t pt-4">
+                <a href="{% url 'matriculas:alumno_list' %}"
+                    class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg shadow transition w-full sm:w-auto justify-center">
+                    <i class="bi bi-arrow-left-short text-lg"></i> Volver
+                </a>
+
+                <div class="flex flex-wrap justify-center gap-2 w-full sm:w-auto">
+                    {% if user.is_authenticated and user.perfil.tipo == 'admin' %}                     
+                    <a href="{% url 'matriculas:alumno_update' alumno.pk %}"
+                        class="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2.5 rounded-lg shadow transition w-full sm:w-auto justify-center">
+                        <i class="bi bi-pencil-square"></i> Editar
+                    </a>
+                    {% endif %}
+
+                    {% if not alumno.apoderados.exists %}
+                    <a href="{% url 'matriculas:asignar_apoderado' alumno.pk %}"
+                        class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white px-3 py-2.5 rounded-lg shadow transition w-full sm:w-auto justify-center">
+                        <i class="bi bi-person-plus-fill"></i> Apoderado
+                    </a>
+                    {% endif %}
+
+                    {% if tiene_matricula %}
+                    <a href="{% url 'matriculas:matricula_detail' matricula.pk %}"
+                        class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2.5 rounded-lg shadow transition w-full sm:w-auto justify-center">
+                        <i class="bi bi-journal-check"></i> Matrícula
+                    </a>
+                    {% else %}
+                    <a href="{% url 'matriculas:matricula_create' %}?alumno_id={{ alumno.pk }}"
+                        class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-lg shadow transition w-full sm:w-auto justify-center">
+                        <i class="bi bi-journal-plus"></i> Matricular
+                    </a>
+                    {% endif %}
+
+                    <button data-id="{{ alumno.id }}" data-nombre="{{ alumno.nombres_completos }}"
+                        class="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-2.5 rounded-lg shadow transition w-full sm:w-auto justify-center btn-delete-alumno">
+                        <i class="bi bi-trash-fill"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

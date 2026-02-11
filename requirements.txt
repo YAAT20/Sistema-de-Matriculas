@@ -1,0 +1,7 @@
+django
+mysqlclient
+gunicorn
+whitenoise
+python-dotenv
+xhtml2pdf
+openpyxl

@@ -1,0 +1,42 @@
+{% extends "base_matriculas.html" %}
+
+{% block content %}
+<div class="max-w-xl mx-auto mt-10 bg-white border border-gray-200 rounded-lg shadow p-6">
+    <h2 class="text-2xl font-bold text-gray-700 mb-6">
+        {% if form.instance.pk %}
+            ✏️ Editar Pago
+        {% else %}
+            💰 Registrar Pago
+        {% endif %}
+        <span class="block text-sm text-gray-500 mt-1">Matrícula: {{ matricula.codigo }}</span>
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-5">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ field.label_tag }}
+            </label>
+            {{ field }}
+            
+            {% if field.errors %}
+                <p class="text-sm text-red-500">{{ field.errors|striptags }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="flex justify-start space-x-4 pt-4">
+            <button type="submit"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                Guardar
+            </button>
+            <a href="{% url 'matriculas:lista_pagos_matricula' matricula.id %}"
+                class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

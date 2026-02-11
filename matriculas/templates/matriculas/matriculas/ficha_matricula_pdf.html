@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha de Matrícula</title>
+    <style>
+        @page {
+            margin: 5mm !important;
+            padding: 5mm;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+    </style>    
+</head>
+
+<body>
+    <article>
+        <table style="height: 180px; width: auto; border-collapse: collapse;">
+            <tr style="vertical-align: middle;">
+                <td style="width: auto; text-align: left; padding: 0 10px;">
+                    <img src="{% static 'matriculas/images/Logo01.png' %}" alt="Logo"
+                        style="height: auto; width: 200px; display: block;">
+                </td>
+                <td style="max-width: 180px; max-height: 180px; text-align: right; padding: 0 10px;">
+                    {% if matricula.alumno.foto_previa %}
+                    <img src="{{ matricula.alumno.foto_previa.url }}" alt="Foto del alumno"
+                        style="max-height: auto; max-width: auto; object-fit: cover; border-radius: 5px; display: block; margin-left: auto;">
+                    {% else %}
+                    <div
+                        style="width: 80px; height: 80px; background-color: #eee; border-radius: 5px; margin-left: auto; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 12px;">Sin foto</span>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </article>
+
+
+    <div class="contenedor">
+        <!-- Título -->
+        <h2 style="text-align: center; font-size: 22px; color: #a71e52; font-weight: bold; margin-bottom: 0px; margin-top: 0px;">
+            FICHA DE MATRÍCULA
+        </h2>
+        <!-- Tabla principal -->
+        <table class="tabla-general" style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <!-- Datos de Matrícula -->
+                <td style="vertical-align: middle;">
+                    <table class="subtabla" style="width: 100%; border-collapse: collapse; border: 0.5px solid #de8500;">
+                        <tr>
+                            <th colspan="2"
+                                style="background-color: #a71e52; padding: 4px; text-align: center; font-size: 14px; color: #f8f9fa;">
+                                Datos de Matrícula
+                            </th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.codigo }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Fecha</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.fecha_matricula }} </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Ciclo</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.ciclo.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Turno</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.turno.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Horario</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.horario }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Monto</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">S/. {{ matricula.monto }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Modalidad</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.get_modalidad_display }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Estado</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.get_estado_display }}
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+                <!-- Datos Apoderado y Alumno -->
+                <td style="vertical-align: top; padding: 6px;">
+                    <!-- Apoderado -->
+                    <table class="subtabla" style="width: 100%; border-collapse: collapse; border: 0.5px solid #de8500; margin-bottom: 20px">
+                        <tr>
+                            <th colspan="2"
+                                style="background-color: #a71e52; padding:3px; text-align: center; font-size: 14px; color: #f8f9fa;">
+                                Datos del Apoderado
+                            </th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.apoderado.codigo }} </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Nombre</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.apoderado.nombre_completo }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Teléfono</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.apoderado.celular }}
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- Alumno -->
+                    <table clas="subtabla" style="width: 100%; border-collapse: collapse; border: 0.5px solid #de8500; ">
+                        <tr>
+                            <th colspan="2"
+                                style="background-color: #a71e52; padding: 3px; text-align: center; font-size: 13px; color: #f8f9fa;">
+                                Datos del Alumno
+                            </th>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.alumno.codigo }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Nombre</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.alumno.nombres_completos }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Tipo</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.alumno.get_grado_estudios_display }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Teléfono</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.alumno.numero_whatsapp }} </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <article>
+        <!-- Cronograma de Pagos -->
+        <h2 class="titulo" style="font-size: 18px; color: #a71e52; margin-bottom: 8px; text-align: center; margin-bottom: 0px; margin-top: 0px;">Cronograma de Pagos</h2>
+        <div class="contenedor" role="table" style="overflow-x:auto;">
+            <table class="subtabla" style="width: 100%; border-collapse: collapse; font-size: 12px; border: 0.5px solid #de8500;">
+                <tr style="background-color: #a71e52; color: #f8f9fa;">
+                    <th style="padding: 4px; text-align: center;"># Cuota</th>
+                    <th style="padding: 4px; text-align: center;">Monto</th>
+                    <th style="padding: 4px; text-align: center;">Vencimiento</th>
+                    <th style="padding: 4px; text-align: center;">Fecha de Pago</th>
+                    <th style="padding: 4px; text-align: center;">Estado</th>
+                    <th style="padding: 4px; text-align: center;">Forma de Pago</th>
+                </tr>
+                {% for pago in pagos %}
+                <tr>
+                    <td style="padding: 4px; text-align: center;">{{ pago.numero_cuota|default:"-" }}</td>
+                    <td style="padding: 4px; text-align: center;">S/ {{ pago.monto_programado|floatformat:2 }}</td>
+                    <td style="padding: 4px; text-align: center;">{{ pago.fecha_vencimiento }} </td>
+                    <td style="padding: 4px; text-align: center;">{{ pago.fecha_pago|default:"-" }}</td>
+                    <td style="padding: 4px; text-align: center;">{{ pago.get_estado_display }} </td>
+                    <td style="padding: 4px; text-align: center;">{{ pago.get_forma_pago_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6"
+                        style="border: 1px solid #ddd; padding: 8px; text-align: center; font-style: italic;">
+                        No hay pagos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </article>
+    <br>
+
+    <footer style="font-size: 11px; color: black; font-weight: bold; text-align: left; margin-top: 15px;">
+        <ul style="margin: 0; padding-left: 10px; list-style-type: disc;">
+            <li>El apoderado se compromete a realizar los pagos según el cronograma. Vencido el plazo, el alumno no podrá ingresar a la academia.</li>
+            <li>El alumno puede asistir a clases de manera presencial o virtual (previa coordinación con el apoderado).</li>
+            <li>El estudiante y/o su representante autoriza el uso de su imagen en fotos y videos para fines promocionales de la academia.</li>
+            <li>La matrícula del alumno es personal e intransferible.</li>
+            <li>Realizada la matrícula, no hay devolución de dinero parcial o total.</li>
+            <li>La matrícula es para el presente ciclo y no es canjeable para ciclos futuros.</li>
+        </ul>
+    </footer>
+    <br>
+
+    <!-- Espacios para Firmas -->
+    <div style="width: 100%; margin-top: 200px; text-align: center;">
+        <table style="width: 100%; margin: 100px auto; border-collapse: collapse;">
+            <tr>
+                <td style="width: 50%; text-align: center; padding: 20px 10px;">
+                    <hr style="border: none; border-top: 2px solid #000; width: 80%; margin: 0 auto;">
+                    <p style="margin-top: 5px; font-size: 12px; font-weight: bold; color: #333; text-transform: uppercase;">Firma del Alumno o Apoderado</p>
+                </td>
+                <td style="width: 50%; text-align: center; padding: 20px 10px;">
+                    <hr style="border: none; border-top: 2px solid #000; width: 80%; margin: 0 auto;">
+                    <p style="margin-top: 5px; font-size: 12px; font-weight: bold; color: #333; text-transform: uppercase;">Academia Robert Hooke</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+</html>
