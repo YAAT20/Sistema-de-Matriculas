@@ -4,45 +4,47 @@
 {% block title %}Registrar Alumno{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 py-8">
-    <h2 class="text-3xl font-bold text-center text-blue-700 mb-8 flex items-center justify-center gap-2">
-        <i class="bi bi-person-plus-fill"></i> Registrar Nuevo Alumno
-    </h2>
+<div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="flex flex-col sm:flex-row items-center sm:items-end justify-between mb-8 border-b border-gray-100 pb-6">
+        <div class="flex items-center gap-4">
+            <div class="relative flex-shrink-0">
+                <div class="absolute inset-0 bg-blue-500 rounded-2xl blur-sm opacity-20"></div>
+                <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-2xl shadow-md">
+                    <i class="bi bi-person-plus-fill text-2xl"></i>
+                </div>
+            </div>
+            <div class="text-left">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-800 tracking-tight leading-none">
+                    Registrar Nuevo <span class="text-blue-600">Alumno</span>
+                </h2>
+            </div>
+        </div>
+        <div class="hidden lg:block text-right">
+            <span class="bg-blue-50 text-blue-700 text-xs font-bold px-4 py-2 rounded-full border border-blue-100 uppercase tracking-widest">
+                Sistema Académico
+            </span>
+        </div>
+    </div>
 
-    <form method="post" enctype="multipart/form-data" class="space-y-6">
+    <form method="post" enctype="multipart/form-data" class="space-y-8" id="alumno-form">
         {% csrf_token %}
 
-        <!-- Datos Personales -->
-        <div class="bg-white shadow-md rounded-lg p-6 border border-blue-100">
-            <h3 class="text-lg font-semibold text-blue-700 flex items-center gap-2 mb-4">
-                <i class="bi bi-person-vcard"></i> Datos Personales
+        <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-100 transition-all hover:shadow-2xl">
+            <h3 class="text-xl font-bold text-blue-700 flex items-center gap-3 mb-6 pb-2 border-b">
+                <i class="bi bi-person-badge"></i> Perfil del Estudiante
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for field in form.visible_fields %}
                     {% if field.name in "nombres_completos dni fecha_nacimiento sexo direccion_alumno grado_estudios colegio_de_procedencia carrera_tentativa fondo_social" %}
-                        <div class="{% if field.name == 'colegio_de_procedencia' %}md:col-span-2{% endif %}">
+                        <div class="{% if field.name == 'colegio_de_procedencia' or field.name == 'direccion_alumno' %}md:col-span-2{% endif %}">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">{{ field.label }}</label>
                             {% if field.name == "fondo_social" %}
-                                <!-- Campo especial: Fondo Social -->
-                                <div class="flex items-center mt-4">
-                                    {{ field }}
-                                    <label for="{{ field.id_for_label }}" class="ml-2 text-sm font-medium text-gray-700">
-                                        {{ field.label }}
-                                    </label>
+                                <div class="flex items-center p-4 bg-blue-50 rounded-xl border border-blue-200 mt-2">
+                                    {{ field|add_class:"h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" }}
+                                    <span class="ml-3 text-sm font-bold text-blue-800">Aplicar beneficio social</span>
                                 </div>
-                                {% if field.errors %}
-                                    <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
-                                {% endif %}
                             {% else %}
-                                <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                    {{ field.label }}
-                                </label>
-                                {{ field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500" }}
-                                {% if field.help_text %}
-                                    <p class="text-xs text-gray-500">{{ field.help_text }}</p>
-                                {% endif %}
-                                {% if field.errors %}
-                                    <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
-                                {% endif %}
+                                {{ field|add_class:"block w-full rounded-xl border-gray-300 bg-gray-50 shadow-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all p-2.5" }}
                             {% endif %}
                         </div>
                     {% endif %}
@@ -50,43 +52,56 @@
             </div>
         </div>
 
-        <!-- Información de Contacto -->
-        <div class="bg-white shadow-md rounded-lg p-6 border border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-700 flex items-center gap-2 mb-4">
-                <i class="bi bi-telephone-fill"></i> Información de Contacto
+        <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
+            <h3 class="text-xl font-bold text-emerald-700 flex items-center gap-3 mb-6 pb-2 border-b border-emerald-100">
+                <i class="bi bi-chat-left-dots"></i> Medios de Comunicación
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {% for field in form.visible_fields %}
                     {% if field.name in "celular_llamadas numero_whatsapp" %}
                         <div>
-                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ field.label }}
-                            </label>
-                            {{ field|add_class:"mt-1 block w-full rounded-md border-gray-300 shadow-sm" }}
-                            {% if field.errors %}
-                                <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
-                            {% endif %}
+                            <label class="block text-sm font-semibold text-gray-700 mb-1 ml-1">{{ field.label }}</label>
+                            <div class="relative group">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    {% if field.name == "numero_whatsapp" %}<i class="bi bi-whatsapp"></i>{% else %}<i class="bi bi-telephone"></i>{% endif %}
+                                </span>
+                                {{ field|add_class:"pl-10 block w-full rounded-xl border-gray-300 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 p-2.5" }}
+                            </div>
                         </div>
                     {% endif %}
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Fotografías -->
-        <div class="bg-white shadow-md rounded-lg p-6 border border-blue-100">
-            <h3 class="text-lg font-semibold text-blue-500 flex items-center gap-2 mb-4">
-                <i class="bi bi-camera-fill"></i> Fotografías del Alumno
+        <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
+            <h3 class="text-xl font-bold text-sky-700 flex items-center gap-3 mb-6 pb-2 border-b border-sky-100">
+                <i class="bi bi-camera-fill"></i> Galería de Identificación (Optimización Automática)
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {% for field in form.visible_fields %}
-                    {% if field.name in "foto_previa foto_frente foto_corte" %}
-                        <div>
-                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                {{ field.label }}
-                            </label>
-                            {{ field|add_class:"mt-1 block w-full text-sm border rounded-md p-2" }}
+                    {% if field.name in "foto_previa foto_frente foto_lado foto_corte" %}
+                        <div class="flex flex-col items-center">
+                            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{{ field.label }}</label>
+                            <div class="relative w-full h-44 group">
+                                <label for="{{ field.id_for_label }}" class="cursor-pointer flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-sky-200 rounded-2xl bg-sky-50 hover:bg-sky-100 hover:border-sky-400 transition-all overflow-hidden relative">
+                                    <div class="flex flex-col items-center justify-center text-center px-2">
+                                        <i class="bi bi-cloud-arrow-up text-3xl text-sky-400 mb-2"></i>
+                                        <p class="text-[10px] text-sky-700 font-bold uppercase">Click para subir</p>
+                                    </div>
+
+                                    <div id="loading-{{ field.id_for_label }}" class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center">
+                                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                        <p class="text-[10px] font-bold text-blue-600 mt-2">OPTIMIZANDO...</p>
+                                    </div>
+
+                                    <div id="preview-{{ field.id_for_label }}" class="hidden absolute inset-0 bg-white rounded-2xl p-1 z-10">
+                                        <img src="" class="w-full h-full object-cover rounded-xl">
+                                    </div>
+                                    {{ field|add_class:"hidden photo-input" }}
+                                </label>
+                            </div>
                             {% if field.errors %}
-                                <p class="text-sm text-red-600">{{ field.errors|striptags }}</p>
+                                <p class="text-xs text-red-500 mt-2 font-medium">{{ field.errors|striptags }}</p>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -94,36 +109,109 @@
             </div>
         </div>
 
-        <script>
-            // Asegura que los inputs de foto tengan los atributos correctos
-            document.addEventListener('DOMContentLoaded', function() {
-                const fotoInputs = ['id_foto_previa', 'id_foto_frente', 'id_foto_corte'];
-                fotoInputs.forEach(id => {
-                    const input = document.getElementById(id);
-                    if (input) {
-                        input.setAttribute('accept', 'image/*');
-                        input.setAttribute('capture', 'environment');
-                    }
-                });
-            });
-        </script>
-
-        <!-- Errores globales -->
-        {% if form.non_field_errors %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-            {{ form.non_field_errors }}
-        </div>
-        {% endif %}
-
-        <!-- Botones -->
-        <div class="flex justify-end space-x-3 pt-4">
-            <a href="{% url 'matriculas:alumno_list' %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md">
-                <i class="bi bi-x-circle"></i> Cancelar
-            </a>
-            <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow">
-                <i class="bi bi-check-circle"></i> Guardar Alumno
+        <div class="flex flex-col sm:flex-row justify-end items-center gap-4 pt-6 border-t">
+            <a href="{% url 'matriculas:alumno_list' %}" class="w-full sm:w-auto px-8 py-3 bg-gray-100 text-gray-500 font-bold rounded-xl text-center">Cancelar</a>
+            <button type="submit" id="submit-btn" class="w-full sm:w-auto px-10 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+                <i class="bi bi-check2-circle"></i> Finalizar Registro
             </button>
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('.photo-input');
+    const submitBtn = document.getElementById('submit-btn');
+    let processingCount = 0;
+
+    inputs.forEach(input => {
+        const id = input.id;
+        const previewDiv = document.getElementById('preview-' + id);
+        const previewImg = previewDiv.querySelector('img');
+        const loadingDiv = document.getElementById('loading-' + id);
+
+        input.setAttribute('accept', 'image/*');
+        input.setAttribute('capture', 'environment');
+
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            // Si no hay archivo o es un archivo ya optimizado por nosotros, no hacer nada
+            if (!file || file._optimized) return;
+
+            processImage(file, input, previewDiv, previewImg, loadingDiv);
+        });
+    });
+
+    function processImage(file, input, previewDiv, previewImg, loadingDiv) {
+        processingCount++;
+        toggleSubmitButton();
+        loadingDiv.classList.remove('hidden');
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                // He bajado a 3000 como punto intermedio de calidad
+                const TARGET_SIZE = 3000; 
+                const QUALITY = 0.8;
+                let w = img.width, h = img.height;
+
+                if (w > h ? w > TARGET_SIZE : h > TARGET_SIZE) {
+                    const factor = TARGET_SIZE / Math.max(w, h);
+                    w *= factor; h *= factor;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+
+                canvas.toBlob(function(blob) {
+                    const optimizedFile = new File([blob], "opt_" + file.name.split('.')[0] + ".jpg", {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+
+                    // MARCADOR CLAVE: Marcamos el archivo como optimizado para que el 
+                    // evento 'change' no lo vuelva a procesar al inyectarlo
+                    optimizedFile._optimized = true;
+
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(optimizedFile);
+                    input.files = dataTransfer.files;
+
+                    previewImg.src = URL.createObjectURL(optimizedFile);
+                    previewDiv.classList.remove('hidden');
+                    loadingDiv.classList.add('hidden');
+                    
+                    processingCount--;
+                    toggleSubmitButton();
+                }, 'image/jpeg', QUALITY);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function toggleSubmitButton() {
+        if (processingCount > 0) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="bi bi-hourglass-split animate-spin"></i> Procesando...`;
+            submitBtn.classList.add('opacity-50');
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="bi bi-check2-circle"></i> Finalizar Registro`;
+            submitBtn.classList.remove('opacity-50');
+        }
+    }
+});
+
+</script>
+
+<style>
+    select, input[type="text"], input[type="date"], textarea {
+        outline: none !important;
+    }
+</style>
 {% endblock %}

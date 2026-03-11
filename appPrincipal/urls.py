@@ -1,21 +1,22 @@
+import os
 from django.contrib import admin
 from django.urls import path, include
-from django.contrib.auth import views as auth_views 
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from django.http import FileResponse
+
+def firebase_messaging_sw(request):
+    file_path = os.path.join(settings.BASE_DIR, 'matriculas', 'static', 'matriculas', 'js', 'firebase-messaging-sw.js')
+    
+    return FileResponse(open(file_path, 'rb'), content_type='application/javascript')
 
 urlpatterns = [
-    # Redirección directa a tu app de matrículas
     path('', RedirectView.as_view(url='/matriculas/login/', permanent=False)),
-
-    path('admin/', admin.site.urls),
-    
-    # Dejamos esto comentado porque usaremos el login de la app 'matriculas'
-    # path('login/', ...),
-    # path('logout/', ...),
-    
+    path('admin/', admin.site.urls),    
     path('matriculas/', include('matriculas.urls', namespace='matriculas')),
+    
+    path('firebase-messaging-sw.js', firebase_messaging_sw),
 ]
 
 if settings.DEBUG:

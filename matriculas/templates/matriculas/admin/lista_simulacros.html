@@ -1,41 +1,150 @@
 {% extends 'base_matriculas.html' %}
+
+{% block title %}Simulacros Programados{% endblock %}
+
 {% block content %}
-<div class="container mx-auto p-6">
-    <div class="flex justify-between align-items-center mb-6">
-        <h2 class="text-2xl font-bold">Simulacros Programados</h2>
-        <a href="{% url 'matriculas:crear_simulacro' %}" class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 transition">
-            <i class="bi bi-plus-lg mr-2"></i>Nuevo Simulacro
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
+        <div>
+            <nav class="flex mb-2" aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-indigo-600">
+                    <li>Gestión Académica</li>
+                    <li class="text-gray-400"><i class="bi bi-chevron-right"></i></li>
+                    <li class="text-gray-500">Simulacros</li>
+                </ol>
+            </nav>
+            <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Simulacros Programados</h1>
+            <p class="mt-2 text-lg text-gray-500">Panel central de control, recaudación y seguimiento de exámenes.</p>
+        </div>
+
+        <a href="{% url 'matriculas:crear_simulacro' %}"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all duration-300 transform hover:-translate-y-1">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>Nuevo Simulacro</span>
         </a>
     </div>
-    
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
-        <table class="min-w-full leading-normal">
-            <thead>
-                <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
-                    <th class="py-3 px-6 text-left">Nombre</th>
-                    <th class="py-3 px-6 text-left">Fecha</th>
-                    <th class="py-3 px-6 text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-600 text-sm font-light">
-                {% for sim in simulacros %}
-                <tr class="border-b border-gray-200 hover:bg-gray-100">
-                    <td class="py-3 px-6 text-left font-medium">{{ sim.nombre }}</td>
-                    <td class="py-3 px-6 text-left">{{ sim.fecha|date:"d/m/Y" }}</td>
-                    <td class="py-3 px-6 text-center">
-                        <a href="{% url 'matriculas:gestionar_simulacro' sim.id %}" 
-                           class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition">
-                            Gestionar Pagos
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="3" class="py-6 text-center text-gray-500">No hay simulacros creados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    {% if simulacros %}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:border-indigo-200 transition-colors">
+            <p class="text-sm font-medium text-gray-500 mb-1">Total Registrados</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-bold text-gray-900">{{ total_simulacros }}</span>
+                <span class="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded">Global</span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <p class="text-sm font-medium text-gray-500 mb-1">Por Ejecutar</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-bold text-blue-600">{{ proximos }}</span>
+                <i class="bi bi-arrow-up-right text-blue-400"></i>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <p class="text-sm font-medium text-gray-500 mb-1">En curso (Hoy)</p>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-bold text-green-600">{{ hoy }}</span>
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+            <p class="text-sm font-medium text-gray-500 mb-1">Históricos</p>
+            <span class="text-3xl font-bold text-gray-400">{{ pasados }}</span>
+        </div>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for sim in simulacros %}
+        <div class="flex flex-col bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:shadow-indigo-100 transition-all duration-300 group">
+            
+            <div class="p-6 pb-4">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="p-3 bg-indigo-50 rounded-2xl group-hover:bg-indigo-600 transition-colors duration-300">
+                        <i class="bi bi-journal-text text-2xl text-indigo-600 group-hover:text-white"></i>
+                    </div>
+                    {% if sim.fecha < today %}
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">FINALIZADO</span>
+                    {% elif sim.fecha == today %}
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200 animate-pulse">EN VIVO</span>
+                    {% else %}
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-100">PROGRAMADO</span>
+                    {% endif %}
+                </div>
+                
+                <h3 class="text-xl font-extrabold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ sim.nombre }}</h3>
+                <div class="flex items-center gap-2 mt-1 text-gray-500 font-medium">
+                    <i class="bi bi-calendar3"></i>
+                    <span class="text-sm">{{ sim.fecha|date:"D, d M Y" }}</span>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 flex flex-wrap gap-2 border-y border-gray-50 bg-gray-50/50">
+                <div class="px-3 py-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <p class="text-[10px] uppercase font-bold text-gray-400 leading-none mb-1">Ciclo</p>
+                    <p class="text-sm font-bold text-gray-700">{{ sim.ciclo }}</p>
+                </div>
+                <div class="px-3 py-1.5 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <p class="text-[10px] uppercase font-bold text-gray-400 leading-none mb-1">Turno</p>
+                    <p class="text-sm font-bold text-gray-700">{{ sim.turno.nombre|default:"General" }}</p>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-3 flex-grow">
+                <div class="flex justify-between items-center group/item">
+                    <span class="text-sm text-gray-500 font-medium">Recaudación Real</span>
+                    <span class="text-base font-bold text-green-600">S/ {{ sim.ganancia }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500 font-medium">Fondo Social</span>
+                    <span class="text-base font-bold text-blue-600">S/ {{ sim.total_fondo }}</span>
+                </div>
+                {% if sim.deuda > 0 %}
+                <div class="flex justify-between items-center pt-2 border-t border-dashed">
+                    <span class="text-sm font-bold text-red-500">Pendiente de cobro</span>
+                    <span class="text-base font-black text-red-600">S/ {{ sim.deuda }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="p-6 pt-0 mt-auto">
+                <div class="bg-indigo-50 flex items-center justify-between p-3 rounded-xl mb-4">
+                    <span class="text-xs font-bold text-indigo-700 uppercase">Costo Alumno</span>
+                    <span class="text-lg font-black text-indigo-700">S/ {{ sim.costo }}</span>
+                </div>
+                
+                <a href="{% url 'matriculas:gestionar_simulacro' sim.id %}"
+                   class="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-indigo-600 transition-all duration-300">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Administrar Pagos</span>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="max-w-2xl mx-auto text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+        <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="bi bi-calendar-x text-4xl text-gray-300"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900">Tu agenda está vacía</h3>
+        <p class="text-gray-500 mt-2 mb-8 px-10">No hemos encontrado simulacros registrados. Comienza a organizar el rendimiento académico de tus alumnos hoy mismo.</p>
+        <a href="{% url 'matriculas:crear_simulacro' %}"
+           class="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all">
+            <i class="bi bi-plus-lg"></i>
+            Crear mi primer simulacro
+        </a>
+    </div>
+    {% endif %}
+
 </div>
+
+<style>
+    /* Suavizado de transiciones para Tailwind */
+    .group:hover .group-hover\:text-white { color: white; }
+</style>
 {% endblock %}

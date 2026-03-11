@@ -20,7 +20,7 @@
                 <th class="px-4 py-3">Vencimiento</th>
                 <th class="px-4 py-3">Fecha Pago</th>
                 <th class="px-4 py-3">Estado</th>
-                <th class="px-4 py-3">Tipo de Pago</th>        
+                <th class="px-4 py-3">Forma Pago</th>        
                 <th class="px-4 py-3">Observación</th>
                 <th class="px-4 py-3">Acciones</th>
             </tr>
@@ -30,30 +30,26 @@
             <tr id="pago-row-{{ pago.id }}" class="hover:bg-gray-50">
                 <td class="px-4 py-2">{{ pago.numero_cuota|default:"-" }}</td>
                 <td class="px-4 py-2">{{ pago.get_tipo_pago_display }}</td>
-                <td class="px-4 py-2">S/ {{ pago.monto_programado }}</td>
-                <td class="px-4 py-2" id="monto-pagado-{{ pago.id }}">S/ {{ pago.monto_pagado }}</td>
+                <td class="px-4 py-2 font-bold text-gray-700">S/ {{ pago.monto_programado }}</td>
+                <td class="px-4 py-2">S/ {{ pago.monto_pagado }}</td>
                 <td class="px-4 py-2">{{ pago.fecha_vencimiento }}</td>
-                <td class="px-4 py-2" id="fecha-pago-{{ pago.id }}">{{ pago.fecha_pago|default:"-" }}</td>
-                <td class="px-4 py-2" id="estado-pago-{{ pago.id }}">
-                {% if pago.estado == 'pagado' %}
-                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded">
-                        <i class="bi bi-check-circle-fill"></i> Pagado
-                    </span>
-                {% elif pago.estado == 'pendiente' %}
-                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded">
-                        <i class="bi bi-hourglass-split"></i> Pendiente
-                    </span>
-                {% elif pago.estado == 'observado' %}
-                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded">
-                        <i class="bi bi-exclamation-triangle"></i> Observado
-                    </span>
-                {% endif %}
+                <td class="px-4 py-2">{{ pago.fecha_pago|default:"-" }}</td>
+                <td class="px-4 py-2">
+                    {% if pago.estado == 'pagado' %}
+                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded"><i class="bi bi-check-circle-fill"></i> Pagado</span>
+                    {% elif pago.estado == 'pendiente' %}
+                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded"><i class="bi bi-hourglass-split"></i> Pendiente</span>
+                    {% else %}
+                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded">Observado</span>
+                    {% endif %}
                 </td>
-                <td class="px-4 py-2">S/ {{ pago.forma_pago }}</td>        
-                <td class="px-4 py-2 text-gray-600">{{ pago.observacion|truncatewords:5 }}</td>
+                <td class="px-4 py-2 text-gray-600 italic">{{ pago.forma_pago|default:"-" }}</td>        
+                <td class="px-4 py-2 text-gray-600">{{ pago.observacion|truncatewords:5|default:"-" }}</td>
                 <td class="px-4 py-2 space-y-1">
                 {% if pago.estado == 'pendiente' %}
-                    <button class="w-full inline-flex items-center justify-center gap-1 text-sm text-green-700 border border-green-600 rounded-md px-2 py-1 hover:bg-green-50 btn-confirmar-pago" data-id="{{ pago.id }}">
+                    <button class="w-full inline-flex items-center justify-center gap-1 text-sm text-white bg-green-600 rounded-md px-2 py-1 hover:bg-green-700 btn-abrir-pago" 
+                            data-id="{{ pago.id }}" 
+                            data-monto="{{ pago.monto_programado }}">
                         <i class="bi bi-cash"></i> Pagar
                     </button>
                 {% else %}
@@ -65,62 +61,153 @@
                 </td>
             </tr>
             {% empty %}
-            <tr>
-                <td colspan="9" class="px-4 py-6 text-gray-400">No hay pagos registrados.</td>
-            </tr>
+            <tr><td colspan="10" class="px-4 py-6 text-gray-400">No hay pagos registrados.</td></tr>
             {% endfor %}
         </tbody>
     </table>
-</div>  
-<a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}"
-    class="inline-flex bg-green-500 hover:bg-green-600 items-center gap-2 mt-6 text-sm text-white bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded"
-    target="_blank">
-    Ficha PDF
-</a>
-<a href="{% url 'matriculas:resumen_general_pagos' %}" class="inline-flex items-center gap-2 mt-6 text-sm text-white bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded">
-    <i class="bi bi-arrow-left-circle"></i> Volver a la lista de pagos
-</a>
-{% endblock %}
+</div>
 
-{% block extra_js %}
+<div class="flex gap-2 mt-6">
+    <a href="{% url 'matriculas:resumen_general_pagos' %}" class="inline-flex items-center gap-2 text-sm text-white bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded shadow transition">
+        <i class="bi bi-arrow-left-circle"></i> Volver
+    </a>
+</div>
+
+<div id="modalPago_v2" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="bg-blue-600 px-4 py-3 sm:px-6 flex justify-between items-center">
+                    <h3 class="text-base font-semibold text-white"><i class="bi bi-credit-card-2-front"></i> Confirmar Cobro</h3>
+                    <button type="button" onclick="cerrarModalPago()" class="text-white hover:text-gray-200"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <div class="px-4 py-5 sm:p-6 space-y-4">
+                    <input type="hidden" id="input_pago_id_final">
+                    <div class="text-center pb-2 border-b border-gray-100">
+                        <span class="block text-xs font-bold text-gray-400 uppercase">Monto a Recibir</span>
+                        <span id="txt_monto_display_final" class="block text-3xl font-black text-gray-800 mt-1">S/ 0.00</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900">Método de Pago</label>
+                        <select id="select_forma_pago_final" class="block w-full mt-1 rounded-md border-0 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 px-2">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Yape">Yape</option>
+                            <option value="Plin">Plin</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900">Observación</label>
+                        <textarea id="txt_observacion_final" rows="3" class="block w-full mt-1 rounded-md border-0 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 px-2" placeholder="Opcional..."></textarea>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <button type="button" id="btn_enviar_cobro_final" class="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-500 sm:ml-3 sm:w-auto">Confirmar Pago</button>
+                    <button type="button" onclick="cerrarModalPago()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const csrftoken = '{{ csrf_token }}';
+    let pagoIdActual = null;
+    const tokenDjango = '{{ csrf_token }}';
 
-    document.querySelectorAll('.btn-confirmar-pago').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const pagoId = this.dataset.id;
-        if (!confirm('¿Deseas confirmar el pago de esta cuota?')) return;
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('modalPago_v2');
+        const btnEnviar = document.getElementById('btn_enviar_cobro_final');
+        const selectForma = document.getElementById('select_forma_pago_final');
+        const inputObs = document.getElementById('txt_observacion_final');
 
-        fetch(`/matriculas/ajax/confirmar-pago/${pagoId}/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken,
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            document.getElementById(`estado-pago-${pagoId}`).innerHTML =
-              `<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded">
-                 <i class="bi bi-check-circle-fill"></i> Pagado
-               </span>`;
-            document.getElementById(`fecha-pago-${pagoId}`).textContent = data.fecha_pago;
-            document.getElementById(`monto-pagado-${pagoId}`).textContent = `S/ ${data.monto_pagado}`;
-            const btn = document.querySelector(`.btn-confirmar-pago[data-id='${pagoId}']`);
-            if (btn) btn.remove();
-
-            // Reload opcional
-            location.reload();
-          }
-        })
-        .catch(error => {
-          alert('❌ Error al confirmar el pago.');
-          console.error(error);
+        // 1. Configurar botones de apertura
+        document.querySelectorAll('.btn-abrir-pago').forEach(btn => {
+            btn.addEventListener('click', function () {
+                pagoIdActual = this.dataset.id;
+                document.getElementById('input_pago_id_final').value = pagoIdActual;
+                document.getElementById('txt_monto_display_final').innerText = `S/ ${this.dataset.monto}`;
+                
+                // Limpiar form
+                selectForma.value = 'Efectivo';
+                inputObs.value = '';
+                
+                modal.classList.remove('hidden');
+            });
         });
-      });
+
+        // 2. Enviar datos (Evento Click)
+        if (btnEnviar) {
+            btnEnviar.addEventListener('click', function (e) {
+                e.preventDefault(); // Detener cualquier acción por defecto
+
+                const valForma = selectForma.value;
+                const valObs = inputObs.value.trim();
+
+                if (!pagoIdActual) return;
+
+                btnEnviar.disabled = true;
+                btnEnviar.innerHTML = 'Guardando...';
+
+                fetch(`/matriculas/ajax/confirmar-pago/${pagoIdActual}/`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'X-CSRFToken': tokenDjango 
+                    },
+                    body: JSON.stringify({ 
+                        forma_pago: valForma, 
+                        observacion: valObs 
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const fila = document.getElementById(`pago-row-${pagoIdActual}`);
+                        
+                        if (fila) {
+                            const montoCobrado = document.getElementById('txt_monto_display_final').innerText;
+                            fila.cells[3].innerText = montoCobrado;
+
+                            const hoy = new Date();
+                            fila.cells[5].innerText = hoy.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                            fila.cells[6].innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded"><i class="bi bi-check-circle-fill"></i> Pagado</span>';
+
+                            fila.cells[7].innerText = valForma;
+                            fila.cells[8].innerText = valObs ? valObs : '-';
+
+                            const btnPagar = fila.querySelector('.btn-abrir-pago');
+                            if (btnPagar) {
+                                btnPagar.outerHTML = '<span class="text-gray-400 text-xs block text-center mb-1">✔ Ya pagado</span>';
+                            }
+                        }
+
+                        cerrarModalPago();
+                        btnEnviar.disabled = false;
+                        btnEnviar.innerHTML = 'Confirmar Pago';
+
+                        if (typeof window.showSuccessMessage === 'function') {
+                            window.showSuccessMessage('Pago registrado exitosamente');
+                        }
+
+                    } else {
+                        alert('Error: ' + data.error);
+                        btnEnviar.disabled = false;
+                        btnEnviar.innerHTML = 'Confirmar Pago';
+                    }
+                })
+                .catch(e => {
+                    alert('Error de conexión al servidor');
+                    btnEnviar.disabled = false;
+                    btnEnviar.innerHTML = 'Confirmar Pago';
+                });
+            });
+        }
     });
-  });
+
+    function cerrarModalPago() {
+        document.getElementById('modalPago_v2').classList.add('hidden');
+    }    
 </script>
+
 {% endblock %}

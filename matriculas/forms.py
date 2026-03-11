@@ -127,7 +127,7 @@ class HorarioForm(forms.ModelForm):
         instance = super().save(commit=False)
         instance.dias_bloque1 = ','.join(self.cleaned_data.get('dias_bloque1', []))
         instance.dias_bloque2 = ','.join(self.cleaned_data.get('dias_bloque2', []))
-        if commit:
+        if commit:  
             instance.save()
         return instance
 
@@ -144,6 +144,7 @@ class AlumnoForm(forms.ModelForm):
         self.fields['carrera_tentativa'].required = False
         self.fields['foto_previa'].required = False
         self.fields['foto_frente'].required = False
+        self.fields['foto_lado'].required = False
         self.fields['foto_corte'].required = False
         self.fields['sexo_data'].required = False
         self.fields['direccion_alumno'].required = False        
@@ -154,7 +155,7 @@ class AlumnoForm(forms.ModelForm):
             'nombres_completos', 'dni', 'grado_estudios', 'sexo', 
             'celular_llamadas', 'numero_whatsapp', 'fecha_nacimiento',
             'colegio_de_procedencia', 'carrera_tentativa', 'sexo_data',
-            'foto_previa', 'foto_frente', 'foto_corte', 'direccion_alumno', 
+            'foto_previa', 'foto_frente','foto_lado', 'foto_corte', 'direccion_alumno', 
             'fondo_social'
         ]
         widgets = {
@@ -190,6 +191,11 @@ class AlumnoForm(forms.ModelForm):
                 'class': 'form-control'
             }),
             'foto_frente': forms.FileInput(attrs={
+                'accept': 'image/*',
+                'capture': '',
+                'class': 'form-control'
+            }),
+            'foto_lado': forms.FileInput(attrs={
                 'accept': 'image/*',
                 'capture': '',
                 'class': 'form-control'
@@ -596,11 +602,11 @@ class UsuarioUpdateForm(forms.ModelForm):
 class SimulacroForm(forms.ModelForm):
     class Meta:
         model = Simulacro
-        fields = ['nombre', 'fecha', 'costo', 'ciclo', 'turno'] # Agregamos 'turno' aquí
+        fields = ['nombre', 'fecha', 'costo', 'ciclo', 'turno']
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control'}),
             'fecha': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'costo': forms.NumberInput(attrs={'class': 'form-control'}),
             'ciclo': forms.Select(attrs={'class': 'form-select'}),
-            'turno': forms.Select(attrs={'class': 'form-select'}), # Estilo para el turno
+            'turno': forms.Select(attrs={'class': 'form-select'}),
         }

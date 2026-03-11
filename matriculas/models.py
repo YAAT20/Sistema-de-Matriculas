@@ -213,6 +213,7 @@ class Alumno(models.Model):
     carrera_tentativa = models.CharField(max_length=100, blank=True, null=True)
     foto_previa = models.ImageField(upload_to="alumnos/fotos_previas/", blank=True, null=True)
     foto_frente = models.ImageField(upload_to="alumnos/fotos_frente/", blank=True, null=True)
+    foto_lado = models.ImageField(upload_to="alumnos/fotos_lado/", blank=True, null=True)
     foto_corte = models.ImageField(upload_to="alumnos/fotos_corte/", blank=True, null=True)
     sexo_data = models.CharField(max_length=10, choices=[('hija', 'hija'), ('hijo', 'hijo')], blank=True)
     direccion_alumno = models.TextField(max_length=150, blank=True, null=True)
@@ -454,11 +455,13 @@ class Pago(models.Model):
             self.fecha_pago = None
         super().save(*args, **kwargs)
 
-    def confirmar_pago(self, monto_pagado, usuario, fecha_pago=None):
+    def confirmar_pago(self, monto_pagado, usuario, forma_pago='Efectivo', observacion='', fecha_pago=None):
         self.monto_pagado = monto_pagado
         self.fecha_pago = fecha_pago or timezone.now().date()
         self.estado = 'pagado'
         self.usuario_registro = usuario
+        self.forma_pago = forma_pago
+        self.observacion = observacion
         self.save()
 
     def get_whatsapp_url(self):
@@ -581,4 +584,62 @@ class AsistenciaSimulacro(models.Model):
     def save(self, *args, **kwargs):
         if self._state.adding and self.matricula.alumno.fondo_social:
             self.pago = 'fondo'
-        super().save(*args, **kwargs)
+        super().save(*args, **kwargs)   
+
+class FCMDevice(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fcm_devices')
+    token = models.CharField(max_length=255, unique=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Dispositivo de {self.user.username}"
+    
+class Venta(models.Model):
+
+    codigo = models.CharField(max_length=20, unique=True)
+    descripcion = models.CharField(max_length=200)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    fecha = models.DateTimeField(auto_now_add=True)
+    activo = models.BooleanField(default=True)
+
+    observacion = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.codigo} - {self.descripcion}"
+
+    @property
+    def total_recaudado(self):
+        return sum(
+            v.total for v in self.ventas_alumnos.filter(pagado=True)
+        )
+
+class VentaAlumno(models.Model):
+
+    venta = models.ForeignKey(
+        Venta,
+        related_name="ventas_alumnos",
+        on_delete=models.CASCADE
+    )
+
+    alumno = models.ForeignKey(
+        Alumno,
+        related_name="compras",
+        on_delete=models.CASCADE
+    )
+
+    cantidad = models.PositiveIntegerField(default=1)
+
+    pagado = models.BooleanField(default=False)
+    entregado = models.BooleanField(default=False)
+
+    observacion = models.TextField(blank=True, null=True)
+
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('venta', 'alumno')
+
+    @property
+    def total(self):
+        return self.cantidad * self.venta.precio_unitario

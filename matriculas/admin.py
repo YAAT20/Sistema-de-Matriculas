@@ -173,3 +173,8 @@ class SimulacroAdmin(admin.ModelAdmin):
     def ver_deuda(self, obj):
         return f"S/ {obj.deuda}"
     ver_deuda.short_description = "Deuda"
+
+@admin.register(FCMDevice)
+class FCMDeviceAdmin(admin.ModelAdmin):
+    list_display = ('user', 'creado_en', 'token')
+    search_fields = ('user__username',)

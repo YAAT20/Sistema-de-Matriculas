@@ -169,7 +169,16 @@
                 {% for matricula in matriculas %}
                 <tr class="hover:bg-gray-50 transition-colors">
                     <td class="px-3 py-2 font-semibold">{{ matricula.codigo }}</td>
-                    <td class="px-3 py-2">{{ matricula.alumno.nombres_completos }}</td>
+                    <td class="px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <span>{{ matricula.alumno.nombres_completos }}</span>
+                            {% if matricula.alumno.foto_previa %}
+                            <span class="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full" title="Foto previa cargada">
+                                <i class="fa-solid fa-check text-green-600 text-xs"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td class="px-3 py-2">{{ matricula.apoderado.nombre_completo }}</td>
                     <td class="px-3 py-2">{{ matricula.turno|title }}</td>
                     <td class="px-4 py-3 text-center min-w-[120px]">
@@ -240,9 +249,16 @@
         <div class="p-4 border-b border-gray-100 bg-gray-50 relative">
             <div class="flex items-start justify-between gap-3">
                 <div>
-                    <h2 class="text-lg font-semibold text-indigo-700 leading-tight">
-                        {{ matricula.alumno.nombres_completos }}
-                    </h2>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-indigo-700 leading-tight">
+                            {{ matricula.alumno.nombres_completos }}
+                        </h2>
+                        {% if matricula.alumno.foto_previa %}
+                        <span class="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full" title="Foto previa cargada">
+                            <i class="fa-solid fa-check text-green-600 text-xs"></i>
+                        </span>
+                        {% endif %}
+                    </div>
                     <span class="block mt-1 font-mono text-xs text-gray-500">{{ matricula.codigo }}</span>
                 </div>
 

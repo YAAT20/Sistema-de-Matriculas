@@ -1,9 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from matriculas.models import *
+from matriculas.utils import *
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+import json
+
 #AJAX  
 @login_required
 def obtener_apoderado_por_alumno(request):
@@ -73,15 +76,25 @@ def buscar_apoderados(request):
 @require_POST
 @login_required
 def confirmar_pago_ajax(request, pago_id):
-    pago = get_object_or_404(Pago, id=pago_id, estado='pendiente')
-    monto = pago.monto_programado
-    fecha_actual = timezone.now().date()
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            pago_obj = get_object_or_404(Pago, id=pago_id)
+            
+            pago_obj.confirmar_pago(
+                monto_pagado=pago_obj.monto_programado,
+                usuario=request.user,
+                forma_pago=data.get('forma_pago', 'Efectivo'),
+                observacion=data.get('observacion', '').strip()
+            )
 
-    pago.confirmar_pago(monto_pagado=monto, usuario=request.user, fecha_pago=fecha_actual)
+            notificar_admins_async(
+                titulo="💰 Nuevo Pago Confirmado",
+                cuerpo=f"{request.user.username} registró S/ {pago_obj.monto_programado} de la matrícula #{pago_obj.matricula.id}.",
+                url_destino="/matriculas/pagos/",
+                actor=request.user
+            )
 
-    return JsonResponse({
-        'success': True,
-        'fecha_pago': fecha_actual.strftime('%Y-%m-%d'),
-        'monto_pagado': str(monto),
-        'estado': pago.get_estado_display()
-    })
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)

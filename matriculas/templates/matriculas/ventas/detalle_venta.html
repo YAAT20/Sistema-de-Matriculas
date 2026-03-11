@@ -1,0 +1,264 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+<div class="container mx-auto mt-8 px-4">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{ venta.descripcion }}</h1>
+            <p class="text-gray-600">Código: {{ venta.codigo }} | Precio: S/ {{ venta.precio_unitario }}</p>
+        </div>
+        <button onclick="toggleModal('modal-alumno')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow transition-colors">
+            <i class="bi bi-plus-circle mr-1"></i> Agregar Alumno
+        </button>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg my-6 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal border-b border-gray-200">
+                        <th class="py-3 px-6 text-left">Alumno</th>
+                        <th class="py-3 px-6 text-center">Cant.</th>
+                        <th class="py-3 px-6 text-center">Total</th>
+                        <th class="py-3 px-6 text-left w-1/4">Observación</th>
+                        <th class="py-3 px-6 text-center">Pago</th>
+                        <th class="py-3 px-6 text-center">Entrega</th>
+                        <th class="py-3 px-6 text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-alumnos" class="text-gray-600 text-sm font-light">
+                    {% for registro in registros %}
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors" id="fila-{{ registro.id }}">
+                        <td class="py-3 px-6 text-left whitespace-nowrap font-medium text-gray-800">{{ registro.alumno.nombres_completos }}</td>
+                        <td class="py-3 px-6 text-center">{{ registro.cantidad }}</td>
+                        <td class="py-3 px-6 text-center font-bold text-gray-700">S/ {{ registro.total }}</td>
+                        <td class="py-3 px-6 text-left text-xs text-gray-500 italic">{{ registro.observacion|default:"-" }}</td>
+                        
+                        <td class="py-3 px-6 text-center" id="estado-pago-{{ registro.id }}">
+                            {% if registro.pagado %}
+                                <span class="inline-flex items-center bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-semibold">
+                                    <i class="bi bi-check-circle mr-1"></i> Pagado
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-semibold">
+                                    <i class="bi bi-clock mr-1"></i> Pendiente
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-3 px-6 text-center" id="estado-entrega-{{ registro.id }}">
+                            {% if registro.entregado %}
+                                <span class="inline-flex items-center bg-purple-100 text-purple-700 py-1 px-3 rounded-full text-xs font-semibold">
+                                    <i class="bi bi-box-seam mr-1"></i> Entregado
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-semibold">
+                                    <i class="bi bi-hourglass mr-1"></i> Pendiente
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-3 px-6 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                {% if not registro.pagado %}
+                                <button onclick="marcarPagado({{ registro.id }})" id="btn-pagar-{{ registro.id }}" class="text-green-600 hover:text-green-800 transition-colors" title="Marcar como Pagado">
+                                    <i class="bi bi-currency-dollar text-xl"></i>
+                                </button>
+                                {% endif %}
+                                
+                                {% if not registro.entregado %}
+                                <button onclick="marcarEntregado({{ registro.id }})" id="btn-entregar-{{ registro.id }}" class="text-purple-600 hover:text-purple-800 transition-colors" title="Marcar como Entregado">
+                                    <i class="bi bi-box-seam text-xl"></i>
+                                </button>
+                                {% endif %}
+
+                                <button onclick="eliminarRegistro({{ registro.id }})" class="text-red-500 hover:text-red-700 transition-colors ml-2" title="Quitar de la lista">
+                                    <i class="bi bi-trash text-xl"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="modal-alumno" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden overflow-y-auto h-full w-full flex items-center justify-center z-50 transition-opacity">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md relative">
+        <button onclick="toggleModal('modal-alumno')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl transition-colors">&times;</button>
+        <h3 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Registrar Alumno</h3>
+        
+        <form id="form-agregar-alumno">
+            {% csrf_token %}
+            <input type="hidden" id="venta_id" value="{{ venta.id }}">
+            
+            <div class="mb-5">
+                <label class="block text-gray-700 text-sm font-semibold mb-2" for="alumno_id">Seleccionar Alumno</label>
+                <select id="alumno_id" class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" required>
+                    <option value="">-- Seleccione --</option>
+                    {% for alumno in alumnos %}
+                        <option value="{{ alumno.id }}">{{ alumno.nombres_completos }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-5">
+                <label class="block text-gray-700 text-sm font-semibold mb-2" for="cantidad">Cantidad a llevar</label>
+                <input type="number" id="cantidad" value="1" min="1" class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" required>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-semibold mb-2" for="observacion">Observación (Opcional)</label>
+                <input type="text" id="observacion" placeholder="Ej: Abonó la mitad..." class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all">
+                <i class="bi bi-save mr-2"></i> Guardar Registro
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleModal(modalID){
+        document.getElementById(modalID).classList.toggle("hidden");
+    }
+
+    // 1. Agregar Alumno (Ahora envía la observación y dibuja la fila completa)
+    document.getElementById('form-agregar-alumno').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const ventaId = document.getElementById('venta_id').value;
+        const alumnoId = document.getElementById('alumno_id').value;
+        const cantidad = document.getElementById('cantidad').value;
+        const observacion = document.getElementById('observacion').value; // Atrapa observación
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const formData = new FormData();
+        formData.append('alumno', alumnoId);
+        formData.append('cantidad', cantidad);
+        formData.append('observacion', observacion); // Añade al POST
+
+        fetch(`/matriculas/${ventaId}/agregar_alumno/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Error en el servidor");
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                const tbody = document.getElementById('tabla-alumnos');
+                const obsTexto = data.observacion ? data.observacion : "-";
+                
+                const nuevaFila = `
+                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors" id="fila-${data.id}">
+                        <td class="py-3 px-6 text-left whitespace-nowrap font-medium text-gray-800">${data.alumno}</td>
+                        <td class="py-3 px-6 text-center">${data.cantidad}</td>
+                        <td class="py-3 px-6 text-center font-bold text-gray-700">S/ ${data.total}</td>
+                        <td class="py-3 px-6 text-left text-xs text-gray-500 italic">${obsTexto}</td>
+                        
+                        <td class="py-3 px-6 text-center" id="estado-pago-${data.id}">
+                            <span class="inline-flex items-center bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-semibold">
+                                <i class="bi bi-clock mr-1"></i> Pendiente
+                            </span>
+                        </td>
+                        
+                        <td class="py-3 px-6 text-center" id="estado-entrega-${data.id}">
+                            <span class="inline-flex items-center bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-semibold">
+                                <i class="bi bi-hourglass mr-1"></i> Pendiente
+                            </span>
+                        </td>
+                        
+                        <td class="py-3 px-6 text-center">
+                            <div class="flex items-center justify-center space-x-2">
+                                <button onclick="marcarPagado(${data.id})" id="btn-pagar-${data.id}" class="text-green-600 hover:text-green-800 transition-colors" title="Marcar como Pagado">
+                                    <i class="bi bi-currency-dollar text-xl"></i>
+                                </button>
+                                <button onclick="marcarEntregado(${data.id})" id="btn-entregar-${data.id}" class="text-purple-600 hover:text-purple-800 transition-colors" title="Marcar como Entregado">
+                                    <i class="bi bi-box-seam text-xl"></i>
+                                </button>
+                                <button onclick="eliminarRegistro(${data.id})" class="text-red-500 hover:text-red-700 transition-colors ml-2" title="Quitar de la lista">
+                                    <i class="bi bi-trash text-xl"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', nuevaFila);
+                document.getElementById('form-agregar-alumno').reset();
+                toggleModal('modal-alumno');
+            } else {
+                alert(data.error); 
+            }
+        })
+        .catch(error => alert("Error al guardar registro."));
+    });
+
+    // 2. Marcar Pagado
+    function marcarPagado(registroId) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(`/matriculas/registro/${registroId}/pagar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`estado-pago-${registroId}`).innerHTML = '<span class="inline-flex items-center bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-semibold"><i class="bi bi-check-circle mr-1"></i> Pagado</span>';
+                const btn = document.getElementById(`btn-pagar-${registroId}`);
+                if(btn) btn.remove();
+            } else { alert(data.error); }
+        });
+    }
+
+    // 3. Marcar Entregado (NUEVO)
+    function marcarEntregado(registroId) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(`/matriculas/registro/${registroId}/entregar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`estado-entrega-${registroId}`).innerHTML = '<span class="inline-flex items-center bg-purple-100 text-purple-700 py-1 px-3 rounded-full text-xs font-semibold"><i class="bi bi-box-seam mr-1"></i> Entregado</span>';
+                const btn = document.getElementById(`btn-entregar-${registroId}`);
+                if(btn) btn.remove();
+            } else { alert(data.error); }
+        });
+    }
+
+    // 4. Eliminar Registro (NUEVO)
+    function eliminarRegistro(registroId) {
+        if (!confirm("¿Seguro que deseas quitar a este alumno de la campaña?")) return;
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch(`/matriculas/registro/${registroId}/eliminar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const fila = document.getElementById(`fila-${registroId}`);
+                if (fila) fila.remove();
+            } else { alert(data.error); }
+        });
+    }
+</script>
+{% endblock %}

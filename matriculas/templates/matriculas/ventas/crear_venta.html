@@ -1,0 +1,29 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Crear Nueva Campaña (Venta)</h2>
+    
+    <form method="POST" action="{% url 'matriculas:crear_venta' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="codigo">Código</label>
+            <input type="text" name="codigo" id="codigo" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="descripcion">Descripción (Ej: Rifa Pro-Fondos)</label>
+            <input type="text" name="descripcion" id="descripcion" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="precio">Precio Unitario (S/)</label>
+            <input type="number" step="0.01" name="precio" id="precio" class="shadow-sm appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150">
+            Crear Venta
+        </button>
+    </form>
+</div>
+{% endblock %}

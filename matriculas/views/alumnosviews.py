@@ -1,5 +1,4 @@
 # Modelos
-from matriculas import models
 from matriculas.models import Alumno, Matricula  
 
 # Django auth y views
@@ -8,14 +7,13 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 
 # Views genéricas
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView 
-from django.views import View
 # Forms
-from matriculas.forms import AlumnoForm, MatriculaForm 
+from matriculas.forms import AlumnoForm 
 #son utilities
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponse
-from django.shortcuts import redirect, get_object_or_404, render
+from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Q  
 from django.urls import reverse
 
@@ -43,6 +41,7 @@ class AlumnoListView(LoginRequiredMixin, ListView):
 
         search_query = self.request.GET.get('search')
         grado_filtro = self.request.GET.get('grado')
+        sin_foto = self.request.GET.get('sin_foto')
 
         if search_query:
             queryset = queryset.filter(
@@ -54,6 +53,9 @@ class AlumnoListView(LoginRequiredMixin, ListView):
 
         if grado_filtro:
             queryset = queryset.filter(grado_estudios=grado_filtro)
+
+        if sin_foto == 'true':
+            queryset = queryset.filter(Q(foto_previa__isnull=True) | Q(foto_previa=''))
 
         return queryset
 
@@ -73,6 +75,7 @@ class AlumnoTotalListView(LoginRequiredMixin, ListView):
         search_query = self.request.GET.get('search')
         grado_filtro = self.request.GET.get('grado')
         estado_filtro = self.request.GET.get('estado')
+        sin_foto = self.request.GET.get('sin_foto')
 
         # Filtro por búsqueda
         if search_query:
@@ -92,6 +95,10 @@ class AlumnoTotalListView(LoginRequiredMixin, ListView):
         elif estado_filtro == 'inactivo':
             queryset = queryset.filter(activo=False)
 
+        # Filtro por sin foto
+        if sin_foto == 'true':
+            queryset = queryset.filter(Q(foto_previa__isnull=True) | Q(foto_previa=''))
+
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -99,6 +106,7 @@ class AlumnoTotalListView(LoginRequiredMixin, ListView):
         context['grado_opciones'] = Alumno.GRADO_OPCIONES
         context['estado_actual'] = self.request.GET.get('estado', '')
         context['grado_actual'] = self.request.GET.get('grado', '')
+        context['sin_foto_actual'] = self.request.GET.get('sin_foto', '')
 
         # 👇 Total real de alumnos (sin depender del paginador)
         context['total_alumnos'] = self.get_queryset().count()
@@ -194,6 +202,7 @@ def exportar_alumnos_excel(request):
     
     search_query = request.GET.get('search')
     grado_filtro = request.GET.get('grado')
+    sin_foto = request.GET.get('sin_foto')
     
     if search_query:
         alumnos = alumnos.filter(
@@ -204,6 +213,9 @@ def exportar_alumnos_excel(request):
     
     if grado_filtro:
         alumnos = alumnos.filter(grado_estudios=grado_filtro)
+    
+    if sin_foto == 'true':
+        alumnos = alumnos.filter(Q(foto_previa__isnull=True) | Q(foto_previa=''))
     
     # Crear workbook
     wb = Workbook()

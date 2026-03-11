@@ -8,6 +8,8 @@ from django.contrib import messages
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import UserPassesTestMixin
+from django.http import JsonResponse
+import json
 
 # Vista para editar el template de WhatsApp
 @staff_member_required
@@ -125,8 +127,24 @@ def crear_simulacro(request):
 
 @login_required
 def lista_simulacros(request):
+    from django.utils import timezone
     simulacros = Simulacro.objects.all().order_by('-fecha')
-    return render(request, 'matriculas/admin/lista_simulacros.html', {'simulacros': simulacros})
+    today = timezone.now().date()
+
+    # Calcular estadísticas
+    total_simulacros = simulacros.count()
+    proximos = simulacros.filter(fecha__gt=today).count()
+    hoy = simulacros.filter(fecha=today).count()
+    pasados = simulacros.filter(fecha__lt=today).count()
+
+    return render(request, 'matriculas/admin/lista_simulacros.html', {
+        'simulacros': simulacros,
+        'today': today,
+        'total_simulacros': total_simulacros,
+        'proximos': proximos,
+        'hoy': hoy,
+        'pasados': pasados,
+    })
 
 @login_required
 def gestionar_simulacro(request, simulacro_id):
@@ -152,11 +170,33 @@ def gestionar_simulacro(request, simulacro_id):
         return redirect('matriculas:gestionar_simulacro', simulacro_id=simulacro.id)
 
     if request.method == 'POST' and 'guardar_asistencia' in request.POST:
+        actualizado = 0
+        errores = 0
+        
         for key, value in request.POST.items():
             if key.startswith('pago_'):
-                asistencia_id = key.replace('pago_', '')
-                AsistenciaSimulacro.objects.filter(id=asistencia_id).update(pago=value)
-        messages.success(request, "Asistencia y pagos actualizados correctamente.")
+                try:
+                    asistencia_id = key.replace('pago_', '')
+                    # Verificar que el valor es válido
+                    valores_validos = ['no_dio', 'si', 'fondo', 'debe']
+                    if value not in valores_validos:
+                        errores += 1
+                        continue
+                    
+                    result = AsistenciaSimulacro.objects.filter(id=asistencia_id).update(pago=value)
+                    if result > 0:
+                        actualizado += 1
+                except Exception as e:
+                    print(f"Error al actualizar asistencia {asistencia_id}: {str(e)}")
+                    errores += 1
+        
+        if actualizado > 0:
+            messages.success(request, f"✅ {actualizado} pago(s) actualizado(s) correctamente.")
+        if errores > 0:
+            messages.warning(request, f"⚠️ {errores} error(es) al actualizar.")
+        if actualizado == 0 and errores == 0:
+            messages.info(request, "No hay cambios para guardar.")
+        
         return redirect('matriculas:gestionar_simulacro', simulacro_id=simulacro.id)
 
     asistencias = simulacro.asistencias.all().select_related('matricula__alumno').order_by('matricula__alumno__codigo')
@@ -166,3 +206,19 @@ def gestionar_simulacro(request, simulacro_id):
         'asistencias': asistencias,
     }
     return render(request, 'matriculas/admin/gestionar_simulacro.html', context)
+
+@login_required
+def registrar_token_fcm(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        nuevo_token = data.get('token')
+
+        if not nuevo_token:
+            return JsonResponse({'error': 'Token vacío'}, status=400)
+
+        FCMDevice.objects.update_or_create(
+            token=nuevo_token,
+            defaults={'user': request.user}
+        )
+
+        return JsonResponse({'success': True})  

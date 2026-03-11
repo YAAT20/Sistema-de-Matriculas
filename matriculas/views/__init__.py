@@ -6,3 +6,4 @@ from .cuotas import *
 from .ajaxviews import *
 from .usuarios import *
 from .ciclos_turnos_horarios import *
+from .ventas import *

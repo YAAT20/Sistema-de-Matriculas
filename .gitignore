@@ -1,14 +1,28 @@
 venv/
+ENV/
 .env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
 db.sqlite3
-
-pycache__/
-*.pyc
-
+db.sqlite3-journal
 staticfiles/
 media/
-
 *.log
 
 docker-compose.override.yml
+*.ctl
+*.pid
+*.sock
+
+firebase-credenciales.json
+*-credenciales.json
+*.key
+*.pem
+.secrets
+
+.vscode/
+.idea/
+.DS_Store

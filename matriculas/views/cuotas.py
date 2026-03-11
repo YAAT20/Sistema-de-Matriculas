@@ -5,12 +5,14 @@ from matriculas.models import *
 from django.shortcuts import render, redirect
 from matriculas.forms import *
 from django.contrib import messages
-from django.db.models import Count, Sum, Q, F
+from django.db.models import Sum, F, Value, DecimalField, ExpressionWrapper, Q, Count
 from django.utils import timezone
 from matriculas.models import Matricula
 from django.http import JsonResponse
 from django.utils import timezone
 from urllib.parse import quote
+from django.db.models.functions import Coalesce
+from matriculas.utils import *
 
 @login_required
 def lista_pagos_matricula(request, matricula_id):
@@ -36,7 +38,6 @@ def registrar_pago(request, matricula_id):
         
     return render(request, 'matriculas/pagos/formulario_pago.html', {'form': form, 'matricula': matricula})
 
-
 @login_required
 def editar_pago(request, pago_id):
     pago = get_object_or_404(Pago, id=pago_id)
@@ -61,9 +62,6 @@ def editar_pago(request, pago_id):
         'form': form,
         'matricula': pago.matricula
     })
-
-from django.db.models import Sum, F, Value, DecimalField, ExpressionWrapper, Q, Count
-from django.db.models.functions import Coalesce
 
 @login_required
 def resumen_general_pagos(request):
@@ -216,7 +214,6 @@ def reporte_financiero_anual(request):
     
     return render(request, 'matriculas/admin/reporte_financiero.html', context)
 
-
 ##reporte devengado
 @login_required
 def reporte_financiero_devengado(request):
@@ -289,7 +286,6 @@ def reporte_financiero_devengado(request):
     
     return render(request, 'matriculas/admin/reporte_devengado.html', context)
 
-
 #PARA OBSERVAR CUOTAS, ETC ETC
 @login_required
 def api_seguimiento(request, matricula_id):
@@ -315,7 +311,14 @@ def api_seguimiento(request, matricula_id):
         if not texto:
             return JsonResponse({'error': 'Vacío'}, status=400)
 
-        matricula = Matricula.objects.get(id=matricula_id)
+        matricula = Matricula.objects.select_related(
+            'alumno',
+            'apoderado',
+            'ciclo',
+            'turno',
+            'horario'
+        ).get(id=matricula_id)
+
         nuevo = Seguimiento.objects.create(
             matricula=matricula,
             usuario=request.user,
@@ -323,7 +326,27 @@ def api_seguimiento(request, matricula_id):
         )
 
         fecha_local = timezone.localtime(nuevo.fecha_registro)
-        
+
+        alumno = matricula.alumno
+
+        resumen = (texto[:100] + '...') if len(texto) > 100 else texto
+
+        titulo = "Nuevo seguimiento registrado"
+
+        cuerpo = (
+            f"{alumno.codigo} - {alumno.nombres_completos} | "
+            f"{matricula.codigo} | "
+            f"{request.user.username} {fecha_local.strftime('%d/%m %H:%M')} | "
+            f"{resumen}"
+        )
+
+        notificar_admins_async(
+            titulo=titulo,
+            cuerpo=cuerpo,
+            url_destino=f"/matriculas/detalle/{matricula.id}/",
+            actor=request.user
+        )
+
         return JsonResponse({
             'status': 'ok',
             'fecha': fecha_local.strftime("%d/%m %H:%M"),
@@ -331,7 +354,7 @@ def api_seguimiento(request, matricula_id):
         })
     
 #imprimir lista de cuotas
-@login_required
+@login_required 
 def imprimir_reporte_deudas(request):
     matriculas = Matricula.objects.select_related('alumno', 'apoderado').annotate(
         total_pagos=Count('pagos'),

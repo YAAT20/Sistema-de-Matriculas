@@ -201,6 +201,14 @@
                 alumnoSelect.val(null).trigger('change.select2');
             });
         }
+
+        // Enlazar cambio de número de cuotas y sincronizar al cargar
+        const cuotasInput = document.getElementById('id_cuotas');
+        if (cuotasInput) {
+            cuotasInput.addEventListener('change', actualizarCamposCuotas);
+            // Asegurar que el contenedor de cuotas coincida con el valor inicial
+            actualizarCamposCuotas();
+        }
     });
 
     function actualizarCamposCuotas() {

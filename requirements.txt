@@ -5,3 +5,4 @@ whitenoise
 python-dotenv
 xhtml2pdf
 openpyxl
+firebase-admin==6.5.0

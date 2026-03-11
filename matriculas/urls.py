@@ -6,7 +6,8 @@ app_name = 'matriculas'  # Esto define el namespace
 
 urlpatterns = [
     path('', dashboard_view, name='home'),
-    
+    path('registrar-token/', registrar_token_fcm, name='registrar_token_fcm'),
+
     path('dashboard/', dashboard_view, name='dashboard'),
     path('simulacros/crear/', crear_simulacro, name='crear_simulacro'),
     path('simulacros/', lista_simulacros, name='lista_simulacros'),
@@ -51,6 +52,7 @@ urlpatterns = [
     # Pagos
     path('pagos/matricula/<int:matricula_id>/', lista_pagos_matricula, name='lista_pagos_matricula'),
     path('pagos/matricula/<int:matricula_id>/registrar/', registrar_pago, name='registrar_pago'),
+    path('ajax/confirmar-pago/<int:pago_id>/', confirmar_pago_ajax, name='confirmar_pago_ajax'),
     path('pagos/editar/<int:pago_id>/', editar_pago, name='editar_pago'),
     path('pagos/resumen/', resumen_general_pagos, name='resumen_general_pagos'),
     path('ajax/confirmar-pago/<int:pago_id>/', confirmar_pago_ajax, name='ajax_confirmar_pago'),
@@ -88,4 +90,14 @@ urlpatterns = [
     path('usuarios/crear/', UsuarioCreateView.as_view(), name='usuario_create'),
     path('usuario/editar/<int:pk>/', UsuarioUpdateView.as_view(), name='usuario_editar'),
     path('usuarios/', UsuarioListView.as_view(), name='lista_usuarios'),
+
+    #ventas
+    path('crear/', crear_venta, name='crear_venta'),
+    path('ventas/<int:venta_id>/', detalle_venta, name='detalle_venta'),
+
+    # Endpoints para Fetch/AJAX
+    path('<int:venta_id>/agregar_alumno/', agregar_alumno_venta, name='agregar_alumno_venta'),
+    path('registro/<int:id>/pagar/', marcar_pagado, name='marcar_pagado'),
+    path('registro/<int:id>/entregar/', marcar_entregado, name='marcar_entregado'),
+    path('registro/<int:id>/eliminar/', eliminar_registro, name='eliminar_registro'),
 ]

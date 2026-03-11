@@ -5,22 +5,36 @@ services:
     build: .
     container_name: app_matriculas
     restart: always
-    ports:
-      - "8002:8000"  # Puerto externo 8002
+    expose:
+      - "8000"
     environment:
-      - DEBUG=1
+      - DEBUG=0
       - SECRET_KEY=clave_secreta_produccion_cambiar_esto
       - ALLOWED_HOSTS=*
-      # Datos de conexión a la BD Central
       - DB_NAME=db_matriculas
       - DB_USER=root
-      - DB_PASSWORD=tu_password_seguro_root  # <--- ¡PON LA MISMA CLAVE QUE EN INFRA!
+      - DB_PASSWORD=tu_password_seguro_root
       - DB_HOST=db_central
       - DB_PORT=3306
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_matriculas
+    restart: always
+    ports:
+      - "8002:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - web
     networks:
       - app-network
 
