@@ -25,4 +25,4 @@ firebase-credenciales.json
 
 .vscode/
 .idea/
-.DS_Store
+.DS_Storematriculas/static/matriculas/js/firebase-messaging-sw.js
