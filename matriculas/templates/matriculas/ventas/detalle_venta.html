@@ -1,81 +1,114 @@
 {% extends 'base_matriculas.html' %}
 
 {% block content %}
-<div class="container mx-auto mt-8 px-4">
-    <div class="flex justify-between items-center mb-6">
+<div class="container mx-auto mt-8 px-4 pb-24 max-w-7xl">
+    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">{{ venta.descripcion }}</h1>
-            <p class="text-gray-600">Código: {{ venta.codigo }} | Precio: S/ {{ venta.precio_unitario }}</p>
+            <div class="flex items-center gap-4 mb-3">
+                <a href="{% url 'matriculas:crear_venta' %}" class="text-slate-400 hover:text-indigo-600 transition-colors transform hover:-translate-x-1 duration-200">
+                    <i class="bi bi-arrow-left-circle-fill text-3xl"></i>
+                </a>
+                <h1 class="text-4xl font-black text-slate-800 tracking-tight">{{ venta.descripcion }}</h1>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-2 ml-11">
+                <span class="bg-slate-100 text-slate-700 px-4 py-1.5 rounded-lg text-sm font-bold border border-slate-200 flex items-center">
+                    <i class="bi bi-upc-scan mr-2 text-slate-400"></i> Código: {{ venta.codigo }}
+                </span>
+                <span class="bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-lg text-sm font-bold border border-emerald-100 flex items-center">
+                    <i class="bi bi-tag-fill mr-2 text-emerald-500"></i> Precio Unitario: S/ {{ venta.precio_unitario }}
+                </span>
+            </div>
         </div>
-        <button onclick="toggleModal('modal-alumno')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow transition-colors">
-            <i class="bi bi-plus-circle mr-1"></i> Agregar Alumno
+        
+        <button onclick="toggleModal('modal-alumno')" class="w-full lg:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-lg py-4 px-8 rounded-xl shadow-lg shadow-indigo-200 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+            <i class="bi bi-person-plus-fill text-xl"></i> Registrar Alumno
         </button>
     </div>
 
-    <div class="bg-white shadow-md rounded-lg my-6 overflow-hidden">
+    <div class="bg-white shadow-xl shadow-slate-200/50 rounded-2xl overflow-hidden border border-slate-100">
         <div class="overflow-x-auto">
             <table class="min-w-full table-auto">
                 <thead>
-                    <tr class="bg-gray-100 text-gray-600 uppercase text-xs leading-normal border-b border-gray-200">
-                        <th class="py-3 px-6 text-left">Alumno</th>
-                        <th class="py-3 px-6 text-center">Cant.</th>
-                        <th class="py-3 px-6 text-center">Total</th>
-                        <th class="py-3 px-6 text-left w-1/4">Observación</th>
-                        <th class="py-3 px-6 text-center">Pago</th>
-                        <th class="py-3 px-6 text-center">Entrega</th>
-                        <th class="py-3 px-6 text-center">Acciones</th>
+                    <tr class="bg-slate-50 text-slate-500 uppercase text-xs font-black tracking-widest border-b border-slate-200">
+                        <th class="py-5 px-6 text-left w-1/3">Alumno / Información</th>
+                        <th class="py-5 px-6 text-center">Cantidad</th>
+                        <th class="py-5 px-6 text-center">Total a Pagar</th>
+                        <th class="py-5 px-6 text-center">Estado Pago</th>
+                        <th class="py-5 px-6 text-center">Entrega</th>
+                        <th class="py-5 px-6 text-right">Acciones Rápidas</th>
                     </tr>
                 </thead>
-                <tbody id="tabla-alumnos" class="text-gray-600 text-sm font-light">
+                <tbody id="tabla-alumnos" class="text-slate-600">
                     {% for registro in registros %}
-                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors" id="fila-{{ registro.id }}">
-                        <td class="py-3 px-6 text-left whitespace-nowrap font-medium text-gray-800">{{ registro.alumno.nombres_completos }}</td>
-                        <td class="py-3 px-6 text-center">{{ registro.cantidad }}</td>
-                        <td class="py-3 px-6 text-center font-bold text-gray-700">S/ {{ registro.total }}</td>
-                        <td class="py-3 px-6 text-left text-xs text-gray-500 italic">{{ registro.observacion|default:"-" }}</td>
+                    <tr class="border-b border-slate-100 hover:bg-indigo-50/40 transition-colors group" id="fila-{{ registro.id }}">
                         
-                        <td class="py-3 px-6 text-center" id="estado-pago-{{ registro.id }}">
-                            {% if registro.pagado %}
-                                <span class="inline-flex items-center bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-semibold">
-                                    <i class="bi bi-check-circle mr-1"></i> Pagado
+                        <td class="py-5 px-6 text-left">
+                            <div class="font-black text-slate-800 text-lg mb-1">{{ registro.alumno.nombres_completos }}</div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                    {{ registro.alumno.codigo }}
                                 </span>
-                            {% else %}
-                                <span class="inline-flex items-center bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-semibold">
-                                    <i class="bi bi-clock mr-1"></i> Pendiente
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <td class="py-3 px-6 text-center" id="estado-entrega-{{ registro.id }}">
-                            {% if registro.entregado %}
-                                <span class="inline-flex items-center bg-purple-100 text-purple-700 py-1 px-3 rounded-full text-xs font-semibold">
-                                    <i class="bi bi-box-seam mr-1"></i> Entregado
-                                </span>
-                            {% else %}
-                                <span class="inline-flex items-center bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-semibold">
-                                    <i class="bi bi-hourglass mr-1"></i> Pendiente
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <td class="py-3 px-6 text-center">
-                            <div class="flex items-center justify-center space-x-2">
-                                {% if not registro.pagado %}
-                                <button onclick="marcarPagado({{ registro.id }})" id="btn-pagar-{{ registro.id }}" class="text-green-600 hover:text-green-800 transition-colors" title="Marcar como Pagado">
-                                    <i class="bi bi-currency-dollar text-xl"></i>
-                                </button>
-                                {% endif %}
-                                
-                                {% if not registro.entregado %}
-                                <button onclick="marcarEntregado({{ registro.id }})" id="btn-entregar-{{ registro.id }}" class="text-purple-600 hover:text-purple-800 transition-colors" title="Marcar como Entregado">
-                                    <i class="bi bi-box-seam text-xl"></i>
-                                </button>
-                                {% endif %}
-
-                                <button onclick="eliminarRegistro({{ registro.id }})" class="text-red-500 hover:text-red-700 transition-colors ml-2" title="Quitar de la lista">
-                                    <i class="bi bi-trash text-xl"></i>
+                                <button onclick="abrirModalObservacion({{ registro.id }}, '{{ registro.observacion|default:''|escapejs }}')" 
+                                        id="btn-obs-{{ registro.id }}" 
+                                        class="p-1.5 rounded-lg transition-all {% if registro.observacion %}bg-indigo-100 text-indigo-600 hover:bg-indigo-200{% else %}bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-600{% endif %}"
+                                        title="Notas/Observaciones">
+                                    <i class="bi bi-chat-text-fill"></i>
                                 </button>
                             </div>
+                        </td>
+                        
+                        <td class="py-5 px-6 text-center">
+                            <span class="text-lg font-bold text-slate-700 bg-slate-50 w-10 h-10 inline-flex items-center justify-center rounded-xl border border-slate-200">
+                                {{ registro.cantidad }}
+                            </span>
+                        </td>
+                        
+                        <td class="py-5 px-6 text-center">
+                            <span class="text-2xl font-black text-slate-900">S/ {{ registro.total }}</span>
+                        </td>
+                        
+                        <td class="py-5 px-6 text-center" id="estado-pago-{{ registro.id }}">
+                            {% if registro.pagado %}
+                                <span class="inline-block bg-emerald-100 text-emerald-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-emerald-200">PAGADO</span>
+                            {% else %}
+                                <span class="inline-block bg-rose-100 text-rose-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-rose-200">PENDIENTE</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-5 px-6 text-center" id="estado-entrega-{{ registro.id }}">
+                            {% if registro.entregado %}
+                                <span class="inline-block bg-violet-100 text-violet-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-violet-200">ENTREGADO</span>
+                            {% else %}
+                                <span class="inline-block bg-slate-100 text-slate-500 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-slate-200">PENDIENTE</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="py-5 px-6 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-100 lg:opacity-60 group-hover:opacity-100 transition-opacity">
+                                
+                                <button onclick="togglePagado({{ registro.id }})" id="btn-pagar-{{ registro.id }}" 
+                                        class="p-2.5 rounded-xl transition-colors shadow-sm {% if registro.pagado %}bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white{% else %}bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white{% endif %}" 
+                                        title="{% if registro.pagado %}Deshacer Pago{% else %}Cobrar{% endif %}">
+                                    <i id="icon-pagar-{{ registro.id }}" class="bi {% if registro.pagado %}bi-arrow-counterclockwise{% else %}bi-currency-dollar{% endif %} text-xl"></i>
+                                </button>
+                                
+                                <button onclick="toggleEntregado({{ registro.id }})" id="btn-entregar-{{ registro.id }}" 
+                                        class="p-2.5 rounded-xl transition-colors shadow-sm {% if registro.entregado %}bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white{% else %}bg-violet-50 text-violet-600 hover:bg-violet-500 hover:text-white{% endif %}" 
+                                        title="{% if registro.entregado %}Deshacer Entrega{% else %}Entregar{% endif %}">
+                                    <i id="icon-entregar-{{ registro.id }}" class="bi {% if registro.entregado %}bi-arrow-counterclockwise{% else %}bi-box-seam-fill{% endif %} text-xl"></i>
+                                </button>
+                                
+                                <button onclick="eliminarRegistro({{ registro.id }})" class="p-2.5 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-colors shadow-sm ml-2" title="Eliminar Registro">
+                                    <i class="bi bi-trash3-fill text-xl"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <i class="bi bi-inbox text-5xl mb-3 block opacity-50"></i>
+                            <p class="text-lg font-medium">Aún no hay alumnos registrados en esta campaña.</p>
                         </td>
                     </tr>
                     {% endfor %}
@@ -85,180 +118,239 @@
     </div>
 </div>
 
-<div id="modal-alumno" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden overflow-y-auto h-full w-full flex items-center justify-center z-50 transition-opacity">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md relative">
-        <button onclick="toggleModal('modal-alumno')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl transition-colors">&times;</button>
-        <h3 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Registrar Alumno</h3>
+<div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 hidden flex items-center justify-center z-50 backdrop-blur-sm p-4 transition-opacity">
+    <div class="bg-white p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-lg relative">
+        <button onclick="toggleModal('modal-alumno')" class="absolute top-6 right-6 text-slate-400 hover:text-rose-500 transition-colors">
+            <i class="bi bi-x-circle-fill text-3xl"></i>
+        </button>
         
-        <form id="form-agregar-alumno">
+        <h3 class="text-3xl font-black mb-8 text-slate-800 border-b border-slate-100 pb-4">Registrar Alumno</h3>
+        
+        <form id="form-agregar-alumno" class="space-y-6">
             {% csrf_token %}
             <input type="hidden" id="venta_id" value="{{ venta.id }}">
             
-            <div class="mb-5">
-                <label class="block text-gray-700 text-sm font-semibold mb-2" for="alumno_id">Seleccionar Alumno</label>
-                <select id="alumno_id" class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" required>
-                    <option value="">-- Seleccione --</option>
+            <div>
+                <label class="block text-slate-700 text-sm font-black uppercase tracking-wide mb-2">Buscar Alumno</label>
+                <select id="alumno_id" class="select2-alumno w-full" required>
+                    <option value="">-- Escriba el nombre o código --</option>
                     {% for alumno in alumnos %}
-                        <option value="{{ alumno.id }}">{{ alumno.nombres_completos }}</option>
+                        <option value="{{ alumno.id }}">{{ alumno.nombres_completos }} ({{ alumno.codigo }})</option>
                     {% endfor %}
                 </select>
             </div>
-
-            <div class="mb-5">
-                <label class="block text-gray-700 text-sm font-semibold mb-2" for="cantidad">Cantidad a llevar</label>
-                <input type="number" id="cantidad" value="1" min="1" class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow" required>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-1">
+                    <label class="block text-slate-700 text-sm font-black uppercase tracking-wide mb-2">Cantidad</label>
+                    <input type="number" id="cantidad" value="1" min="1" class="w-full border-2 border-slate-200 rounded-xl py-3 px-4 text-xl font-bold text-center text-slate-800 focus:border-indigo-500 focus:ring-0 transition-colors">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-slate-700 text-sm font-black uppercase tracking-wide mb-2">Nota (Opcional)</label>
+                    <input type="text" id="observacion" placeholder="Ej: Abonó la mitad..." class="w-full border-2 border-slate-200 rounded-xl py-3 px-4 text-base text-slate-700 focus:border-indigo-500 focus:ring-0 transition-colors">
+                </div>
             </div>
-
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-semibold mb-2" for="observacion">Observación (Opcional)</label>
-                <input type="text" id="observacion" placeholder="Ej: Abonó la mitad..." class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow">
+            
+            <div class="flex gap-4 pt-4 mt-8 border-t border-slate-100">
+                <button type="button" onclick="toggleModal('modal-alumno')" class="w-1/3 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-lg transition-colors">Cancelar</button>
+                <button type="submit" class="w-2/3 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition-colors flex justify-center items-center gap-2">
+                    <i class="bi bi-check-lg text-xl"></i> Guardar Registro
+                </button>
             </div>
-
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all">
-                <i class="bi bi-save mr-2"></i> Guardar Registro
-            </button>
         </form>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-    function toggleModal(modalID){
-        document.getElementById(modalID).classList.toggle("hidden");
-    }
-
-    // 1. Agregar Alumno (Ahora envía la observación y dibuja la fila completa)
-    document.getElementById('form-agregar-alumno').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const ventaId = document.getElementById('venta_id').value;
-        const alumnoId = document.getElementById('alumno_id').value;
-        const cantidad = document.getElementById('cantidad').value;
-        const observacion = document.getElementById('observacion').value; // Atrapa observación
-        
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        const formData = new FormData();
-        formData.append('alumno', alumnoId);
-        formData.append('cantidad', cantidad);
-        formData.append('observacion', observacion); // Añade al POST
-
-        fetch(`/matriculas/${ventaId}/agregar_alumno/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrfToken },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) throw new Error("Error en el servidor");
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                const tbody = document.getElementById('tabla-alumnos');
-                const obsTexto = data.observacion ? data.observacion : "-";
-                
-                const nuevaFila = `
-                    <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors" id="fila-${data.id}">
-                        <td class="py-3 px-6 text-left whitespace-nowrap font-medium text-gray-800">${data.alumno}</td>
-                        <td class="py-3 px-6 text-center">${data.cantidad}</td>
-                        <td class="py-3 px-6 text-center font-bold text-gray-700">S/ ${data.total}</td>
-                        <td class="py-3 px-6 text-left text-xs text-gray-500 italic">${obsTexto}</td>
-                        
-                        <td class="py-3 px-6 text-center" id="estado-pago-${data.id}">
-                            <span class="inline-flex items-center bg-red-100 text-red-700 py-1 px-3 rounded-full text-xs font-semibold">
-                                <i class="bi bi-clock mr-1"></i> Pendiente
-                            </span>
-                        </td>
-                        
-                        <td class="py-3 px-6 text-center" id="estado-entrega-${data.id}">
-                            <span class="inline-flex items-center bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-xs font-semibold">
-                                <i class="bi bi-hourglass mr-1"></i> Pendiente
-                            </span>
-                        </td>
-                        
-                        <td class="py-3 px-6 text-center">
-                            <div class="flex items-center justify-center space-x-2">
-                                <button onclick="marcarPagado(${data.id})" id="btn-pagar-${data.id}" class="text-green-600 hover:text-green-800 transition-colors" title="Marcar como Pagado">
-                                    <i class="bi bi-currency-dollar text-xl"></i>
-                                </button>
-                                <button onclick="marcarEntregado(${data.id})" id="btn-entregar-${data.id}" class="text-purple-600 hover:text-purple-800 transition-colors" title="Marcar como Entregado">
-                                    <i class="bi bi-box-seam text-xl"></i>
-                                </button>
-                                <button onclick="eliminarRegistro(${data.id})" class="text-red-500 hover:text-red-700 transition-colors ml-2" title="Quitar de la lista">
-                                    <i class="bi bi-trash text-xl"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', nuevaFila);
-                document.getElementById('form-agregar-alumno').reset();
-                toggleModal('modal-alumno');
-            } else {
-                alert(data.error); 
-            }
-        })
-        .catch(error => alert("Error al guardar registro."));
+    $(document).ready(function() {
+        $('.select2-alumno').select2({ dropdownParent: $('#modal-alumno'), width: '100%' });
     });
 
-    // 2. Marcar Pagado
-    function marcarPagado(registroId) {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        fetch(`/matriculas/registro/${registroId}/pagar/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
+    function toggleModal(id) { document.getElementById(id).classList.toggle("hidden"); }
+
+    function abrirModalObservacion(id, obsActual) {
+        Swal.fire({
+            title: '<h2 class="text-2xl font-black text-slate-800">Notas del Registro</h2>',
+            html: '<p class="text-slate-500 mb-4 text-sm">Añade o edita la información adicional.</p>',
+            input: 'textarea',
+            inputValue: obsActual,
+            inputPlaceholder: 'Escribe aquí...',
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-save mr-1"></i> Guardar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#94a3b8',
+            customClass: {
+                input: 'border-2 border-slate-200 rounded-xl p-3 text-slate-700 focus:border-indigo-500 resize-none h-32',
+                popup: 'rounded-3xl p-6'
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById(`estado-pago-${registroId}`).innerHTML = '<span class="inline-flex items-center bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs font-semibold"><i class="bi bi-check-circle mr-1"></i> Pagado</span>';
-                const btn = document.getElementById(`btn-pagar-${registroId}`);
-                if(btn) btn.remove();
-            } else { alert(data.error); }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('observacion', result.value);
+                formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+                fetch(`/matriculas/registro/${id}/observacion/`, { method: 'POST', body: formData })
+                .then(r => r.json()).then(data => {
+                    if(data.success) {
+                        const btn = document.getElementById(`btn-obs-${id}`);
+                        btn.className = result.value.trim() ? 'p-1.5 rounded-lg transition-all bg-indigo-100 text-indigo-600 hover:bg-indigo-200' : 'p-1.5 rounded-lg transition-all bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-600';
+                        btn.setAttribute('onclick', `abrirModalObservacion(${id}, '${result.value.replace(/'/g, "\\'")}')`);
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Nota actualizada', showConfirmButton: false, timer: 2000 });
+                    }
+                });
+            }
         });
     }
 
-    // 3. Marcar Entregado (NUEVO)
-    function marcarEntregado(registroId) {
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        fetch(`/matriculas/registro/${registroId}/entregar/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
-            }
+    document.getElementById('form-agregar-alumno').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('alumno', document.getElementById('alumno_id').value);
+        formData.append('cantidad', document.getElementById('cantidad').value);
+        formData.append('observacion', document.getElementById('observacion').value);
+
+        fetch(`/matriculas/${document.getElementById('venta_id').value}/agregar_alumno/`, {
+            method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' }, body: formData
         })
-        .then(response => response.json())
-        .then(data => {
+        .then(r => r.json()).then(data => {
             if (data.success) {
-                document.getElementById(`estado-entrega-${registroId}`).innerHTML = '<span class="inline-flex items-center bg-purple-100 text-purple-700 py-1 px-3 rounded-full text-xs font-semibold"><i class="bi bi-box-seam mr-1"></i> Entregado</span>';
-                const btn = document.getElementById(`btn-entregar-${registroId}`);
-                if(btn) btn.remove();
-            } else { alert(data.error); }
+                const tbody = document.getElementById('tabla-alumnos');
+                if(tbody.querySelector('td[colspan="6"]')) tbody.innerHTML = '';
+
+                const obsBtnClass = data.observacion ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200' : 'bg-slate-50 text-slate-400 hover:bg-slate-200 hover:text-slate-600';
+                
+                const fila = `
+                    <tr class="border-b border-slate-100 hover:bg-indigo-50/40 transition-colors group" id="fila-${data.id}">
+                        <td class="py-5 px-6 text-left">
+                            <div class="font-black text-slate-800 text-lg mb-1">${data.alumno}</div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">Nuevo</span>
+                                <button onclick="abrirModalObservacion(${data.id}, '${data.observacion || ''}')" id="btn-obs-${data.id}" class="p-1.5 rounded-lg transition-all ${obsBtnClass}"><i class="bi bi-chat-text-fill"></i></button>
+                            </div>
+                        </td>
+                        <td class="py-5 px-6 text-center"><span class="text-lg font-bold text-slate-700 bg-slate-50 w-10 h-10 inline-flex items-center justify-center rounded-xl border border-slate-200">${data.cantidad}</span></td>
+                        <td class="py-5 px-6 text-center"><span class="text-2xl font-black text-slate-900">S/ ${data.total}</span></td>
+                        <td class="py-5 px-6 text-center" id="estado-pago-${data.id}"><span class="inline-block bg-rose-100 text-rose-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-rose-200">PENDIENTE</span></td>
+                        <td class="py-5 px-6 text-center" id="estado-entrega-${data.id}"><span class="inline-block bg-slate-100 text-slate-500 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-slate-200">PENDIENTE</span></td>
+                        <td class="py-5 px-6 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-100 lg:opacity-60 group-hover:opacity-100 transition-opacity">
+                                <button onclick="togglePagado(${data.id})" id="btn-pagar-${data.id}" class="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white rounded-xl transition-colors shadow-sm" title="Cobrar"><i id="icon-pagar-${data.id}" class="bi bi-currency-dollar text-xl"></i></button>
+                                <button onclick="toggleEntregado(${data.id})" id="btn-entregar-${data.id}" class="p-2.5 bg-violet-50 text-violet-600 hover:bg-violet-500 hover:text-white rounded-xl transition-colors shadow-sm" title="Entregar"><i id="icon-entregar-${data.id}" class="bi bi-box-seam-fill text-xl"></i></button>
+                                <button onclick="eliminarRegistro(${data.id})" class="p-2.5 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-colors shadow-sm ml-2" title="Eliminar Registro"><i class="bi bi-trash3-fill text-xl"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+                
+                tbody.insertAdjacentHTML('afterbegin', fila);
+                toggleModal('modal-alumno');
+                document.getElementById('form-agregar-alumno').reset();
+                $('.select2-alumno').val(null).trigger('change');
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Alumno añadido', showConfirmButton: false, timer: 2000 });
+            } else { Swal.fire({icon: 'error', title: 'Ups...', text: data.error, confirmButtonColor: '#4f46e5'}); }
+        });
+    });
+
+    // Función Toggle Pagado Reversible
+    function togglePagado(id) {
+        fetch(`/matriculas/registro/${id}/pagar/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+        .then(r => r.json()).then(data => { 
+            if(data.success) {
+                const spanEstado = document.getElementById(`estado-pago-${id}`);
+                const btn = document.getElementById(`btn-pagar-${id}`);
+                const icon = document.getElementById(`icon-pagar-${id}`);
+
+                if (data.estado_actual) {
+                    spanEstado.innerHTML = '<span class="inline-block bg-emerald-100 text-emerald-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-emerald-200">PAGADO</span>';
+                    btn.className = "p-2.5 rounded-xl transition-colors shadow-sm bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white";
+                    btn.title = "Deshacer Pago";
+                    icon.className = "bi bi-arrow-counterclockwise text-xl";
+                } else {
+                    spanEstado.innerHTML = '<span class="inline-block bg-rose-100 text-rose-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-rose-200">PENDIENTE</span>';
+                    btn.className = "p-2.5 rounded-xl transition-colors shadow-sm bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white";
+                    btn.title = "Cobrar";
+                    icon.className = "bi bi-currency-dollar text-xl";
+                }
+            }
         });
     }
 
-    // 4. Eliminar Registro (NUEVO)
-    function eliminarRegistro(registroId) {
-        if (!confirm("¿Seguro que deseas quitar a este alumno de la campaña?")) return;
+    // Función Toggle Entregado Reversible
+    function toggleEntregado(id) {
+        fetch(`/matriculas/registro/${id}/entregar/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+        .then(r => r.json()).then(data => { 
+            if(data.success) {
+                const spanEstado = document.getElementById(`estado-entrega-${id}`);
+                const btn = document.getElementById(`btn-entregar-${id}`);
+                const icon = document.getElementById(`icon-entregar-${id}`);
 
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        fetch(`/matriculas/registro/${registroId}/eliminar/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/json'
+                if (data.estado_actual) {
+                    spanEstado.innerHTML = '<span class="inline-block bg-violet-100 text-violet-700 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-violet-200">ENTREGADO</span>';
+                    btn.className = "p-2.5 rounded-xl transition-colors shadow-sm bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white";
+                    btn.title = "Deshacer Entrega";
+                    icon.className = "bi bi-arrow-counterclockwise text-xl";
+                } else {
+                    spanEstado.innerHTML = '<span class="inline-block bg-slate-100 text-slate-500 py-1.5 px-4 rounded-full text-xs font-black tracking-wide border border-slate-200">PENDIENTE</span>';
+                    btn.className = "p-2.5 rounded-xl transition-colors shadow-sm bg-violet-50 text-violet-600 hover:bg-violet-500 hover:text-white";
+                    btn.title = "Entregar";
+                    icon.className = "bi bi-box-seam-fill text-xl";
+                }
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const fila = document.getElementById(`fila-${registroId}`);
-                if (fila) fila.remove();
-            } else { alert(data.error); }
+        });
+    }
+
+    function eliminarRegistro(id) {
+        Swal.fire({
+            title: '¿Eliminar registro?',
+            text: "Quitarás a este alumno de la lista.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#94a3b8',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/matriculas/registro/${id}/eliminar/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json()).then(data => { 
+                    if(data.success) {
+                        const fila = document.getElementById(`fila-${id}`);
+                        fila.style.opacity = '0';
+                        setTimeout(() => fila.remove(), 300);
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: 'Registro eliminado', showConfirmButton: false, timer: 1500 });
+                    }
+                });
+            }
         });
     }
 </script>
+
+<style>
+    .select2-container--default .select2-selection--single { 
+        border-radius: 0.75rem !important; 
+        height: 52px !important; 
+        border: 2px solid #e2e8f0 !important; 
+        display: flex !important; 
+        align-items: center !important; 
+        font-size: 1.125rem !important;
+        transition: all 0.2s;
+    }
+    .select2-container--default.select2-container--open .select2-selection--single {
+        border-color: #6366f1 !important;
+    }
+    .select2-selection__rendered {
+        color: #334155 !important;
+        font-weight: 500 !important;
+        padding-left: 1rem !important;
+    }
+    .select2-selection__arrow {
+        height: 50px !important;
+        right: 10px !important;
+    }
+</style>
 {% endblock %}

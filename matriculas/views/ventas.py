@@ -3,48 +3,79 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.decorators import login_required           
 from matriculas.models import Venta, VentaAlumno, Alumno
 from django.views.decorators.http import require_POST
+from django.urls import reverse
 
 @login_required
 def crear_venta(request):
-    # siempre cargamos la lista de ventas activas para mostrar en el bloque derecho
-    ventas = list(Venta.objects.filter(activo=True).order_by('-fecha'))
-    # estadísticas básicas utilizadas en el listado
-    total_precio = sum((v.precio_unitario for v in ventas), 0)
-    precio_total = total_precio
-
-    venta = None
-    registros = None
-    alumnos = None
-
     if request.method == "POST":
         codigo = request.POST.get("codigo") 
         descripcion = request.POST.get("descripcion")
         precio = request.POST.get("precio")
 
-        venta = Venta.objects.create(
-            codigo=codigo,
-            descripcion=descripcion,
-            precio_unitario=precio,
-            activo=True
-        )
-        # preparar datos para mostrar el detalle en la misma plantilla
-        registros = venta.ventas_alumnos.select_related('alumno').all()
-        alumnos = Alumno.objects.all()
-        # agregamos la venta recién creada a la lista para que aparezca también
-        ventas.insert(0, venta)
-        # recalcular estadísticas con la nueva venta al principio
-        total_precio = sum((v.precio_unitario for v in ventas), 0)
-        precio_total = total_precio
+        try:
+            venta = Venta.objects.create(
+                codigo=codigo,
+                descripcion=descripcion,
+                precio_unitario=precio,
+                activo=True
+            )
+            
+            # Si la petición es AJAX, respondemos con JSON
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    "success": True,
+                    "codigo": venta.codigo,
+                    "descripcion": venta.descripcion,
+                    "precio": str(venta.precio_unitario),
+                    "url_detalle": reverse('matriculas:detalle_venta', args=[venta.id])
+                })
+            
+            # Si no es AJAX (fallback), sigue normal
+            return redirect('matriculas:crear_venta')
+            
+        except Exception as e:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"success": False, "error": str(e)}, status=400)
 
+    # Para el método GET, cargamos las ventas existentes
+    ventas = Venta.objects.filter(activo=True).order_by('-fecha')
+    
     context = {
         "ventas": ventas,
-        "venta": venta,
-        "registros": registros,
-        "alumnos": alumnos,
-        "total_precio": total_precio,
-        "precio_total": precio_total,
     }
     return render(request, "matriculas/ventas/crear_venta.html", context)
+
+@login_required
+def seguimiento_pagos_alumno(request):
+    # Ordenamos por nombres para que sea fácil buscarlos en la lista
+    alumnos = Alumno.objects.filter(activo=True).order_by('codigo')
+    alumno_seleccionado = None
+    registros = []
+    total_deuda = 0
+
+    alumno_id = request.GET.get('alumno_id')
+    if alumno_id:
+        alumno_seleccionado = get_object_or_404(Alumno, id=alumno_id)
+        registros = VentaAlumno.objects.filter(alumno=alumno_seleccionado).select_related('venta')
+        # Calculamos la deuda sumando los que pagado=False
+        total_deuda = sum(r.total for r in registros if not r.pagado)
+
+    context = {
+        "alumnos": alumnos,
+        "alumno_seleccionado": alumno_seleccionado,
+        "registros": registros,
+        "total_deuda": total_deuda,
+    }
+    return render(request, "matriculas/ventas/seguimiento_alumno.html", context)
+
+@login_required
+@require_POST
+def editar_observacion(request, id):
+    registro = get_object_or_404(VentaAlumno, id=id)
+    observacion = request.POST.get("observacion", "")
+    registro.observacion = observacion
+    registro.save()
+    return JsonResponse({"success": True, "observacion": observacion})
 
 @login_required
 def agregar_alumno_venta(request, venta_id):
@@ -99,10 +130,10 @@ def marcar_pagado(request, id):
     if not venta_alumno.venta.activo:
         return JsonResponse({"error": "Venta cerrada"}, status=400)
 
-    venta_alumno.pagado = True
+    venta_alumno.pagado = not venta_alumno.pagado
     venta_alumno.save()
 
-    return JsonResponse({"success": True})
+    return JsonResponse({"success": True, "estado_actual": venta_alumno.pagado})
 
 @login_required
 @require_POST
@@ -112,10 +143,11 @@ def marcar_entregado(request, id):
     if not venta_alumno.venta.activo:
         return JsonResponse({"error": "Venta cerrada"}, status=400)
 
-    venta_alumno.entregado = True
+    venta_alumno.entregado = not venta_alumno.entregado
     venta_alumno.save()
 
-    return JsonResponse({"success": True})
+    return JsonResponse({"success": True, "estado_actual": venta_alumno.entregado})
+
 
 @login_required
 @require_POST
@@ -128,7 +160,6 @@ def eliminar_registro(request, id):
     venta_alumno.delete()
 
     return JsonResponse({"success": True})
-
 
 @login_required
 def detalle_venta(request, venta_id):

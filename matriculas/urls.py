@@ -100,4 +100,6 @@ urlpatterns = [
     path('registro/<int:id>/pagar/', marcar_pagado, name='marcar_pagado'),
     path('registro/<int:id>/entregar/', marcar_entregado, name='marcar_entregado'),
     path('registro/<int:id>/eliminar/', eliminar_registro, name='eliminar_registro'),
+    path('cobranza/alumno/', seguimiento_pagos_alumno, name='seguimiento_alumno'),
+    path('registro/<int:id>/observacion/', editar_observacion, name='editar_observacion'),
 ]
