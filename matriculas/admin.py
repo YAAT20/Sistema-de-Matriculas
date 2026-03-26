@@ -178,3 +178,46 @@ class SimulacroAdmin(admin.ModelAdmin):
 class FCMDeviceAdmin(admin.ModelAdmin):
     list_display = ('user', 'creado_en', 'token')
     search_fields = ('user__username',)
+
+class VentaAlumnoInline(admin.TabularInline):
+    model = VentaAlumno
+    extra = 1
+    # autocomplete_fields = ['alumno'] # Descomentar si tienes muchos alumnos y definiste search_fields en AlumnoAdmin
+    fields = ('alumno', 'cantidad', 'pagado', 'entregado', 'observacion')
+
+# --- CONFIGURACIÓN DE SEGUIMIENTO ---
+@admin.register(Seguimiento)
+class SeguimientoAdmin(admin.ModelAdmin):
+    list_display = ('matricula', 'usuario', 'fecha_registro', 'get_texto_corto')
+    list_filter = ('usuario', 'fecha_registro')
+    search_fields = ('matricula__alumno__apellido_paterno', 'matricula__alumno__nombres', 'texto')
+    readonly_fields = ('fecha_registro',)
+
+    def get_texto_corto(self, obj):
+        # Muestra una vista previa del texto en la lista para que no ocupe tanto espacio
+        return obj.texto[:50] + "..." if len(obj.texto) > 50 else obj.texto
+    get_texto_corto.short_description = 'Contenido'
+
+# --- CONFIGURACIÓN DE VENTAS ---
+@admin.register(Venta)
+class VentaAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'descripcion', 'precio_unitario', 'get_total_recaudado', 'activo', 'fecha')
+    list_filter = ('activo', 'fecha')
+    search_fields = ('codigo', 'descripcion')
+    inlines = [VentaAlumnoInline]
+
+    def get_total_recaudado(self, obj):
+        # Muestra el total calculado en el modelo Venta
+        return f"S/. {obj.total_recaudado}"
+    get_total_recaudado.short_description = 'Total Recaudado'
+
+@admin.register(VentaAlumno)
+class VentaAlumnoAdmin(admin.ModelAdmin):
+    list_display = ('alumno', 'venta', 'cantidad', 'pagado', 'entregado', 'get_total_linea')
+    list_filter = ('pagado', 'entregado', 'venta')
+    search_fields = ('alumno__apellido_paterno', 'alumno__nombres', 'venta__descripcion')
+
+    def get_total_linea(self, obj):
+        # Muestra el subtotal (cantidad * precio)
+        return f"S/. {obj.total}"
+    get_total_linea.short_description = 'Subtotal'

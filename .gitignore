@@ -25,4 +25,8 @@ firebase-credenciales.json
 
 .vscode/
 .idea/
-.DS_Storematriculas/static/matriculas/js/firebase-messaging-sw.js
+.DS_Store
+matriculas/static/matriculas/js/firebase-messaging-sw.js
+docker-compose.yml
+Dockerfile
+firebase-credenciales.json

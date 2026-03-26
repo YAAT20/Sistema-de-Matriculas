@@ -935,7 +935,7 @@
         window.ajaxRequest = ajaxRequest;
 
         const firebaseConfig = {
-            apiKey: "AIzaSy...",
+            apiKey: "AIzaSyDBKUnD74xM2Ac2-v6V9TCmBWdjVy5oJsQ",
             authDomain: "matriculas-c9045.firebaseapp.com",
             projectId: "matriculas-c9045",
             storageBucket: "matriculas-c9045.firebasestorage.app",
@@ -968,7 +968,7 @@
                     return;
                 }
 
-                await fetch("/matriculas/registrar-token/", {
+                const response = await fetch("/matriculas/registrar-token/", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -977,6 +977,15 @@
                     body: JSON.stringify({ token: token })
                 });
 
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    console.error('Error registrando token FCM', result);
+                    alert("Error al registrar token: " + (result.error || response.statusText));
+                    return;
+                }
+
+                console.log('Token FCM registrado:', result);
                 alert("Notificaciones activadas");
 
             } catch (error) {
