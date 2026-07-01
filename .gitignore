@@ -1,31 +1,52 @@
+# Python environment
 venv/
 ENV/
 .env
+.env.*
+.python-version
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+.pytest_cache/
+*.py[cod]
+*$py.class
 
+# Django
 db.sqlite3
 db.sqlite3-journal
-staticfiles/
+local_settings.py
 media/
-*.log
+matriculas_media/
+staticfiles/
 
-docker-compose.override.yml
-*.ctl
-*.pid
-*.sock
-
+# Sensitive and secret files
 firebase-credenciales.json
 *-credenciales.json
 *.key
 *.pem
-.secrets
+*.crt
+*.secrets
 
+# Logs and runtime files
+*.log
+*.pid
+*.sock
+*.ctl
+
+# IDE and editor files
 .vscode/
 .idea/
 .DS_Store
-matriculas/static/matriculas/js/firebase-messaging-sw.js
-docker-compose.yml
-Dockerfile
+Thumbs.db
+*.swp
+*~
+
+# Coverage and reports
+.coverage
+htmlcov/
+coverage.xml
+
+# Build artifacts
+__pycache__/
+.pytest_cache/
+
+# Ignore local docker compose overrides
+docker-compose.override.yml
