@@ -16,16 +16,17 @@ def enviar_notificacion_push(usuario, titulo, cuerpo, url_destino="/matriculas/"
     inicializar_firebase()
     
     dispositivos = FCMDevice.objects.filter(user=usuario)
-    
     if not dispositivos.exists():
-        return False, "El usuario no tiene dispositivos registrados."
+        return False, "Sin dispositivos."
         
     tokens = list(dispositivos.values_list('token', flat=True))
     
     mensaje = messaging.MulticastMessage(
+        notification=messaging.Notification(
+            title=titulo,
+            body=cuerpo,
+        ),
         data={
-            "title": titulo,
-            "body": cuerpo,
             "url": url_destino,
         },
         tokens=tokens,
@@ -33,11 +34,9 @@ def enviar_notificacion_push(usuario, titulo, cuerpo, url_destino="/matriculas/"
     
     try:
         respuesta = messaging.send_each_for_multicast(mensaje)
-        if respuesta.failure_count > 0:
-            return True, f"Enviado con fallos. Éxitos: {respuesta.success_count}, Fallos: {respuesta.failure_count}"
-        return True, f"¡Notificación enviada! {respuesta.success_count} dispositivos la recibieron."
+        return True, f"Enviado a {respuesta.success_count} dispositivos."
     except Exception as e:
-        return False, f"Error crítico al enviar: {str(e)}"
+        return False, str(e)
     
 def notificar_admins(titulo, cuerpo, url_destino="/matriculas/", actor=None):
     inicializar_firebase() 

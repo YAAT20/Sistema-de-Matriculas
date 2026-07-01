@@ -130,3 +130,23 @@ class HorarioDeleteView(LoginRequiredMixin, DeleteView):
             f'Horario "{self.object.nombre}" eliminado exitosamente'
         )
         return response
+    
+def finalizar_ciclos_vencidos():
+    hoy = timezone.now().date()
+    
+    ciclos_a_cerrar = Ciclo.objects.filter(activo=True, fecha_fin__lt=hoy)
+    
+    count_ciclos = 0
+    count_matriculas = 0
+
+    for ciclo in ciclos_a_cerrar:
+        with transaction.atomic():
+            actualizadas = ciclo.matricula_set.filter(estado='activa').update(estado='finalizada')
+            
+            ciclo.activo = False
+            ciclo.save()
+            
+            count_ciclos += 1
+            count_matriculas += actualizadas
+
+    return count_ciclos, count_matriculas

@@ -1,0 +1,175 @@
+{% extends 'base_matriculas.html' %}
+{% block content %}
+
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">
+                {{ evento.nombre }}
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                Estado: <span class="font-medium text-gray-700">{{ evento.get_estado_display }}</span>
+            </p>
+        </div>
+
+        <div class="flex gap-2">
+            <a href="{% url 'marketing:marketing_editar_evento' evento.pk %}"
+               class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+                Editar
+            </a>
+            <a href="{% url 'marketing:marketing_fotos_evento' evento.pk %}"
+               class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition">
+                Fotos
+            </a>
+        </div>
+    </div>
+
+    <!-- INFO PRINCIPAL -->
+    <div class="grid lg:grid-cols-3 gap-6">
+
+        <!-- DETALLES -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow p-6 space-y-6">
+
+            <h2 class="text-lg font-semibold text-gray-800">
+                Información del evento
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-500">Fecha inicio</p>
+                    <p class="font-medium">
+                        {{ evento.fecha_inicio|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Lugar</p>
+                    <p class="font-medium">
+                        {{ evento.lugar|default:"No especificado" }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-gray-500">Alcance</p>
+                    <p class="font-medium">
+                        {{ evento.cantidad_estimada_personas|default:"No especificado" }}
+                    </p>
+                </div>
+
+            </div>
+
+            {% if evento.descripcion %}
+            <div>
+                <p class="text-gray-500 text-sm mb-1">Descripción</p>
+                <p class="text-gray-700 whitespace-pre-line">
+                    {{ evento.descripcion }}
+                </p>
+            </div>
+            {% endif %}
+
+            {% if evento.observaciones %}
+            <div>
+                <p class="text-gray-500 text-sm mb-1">Observaciones</p>
+                <p class="text-gray-700 whitespace-pre-line">
+                    {{ evento.observaciones }}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- MÉTRICAS -->
+        <div class="space-y-4">
+
+            <div class="bg-white rounded-xl shadow p-6 text-center">
+                <p class="text-gray-500 text-sm">Fotografías</p>
+                <p class="text-3xl font-bold text-gray-900">
+                    {{ evento.fotos.count }}
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6 text-center">
+                <p class="text-gray-500 text-sm">Publicaciones</p>
+                <p class="text-3xl font-bold text-gray-900">
+                    {{ evento.publicaciones.count }}
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow p-6 text-center">
+                <p class="text-gray-500 text-sm">Estado actual</p>
+                <p class="text-lg font-semibold text-gray-800">
+                    {{ evento.get_estado_display }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOTOS -->
+    <div class="bg-white rounded-xl shadow p-6 space-y-4">
+
+        <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-800">
+                Fotografías
+            </h2>
+
+            <a href="{% url 'marketing:marketing_fotos_evento' evento.pk %}"
+               class="text-blue-600 hover:underline">
+                Administrar
+            </a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            {% for foto in evento.fotos.all|slice:":8" %}
+                <img src="{{ foto.imagen.url }}"
+                     class="h-40 w-full object-cover rounded-lg hover:scale-105 transition">
+            {% empty %}
+                <div class="col-span-full text-center text-gray-500 py-6">
+                    No hay fotografías registradas.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- PUBLICACIONES -->
+    <div class="bg-white rounded-xl shadow p-6 space-y-4">
+
+        <h2 class="text-lg font-semibold text-gray-800">
+            Publicaciones relacionadas
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="text-left text-gray-500 border-b">
+                    <tr>
+                        <th class="py-2">Título</th>
+                        <th class="py-2">Estado</th>
+                        <th class="py-2">Fecha</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for publicacion in evento.publicaciones.all %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2">
+                            <a href="{% url 'marketing:marketing_publicacion' publicacion.pk %}"
+                               class="text-blue-600 hover:underline">
+                                {{ publicacion.titulo }}
+                            </a>
+                        </td>
+                        <td class="py-2">
+                            {{ publicacion.get_estado_display }}
+                        </td>
+                        <td class="py-2">
+                            {{ publicacion.creado_en|date:"d/m/Y" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-6 text-gray-500">
+                            No existen publicaciones asociadas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

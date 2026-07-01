@@ -36,7 +36,8 @@
                 <th class="py-2 px-2 font-bold text-gray-700 w-16">Código</th>
                 <th class="py-2 px-2 font-bold text-gray-700">Alumno</th>
                 <th class="py-2 px-2 font-bold text-gray-700">Telef Alumno</th>
-                <th class="py-2 px-2 font-bold text-gray-700">Telef Apoderado</th>                    
+                <th class="py-2 px-2 font-bold text-gray-700">Telef Apoderado</th>
+                <th class="py-2 px-2 font-bold text-gray-700">F. Venc</th>                    
                 <th class="py-2 px-2 font-bold text-gray-700 text-center">Estado</th>
                 <th class="py-2 px-2 font-bold text-gray-700 text-right">Total Prog.</th>
                 <th class="py-2 px-2 font-bold text-gray-700 text-right">Abonado</th>
@@ -53,6 +54,7 @@
                     {{ m.apoderado.nombres_completos|truncatechars:20 }}
                     <br><span class="text-xs text-gray-500">{{ m.apoderado.celular }}</span>
                 </td>
+                <td class="py-2 px-2">{{ m.proximo_vencimiento|date:"d/m/Y" }}</td>
                 <td class="py-2 px-2 text-center text-xs font-bold">
                     {% if m.cuotas_pagadas == 0 %}
                         SIN PAGOS
@@ -72,7 +74,7 @@
         </tbody>
         <tfoot>
             <tr class="bg-gray-800 text-white font-bold">
-                <td colspan="7" class="py-3 px-4 text-right uppercase">Total Deuda Pendiente:</td>
+                <td colspan="8" class="py-3 px-4 text-right uppercase">Total Deuda Pendiente:</td>
                 <td class="py-3 px-2 text-right">S/ {{ total_deuda|floatformat:2 }}</td>
             </tr>
         </tfoot>

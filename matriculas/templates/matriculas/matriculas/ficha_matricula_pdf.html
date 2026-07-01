@@ -21,12 +21,26 @@
 
 <body>
     <article>
-        <table style="height: 180px; width: auto; border-collapse: collapse;">
+        <table style="height: 180px; width: 100%; border-collapse: collapse;">
             <tr style="vertical-align: middle;">
-                <td style="width: auto; text-align: left; padding: 0 10px;">
+
+                <!-- LOGO -->
+                <td style="width: 33%; text-align: left; padding: 0 10px;">
                     <img src="{% static 'matriculas/images/Logo01.png' %}" alt="Logo"
                         style="height: auto; width: 200px; display: block;">
                 </td>
+
+                <!-- CICLO (CENTRO) -->
+                <td style="width: 34%; text-align: center; font-size: 14px;">
+                    <div style="font-weight: bold; color: #a71e52;">
+                        CICLO
+                    </div>
+                    <div style="margin-top: 5px;">
+                        {{ matricula.ciclo.nombre }}
+                    </div>
+                </td>
+
+                <!-- FOTO -->
                 <td style="max-width: 180px; max-height: 180px; text-align: right; padding: 0 10px;">
                     {% if matricula.alumno.foto_previa %}
                     <img src="{{ matricula.alumno.foto_previa.url }}" alt="Foto del alumno"
@@ -38,6 +52,7 @@
                     </div>
                     {% endif %}
                 </td>
+
             </tr>
         </table>
     </article>
@@ -61,37 +76,48 @@
                             </th>
                         </tr>
                         <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.codigo }}</td>
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Código</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">{{ matricula.codigo }}</td>
                         </tr>
                         <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Fecha</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.fecha_matricula }} </td>
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Fecha Matrícula</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">{{ matricula.fecha_matricula }} </td>
                         </tr>
                         <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Ciclo</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.ciclo.nombre }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Turno</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.turno.nombre }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Horario</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.horario }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Monto</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">S/. {{ matricula.monto }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Modalidad</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.get_modalidad_display }}
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Ciclo</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 3px;">
+                                    <tr>
+                                        <td style="padding: 2px 5px; font-size: 12px; border: 1px solid #ccc;">
+                                            Inicio: {{ matricula.ciclo.fecha_inicio|date:"d/m/Y" }}
+                                        </td>
+                                        <td style="padding: 2px 5px; font-size: 12px; border: 1px solid #ccc;">
+                                            Fin: {{ matricula.ciclo.fecha_fin|date:"d/m/Y" }}
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                         </tr>
                         <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Estado</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.get_estado_display }}
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Turno</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">{{ matricula.turno.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Horario</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">{{ matricula.horario }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Monto</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">S/. {{ matricula.monto }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Modalidad</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">{{ matricula.get_modalidad_display }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px; font-size: 12px; width: 30%"><strong>Estado</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 70%">{{ matricula.get_estado_display }}
                             </td>
                         </tr>
                     </table>
@@ -108,8 +134,8 @@
                             </th>
                         </tr>
                         <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.apoderado.codigo }} </td>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código y DNI</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.apoderado.codigo }} | {{ matricula.apoderado.dni }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Nombre</strong></td>
@@ -130,8 +156,8 @@
                             </th>
                         </tr>
                         <tr>
-                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código</strong></td>
-                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.alumno.codigo }}</td>
+                            <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Código y DNI</strong></td>
+                            <td style="padding: 3px; font-size: 12px; width: 75%">{{ matricula.alumno.codigo }} | {{ matricula.alumno.dni }}</td>
                         </tr>
                         <tr>
                             <td style="padding: 3px; font-size: 12px; width: 25%"><strong>Nombre</strong></td>
@@ -193,6 +219,26 @@
             <li>La matrícula del alumno es personal e intransferible.</li>
             <li>Realizada la matrícula, no hay devolución de dinero parcial o total.</li>
             <li>La matrícula es para el presente ciclo y no es canjeable para ciclos futuros.</li>
+            <li>
+            Leer términos y condiciones en nuestra 
+            <a href="https://academiaroberthooke.com/reglamento-interno" target="_blank" class="link-pdf">
+                página web
+            </a>: https://academiaroberthooke.com/reglamento-interno/
+            </li>
+
+            <style>
+            .link-pdf {
+            color: #0077cc;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            }
+
+            .link-pdf:hover {
+            color: #005fa3;
+            border-bottom: 2px solid #005fa3;
+            }
+            </style>          
         </ul>
     </footer>
     <br>

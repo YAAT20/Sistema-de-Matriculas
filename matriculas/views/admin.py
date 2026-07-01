@@ -10,6 +10,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import JsonResponse
 import json
+from django.core.paginator import Paginator
+from pathlib import Path
+
 
 # Vista para editar el template de WhatsApp
 @staff_member_required
@@ -114,111 +117,99 @@ class SoloAdminMixin(UserPassesTestMixin):
         return redirect('matriculas:matricula_list')
 
 @login_required
-def crear_simulacro(request):
-    if request.method == 'POST':
-        form = SimulacroForm(request.POST)
-        if form.is_valid():
-            simulacro = form.save() # Guarda el simulacro con el turno elegido 
-            messages.success(request, f"Simulacro {simulacro.nombre} programado para el turno {simulacro.turno.nombre}.")
-            return redirect('matriculas:lista_simulacros')
-    else:
-        form = SimulacroForm()
-    return render(request, 'matriculas/admin/crear_simulacro.html', {'form': form})
-
-@login_required
-def lista_simulacros(request):
-    from django.utils import timezone
-    simulacros = Simulacro.objects.all().order_by('-fecha')
-    today = timezone.now().date()
-
-    # Calcular estadísticas
-    total_simulacros = simulacros.count()
-    proximos = simulacros.filter(fecha__gt=today).count()
-    hoy = simulacros.filter(fecha=today).count()
-    pasados = simulacros.filter(fecha__lt=today).count()
-
-    return render(request, 'matriculas/admin/lista_simulacros.html', {
-        'simulacros': simulacros,
-        'today': today,
-        'total_simulacros': total_simulacros,
-        'proximos': proximos,
-        'hoy': hoy,
-        'pasados': pasados,
-    })
-
-@login_required
-def gestionar_simulacro(request, simulacro_id):
-    simulacro = get_object_or_404(Simulacro, id=simulacro_id)
-    
-    if request.method == 'POST' and 'cargar_alumnos' in request.POST:
-        matriculas = Matricula.objects.filter(
-            ciclo=simulacro.ciclo, 
-            turno=simulacro.turno, 
-            estado='activa'
-        )
-        
-        count = 0
-        for mat in matriculas:
-            obj, created = AsistenciaSimulacro.objects.get_or_create(
-                simulacro=simulacro, 
-                matricula=mat
-            )
-            if created:
-                count += 1
-        
-        messages.success(request, f"Se cargaron {count} alumnos del turno {simulacro.turno.nombre}.")
-        return redirect('matriculas:gestionar_simulacro', simulacro_id=simulacro.id)
-
-    if request.method == 'POST' and 'guardar_asistencia' in request.POST:
-        actualizado = 0
-        errores = 0
-        
-        for key, value in request.POST.items():
-            if key.startswith('pago_'):
-                try:
-                    asistencia_id = key.replace('pago_', '')
-                    # Verificar que el valor es válido
-                    valores_validos = ['no_dio', 'si', 'fondo', 'debe']
-                    if value not in valores_validos:
-                        errores += 1
-                        continue
-                    
-                    result = AsistenciaSimulacro.objects.filter(id=asistencia_id).update(pago=value)
-                    if result > 0:
-                        actualizado += 1
-                except Exception as e:
-                    print(f"Error al actualizar asistencia {asistencia_id}: {str(e)}")
-                    errores += 1
-        
-        if actualizado > 0:
-            messages.success(request, f"✅ {actualizado} pago(s) actualizado(s) correctamente.")
-        if errores > 0:
-            messages.warning(request, f"⚠️ {errores} error(es) al actualizar.")
-        if actualizado == 0 and errores == 0:
-            messages.info(request, "No hay cambios para guardar.")
-        
-        return redirect('matriculas:gestionar_simulacro', simulacro_id=simulacro.id)
-
-    asistencias = simulacro.asistencias.all().select_related('matricula__alumno').order_by('matricula__alumno__codigo')
-    
-    context = {
-        'simulacro': simulacro,
-        'asistencias': asistencias,
-    }
-    return render(request, 'matriculas/admin/gestionar_simulacro.html', context)
-
-@login_required
 def registrar_token_fcm(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        nuevo_token = data.get('token')
+        try:
+            data = json.loads(request.body)
+            nuevo_token = data.get('token')
 
-        if not nuevo_token:
-            return JsonResponse({'error': 'Token vacío'}, status=400)
+            if not nuevo_token:
+                return JsonResponse({'error': 'Token vacío'}, status=400)
 
-        FCMDevice.objects.update_or_create(
-            token=nuevo_token,
-            defaults={'user': request.user}
-        )
+            # Esto asegura que el token sea único, pero vinculado al usuario actual.
+            # Si el token ya existía para otro usuario, se actualiza al usuario actual.
+            FCMDevice.objects.update_or_create(
+                token=nuevo_token,
+                defaults={'user': request.user}
+            )
 
-        return JsonResponse({'success': True})  
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+def galeria_alumnos(request):
+    grupo_seleccionado = request.GET.get('grupo', 'pre5')
+
+    alumnos = Alumno.objects
+
+    if grupo_seleccionado == 'pre5':
+        alumnos = alumnos.filter(grado_estudios__in=['pre', '5s'])
+        titulo = 'Pre y 5to'
+
+    elif grupo_seleccionado == '34':
+        alumnos = alumnos.filter(grado_estudios__in=['3s', '4s'])
+        titulo = '3ro y 4to'
+
+    else:
+        alumnos = alumnos.filter(grado_estudios__in=['1s', '2s'])
+        titulo = '1ro y 2do'
+
+    fotos = []
+
+    for alumno in alumnos:
+
+        for tipo, foto in [
+            ('Previa', alumno.foto_previa),
+            ('Frente', alumno.foto_frente),
+            ('Lado', alumno.foto_lado),
+            ('Corte', alumno.foto_corte),
+        ]:
+
+            if not foto:
+                continue
+
+            thumb_url = foto.url
+
+            try:
+                ruta = Path(foto.path)
+
+                thumb = ruta.with_name(
+                    ruta.stem + '_thumb.jpg'
+                )
+
+                if thumb.exists():
+
+                    nombre_thumb = (
+                        Path(foto.name).stem +
+                        '_thumb.jpg'
+                    )
+
+                    thumb_url = (
+                        Path(foto.url).parent.as_posix() +
+                        '/' +
+                        nombre_thumb
+                    )
+
+            except Exception:
+                pass
+
+            fotos.append({
+                'alumno': alumno,
+                'tipo': tipo,
+
+                # ORIGINAL
+                'url': foto.url,
+
+                # THUMBNAIL
+                'thumb_url': thumb_url,
+            })
+
+    return render(
+        request,
+        'marketing/alumnos/galeria.html',
+        {
+            'fotos': fotos,
+            'titulo': titulo,
+            'grupo_actual': grupo_seleccionado,
+        }
+    )

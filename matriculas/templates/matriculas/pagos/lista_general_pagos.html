@@ -65,10 +65,15 @@
         <table class="min-w-full divide-y divide-gray-200 tabla-pagos">
             <thead class="bg-gray-800">
                 <tr>
-                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Código</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase">
+                        <a href="?orden=alumno__codigo&dir=asc">Código ↑</a>
+                    </th>
                     <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Alumno</th>
                     <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Telef Alumno</th>
-                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Telef Apoderado</th>                    
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase tracking-wider">Telef Apoderado</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-white uppercase">
+                        <a href="?orden=proximo_vencimiento&dir=asc">Vencimiento</a>
+                    </th>            
                     {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
                     <th class="px-4 py-3 text-center text-sm font-semibold text-white uppercase tracking-wider">Progreso</th>
                     <th class="px-4 py-3 text-center text-sm font-semibold text-white uppercase tracking-wider">Pagadas</th>
@@ -128,7 +133,10 @@
                                 </a>
                             {% endif %}
                         </div>
-                    </td>                   
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <span class="text-gray-700">{{ matricula.proximo_vencimiento|default:"Sin deuda" }}</span>
+                    </td>
                     {% if user.is_authenticated and user.perfil.tipo == 'admin' %}                    
                     <td class="px-4 py-3 text-center align-middle">
                         <div class="w-full bg-gray-200 rounded-full h-2.5 mb-1 border border-gray-300">

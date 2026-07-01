@@ -1,0 +1,304 @@
+{% extends 'base_matriculas.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20"> 
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">{{ simulacro.nombre }}</h2>
+            <div class="flex items-center mt-1 text-sm text-gray-500 font-medium">
+                <span class="bg-indigo-100 text-indigo-700 py-0.5 px-2 rounded-md mr-2">
+                    <i class="bi bi-calendar-event mr-1"></i> {{ simulacro.fecha|date:"d M, Y" }}
+                </span>
+            </div>
+        </div>
+        
+        <form method="post" class="w-full md:w-auto">
+            {% csrf_token %}
+            <button type="submit" name="cargar_alumnos" 
+                    class="w-full md:w-auto inline-flex justify-center items-center px-5 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all active:scale-95">
+                <span class="mr-2 text-lg">⚡</span> Cargar Alumnos
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-white p-3 md:p-5 rounded-2xl shadow-sm border border-gray-100 text-center relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="bi bi-cash-coin text-4xl text-green-600"></i>
+            </div>
+            <p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Recaudado</p>
+            <p class="text-lg md:text-3xl font-black text-green-600 truncate">S/ {{ simulacro.ganancia }}</p>
+        </div>
+
+        <div class="bg-white p-3 md:p-5 rounded-2xl shadow-sm border border-gray-100 text-center relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="bi bi-people-fill text-4xl text-blue-600"></i>
+            </div>
+            <p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Fondo Social</p>
+            <p class="text-lg md:text-3xl font-black text-blue-600 truncate">S/ {{ simulacro.total_fondo }}</p>
+        </div>
+
+        <div class="bg-white p-3 md:p-5 rounded-2xl shadow-sm border border-gray-100 text-center relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                <i class="bi bi-exclamation-circle-fill text-4xl text-red-600"></i>
+            </div>
+            <p class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Pendiente</p>
+            <p class="text-lg md:text-3xl font-black text-red-600 truncate">S/ {{ simulacro.deuda }}</p>
+        </div>
+    </div>
+
+    <div class="mb-6 relative sticky top-2 z-20"> 
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <i class="bi bi-search text-gray-400"></i>
+        </div>
+        <input type="text" 
+               id="buscadorAlumnos" 
+               class="block w-full pl-10 pr-4 py-3 border-none rounded-xl shadow-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm transition-shadow" 
+               placeholder="Buscar alumno..."
+               onkeydown="return event.key != 'Enter';"> 
+    </div>
+
+    <form method="post" id="formAsistencia">
+        {% csrf_token %}
+        
+        <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white-500 uppercase tracking-wider">Código</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white-500 uppercase tracking-wider">Alumno</th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-bold text-white-500 uppercase tracking-wider">Fondo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-bold text-white-500 uppercase tracking-wider w-56">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for asis in asistencias %}
+                        <tr class="hover:bg-gray-50 transition-colors item-alumno">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 data-codigo">
+                                {{ asis.matricula.alumno.codigo }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800 data-nombre">
+                                {{ asis.matricula.alumno.nombres_completos }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                {% if asis.matricula.alumno.fondo_social %}
+                                    <span class="inline-flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-600" title="Tiene Fondo Social">
+                                        <i class="bi bi-check-lg text-sm"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-300">•</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <select name="pago_{{ asis.id }}" 
+                                        class="block w-full py-2 pl-3 pr-8 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-lg shadow-sm bg-gray-50 hover:bg-white transition-colors cursor-pointer">
+                                    <option value="no_dio" {% if asis.pago == 'no_dio' %}selected{% endif %}>⛔ No dió</option>
+                                    <option value="si" {% if asis.pago == 'si' %}selected{% endif %}>💵 Pagó</option>
+                                    <option value="fondo" {% if asis.pago == 'fondo' %}selected{% endif %}>🏦 Fondo</option>
+                                    <option value="debe" {% if asis.pago == 'debe' %}selected{% endif %}>⚠️ Debe</option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="md:hidden space-y-3">
+            {% for asis in asistencias %}
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 item-alumno">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <p class="text-sm font-bold text-gray-700 mt-1 font-mono data-codigo">
+                            {{ asis.matricula.alumno.codigo }}
+                        </p>
+                        <h3 class="text-base font-bold text-gray-900 leading-tight data-nombre">
+                            {{ asis.matricula.alumno.nombres_completos }}
+                        </h3>
+                    </div>
+                    {% if asis.matricula.alumno.fondo_social %}
+                        <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">
+                            Fondo
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-2">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Estado de Pago</label>
+                    <select name="pago_{{ asis.id }}" 
+                            class="block w-full py-2.5 px-4 text-sm border-gray-200 focus:ring-indigo-500 focus:border-indigo-500 rounded-lg bg-gray-50/50 shadow-sm font-medium">
+                        <option value="no_dio" {% if asis.pago == 'no_dio' %}selected{% endif %}>⛔ No dió</option>
+                        <option value="si" {% if asis.pago == 'si' %}selected{% endif %}>💵 Sí Pagó</option>
+                        <option value="fondo" {% if asis.pago == 'fondo' %}selected{% endif %}>🏦 Fondo Social</option>
+                        <option value="debe" {% if asis.pago == 'debe' %}selected{% endif %}>⚠️ Debe</option>
+                    </select>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-10 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <i class="bi bi-people text-4xl text-gray-300 mb-2 block"></i>
+                <p class="text-gray-500 font-medium">No hay alumnos cargados.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="noResultados" class="hidden text-center py-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                <i class="bi bi-search text-2xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">No encontrado</h3>
+            <p class="text-gray-500">Intenta con otro nombre o código.</p>
+        </div>
+
+        {% if asistencias %}
+        <div class="fixed bottom-0 left-0 right-0 p-3 bg-white/80 backdrop-blur-md border-t border-gray-200 z-30 flex justify-end shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+            <button type="submit" 
+                    name="guardar_asistencia" 
+                    value="1"
+                    id="btnGuardarAsistencia"
+                    class="inline-flex items-center px-5 py-2.5 border border-transparent shadow-md text-sm font-bold rounded-full text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="bi bi-check-circle-fill mr-2"></i> 
+                <span id="btnGuardarText">Guardar</span>
+            </button>
+        </div>
+        {% endif %}
+
+    </form>
+</div>
+<style>
+    /* Feedback visual de estados */
+    .item-alumno.estado-si { background-color: #f0fdf4 !important; border-left: 4px solid #16a34a; }
+    .item-alumno.estado-debe { background-color: #fef2f2 !important; border-left: 4px solid #dc2626; }
+    .item-alumno.estado-fondo { background-color: #eff6ff !important; border-left: 4px solid #2563eb; }
+    .item-alumno.estado-no_dio { border-left: 4px solid #d1d5db; transition: all 0.2s; }
+    
+    /* Animación para el botón de guardar cuando hay cambios */
+    .btn-alerta {
+        animation: pulse-red 2s infinite;
+        background-color: #dc2626 !important;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const inputBusqueda = document.getElementById('buscadorAlumnos');
+    const items = document.querySelectorAll('.item-alumno'); 
+    const mensajeNoResultados = document.getElementById('noResultados');
+    const formAsistencia = document.getElementById('formAsistencia');
+    const btnGuardar = document.getElementById('btnGuardarAsistencia');
+    const btnText = document.getElementById('btnGuardarText');
+
+    let cambiosSinGuardar = false;
+
+    // --- 1. FUNCIÓN PARA ACTUALIZAR COLORES EN TIEMPO REAL ---
+    function actualizarColorEstado(selectElement) {
+        const fila = selectElement.closest('.item-alumno');
+        const nuevoEstado = selectElement.value;
+        
+        // Limpiamos clases anteriores
+        fila.classList.remove('estado-si', 'estado-debe', 'estado-fondo', 'estado-no_dio');
+        // Añadimos la nueva
+        fila.classList.add(`estado-${nuevoEstado}`);
+    }
+
+    // Inicializar colores al cargar la página
+    document.querySelectorAll('select[name^="pago_"]').forEach(select => {
+        actualizarColorEstado(select);
+    });
+
+    // --- 2. BLOQUEO DE SEGURIDAD (ANTI-CIERRE) ---
+    function marcarCambios() {
+        if (!cambiosSinGuardar) {
+            cambiosSinGuardar = true;
+            btnGuardar.classList.add('btn-alerta'); // Usamos tu clase de estilo
+            btnText.textContent = "Guardar Cambios *";
+        }
+    }
+
+    window.addEventListener('beforeunload', (e) => {
+        if (cambiosSinGuardar) {
+            e.preventDefault();
+            e.returnValue = ''; 
+        }
+    });
+
+    // --- 3. DETECCIÓN DE CAMBIOS, COLORES Y TECLADO ---
+    const selects = Array.from(document.querySelectorAll('select[name^="pago_"]'));
+    
+    selects.forEach((select, index) => {
+        select.addEventListener('change', function() {
+            marcarCambios();
+            actualizarColorEstado(this); // <-- FALTA IMPORTANTE: Actualizar el color al cambiar
+        });
+
+        select.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' && index < selects.length - 1) {
+                e.preventDefault();
+                selects[index + 1].focus();
+            } else if (e.key === 'ArrowUp' && index > 0) {
+                e.preventDefault();
+                selects[index - 1].focus();
+            }
+        });
+    });
+
+    // --- 4. BÚSQUEDA DE ALUMNOS (Optimizado) ---
+    if(inputBusqueda) {
+        inputBusqueda.addEventListener('input', function(e) { // 'input' es más fluido que 'keyup'
+            const termino = e.target.value.toLowerCase().trim();
+            let hayResultados = false;
+
+            items.forEach(item => {
+                const codigo = item.querySelector('.data-codigo').textContent.toLowerCase();
+                const nombre = item.querySelector('.data-nombre').textContent.toLowerCase();
+
+                if (codigo.includes(termino) || nombre.includes(termino)) {
+                    item.classList.remove('hidden');
+                    item.style.display = (item.tagName === 'TR') ? 'table-row' : 'block';
+                    hayResultados = true;
+                } else {
+                    item.classList.add('hidden');
+                    item.style.display = 'none';
+                }
+            });
+            mensajeNoResultados.classList.toggle('hidden', hayResultados || items.length === 0);
+        });
+    }
+
+    // --- 5. ENVÍO SEGURO DEL FORMULARIO ---
+    if (formAsistencia && btnGuardar) {
+        formAsistencia.addEventListener('submit', function(e) {
+            if (btnGuardar.disabled) return e.preventDefault(); // Doble protección
+
+            cambiosSinGuardar = false; 
+
+            selects.forEach(select => {
+                // Importante: No deshabilitamos los selects visibles para que se envíen
+                if (select.offsetParent === null) {
+                    select.disabled = true;
+                }
+            });
+
+            btnGuardar.disabled = true;
+            btnGuardar.classList.remove('btn-alerta');
+            btnText.textContent = 'Procesando Cobros...';
+        });
+    }
+
+    // --- 6. HEARTBEAT (MANTENER SESIÓN VIVA) ---
+    setInterval(() => {
+        fetch(window.location.href, { method: 'HEAD' })
+            .catch(() => console.log('Reintentando conexión...'));
+    }, 240000);
+});
+</script>
+{% endblock %}

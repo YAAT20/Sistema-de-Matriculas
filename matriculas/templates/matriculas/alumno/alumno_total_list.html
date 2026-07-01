@@ -59,6 +59,32 @@
             </a>
         {% endif %}
     </div>
+
+    <div class="flex items-center gap-2">
+        <label for="ciclo_filtro" class="text-xs font-semibold text-gray-600 uppercase">Ciclo:</label>
+        <select id="ciclo_filtro" name="ciclo" onchange="updateCicloFilter(this.value)" 
+                class="text-xs border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 bg-white px-2 py-1">
+            <option value="">Todos los Ciclos</option>
+            {% for ciclo in ciclos %}
+                <option value="{{ ciclo.id }}" {% if request.GET.ciclo == ciclo.id|stringformat:"s" %}selected{% endif %}>
+                    {{ ciclo.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <script>
+    function updateCicloFilter(cicloId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (cicloId) {
+            urlParams.set('ciclo', cicloId);
+        } else {
+            urlParams.delete('ciclo');
+        }
+        window.location.search = urlParams.toString();
+    }
+    </script>
+
     <div class="flex gap-2">
         <a href="?estado=activo{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.sin_foto %}&sin_foto={{ request.GET.sin_foto }}{% endif %}" class="px-3 py-1.5 text-xs rounded-lg border transition-colors duration-200
             {% if request.GET.estado == 'activo' %}

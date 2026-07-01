@@ -7,7 +7,8 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-clave-por-defecto')
-DEBUG = os.environ.get('DEBUG', '0') == '1'
+#DEBUG = os.environ.get('DEBUG', '0') == '1'
+DEBUG = True #cambiar para ver mejor lo errores
 
 ALLOWED_HOSTS = ['*']
 
@@ -24,7 +25,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'matriculas',
+    'matriculas',   
+    'marketing',
     'django.contrib.humanize',
 ]
 
@@ -52,6 +54,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'matriculas.context_processors.breadcrumb',
             ],
         },
     },
@@ -63,7 +66,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME', 'db_matriculas'),
-        'USER': os.environ.get('DB_USER', 'root'),
+        'USER': os.environ.get('DB_USER', 'rh2025'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
         'HOST': os.environ.get('DB_HOST', 'db_central'),
         'PORT': os.environ.get('DB_PORT', '3306'),
@@ -94,7 +97,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_URL = '/matriculas/login/' 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/matriculas/app-selection/'
 LOGOUT_REDIRECT_URL = '/matriculas/login/'
 
 SESSION_COOKIE_NAME = "sessionid_matriculas"

@@ -3,6 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from .models import *
 from django.db import models
+from django.forms import inlineformset_factory
 
 class MensajeWhatsAppConfigForm(forms.ModelForm):
     class Meta:
@@ -610,3 +611,50 @@ class SimulacroForm(forms.ModelForm):
             'ciclo': forms.Select(attrs={'class': 'form-select'}),
             'turno': forms.Select(attrs={'class': 'form-select'}),
         }
+
+class ProcedimientoForm(forms.ModelForm):
+    class Meta:
+        model = Procedimiento
+        fields = ['titulo', 'descripcion', 'observacion']
+
+        widgets = {
+            'titulo': forms.TextInput(attrs={
+                'class': 'w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 px-2 py-2'
+            }),
+
+            'descripcion': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Breve descripción del procedimiento...',
+                'class': 'w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 px-2 py-2'
+            }),
+
+            'observacion': forms.Textarea(attrs={
+                'rows': 2,
+                'placeholder': 'Observaciones adicionales...',
+                'class': 'w-full mt-1 border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 px-2 py-2'
+            }),
+        }
+
+PasoFormSet = inlineformset_factory(
+    Procedimiento,
+    Paso,
+    fields=('descripcion', 'archivo', 'enlace_video'),
+    extra=1,
+    can_delete=True,
+    widgets={
+        'descripcion': forms.Textarea(attrs={
+            'rows': 2,
+            'placeholder': 'Describe este paso...',
+            'class': 'w-full mt-1 border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-2 py-2'
+        }),
+
+        'archivo': forms.FileInput(attrs={
+            'class': 'w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer'
+        }),
+
+        'enlace_video': forms.URLInput(attrs={
+            'placeholder': 'https://...',
+            'class': 'w-full mt-1 border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-2 py-2'
+        })
+    }
+)

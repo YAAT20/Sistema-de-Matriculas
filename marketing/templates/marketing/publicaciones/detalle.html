@@ -1,0 +1,192 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto p-6 space-y-8">
+
+    <!-- HEADER -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+
+        <div>
+
+            <h1 class="text-3xl font-bold text-gray-800">
+                {{ publicacion.titulo }}
+            </h1>
+
+            <div class="flex items-center gap-3 mt-2">
+
+                <span class="px-3 py-1 rounded-full text-xs font-medium {{ publicacion.estado_color }}">
+                    {{ publicacion.get_estado_display }}
+                </span>
+
+                <span class="text-sm text-gray-500">
+                    {{ publicacion.evento|default:"Sin evento" }}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACCIONES -->
+        <div class="flex gap-2">
+
+            <a href="{% url 'marketing:marketing_editar_publicacion' publicacion.pk %}"
+               class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+                Editar
+            </a>
+
+            <a href="{% url 'marketing:marketing_eliminar_publicacion' publicacion.pk %}"
+               class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl">
+                Eliminar
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- RESUMEN -->
+    <div class="bg-white shadow rounded-2xl p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+
+        <div>
+            <p class="text-gray-500">Creado</p>
+            <p class="font-medium">{{ publicacion.creado_en|date:"d/m/Y H:i" }}</p>
+        </div>
+
+        <div>
+            <p class="text-gray-500">Programación</p>
+            <p class="font-medium">
+                {{ publicacion.fecha_programada|default:"No programada" }}
+            </p>
+        </div>
+
+        <div>
+            <p class="text-gray-500">Publicación</p>
+            <p class="font-medium">
+                {{ publicacion.fecha_publicacion|default:"No publicada" }}
+            </p>
+        </div>
+
+        <div>
+            <p class="text-gray-500">Archivos</p>
+            <p class="font-medium">
+                {{ publicacion.cantidad_archivos }}
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- OBSERVACIONES -->
+    {% if publicacion.observaciones %}
+    <div class="bg-white shadow rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold mb-3">
+            Observaciones
+        </h2>
+
+        <p class="text-gray-700 whitespace-pre-line">
+            {{ publicacion.observaciones }}
+        </p>
+
+    </div>
+    {% endif %}
+
+
+    <!-- COPIES -->
+    <div class="bg-white shadow rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold mb-4">
+            Copies por plataforma
+        </h2>
+
+        <div class="space-y-4">
+
+            {% for copy in publicacion.copies.all %}
+
+            <div class="border rounded-xl p-4">
+
+                <div class="flex justify-between items-center mb-2">
+
+                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                        {{ copy.get_plataforma_display }}
+                    </span>
+
+                </div>
+
+                <p class="text-gray-700 whitespace-pre-line">
+                    {{ copy.copy }}
+                </p>
+
+            </div>
+
+            {% empty %}
+
+            <p class="text-gray-500">
+                No hay copies registrados.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- GALERÍA DE ARCHIVOS -->
+    <div class="bg-white shadow rounded-2xl p-6">
+
+        <h2 class="text-lg font-semibold mb-4">
+            Archivos
+        </h2>
+
+        {% if publicacion.archivos.all %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            {% for archivo in publicacion.archivos.all %}
+
+            <div class="rounded-xl overflow-hidden border bg-gray-50">
+
+                {% if archivo.archivo.url|lower|slice:"-4:" == ".mp4" %}
+
+                    <video controls class="w-full h-52 object-cover">
+                        <source src="{{ archivo.archivo.url }}">
+                    </video>
+
+                {% else %}
+
+                    <img
+                        src="{{ archivo.archivo.url }}"
+                        class="w-full h-52 object-cover">
+
+                {% endif %}
+
+                <div class="p-3">
+
+                    <p class="text-sm text-gray-700">
+                        {{ archivo.descripcion|default:"Sin descripción" }}
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <p class="text-gray-500">
+            No hay archivos.
+        </p>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

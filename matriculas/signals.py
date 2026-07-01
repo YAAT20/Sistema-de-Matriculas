@@ -3,9 +3,13 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import Perfil
 from django.db.models.signals import post_save
-from matriculas.models import Alumno
+from matriculas.models import Matricula, Apoderado
 from django.db.models.signals import post_save, post_delete
-from matriculas.models import Matricula
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
+from pathlib import Path
+from PIL import Image
+from .models import Alumno
 
 @receiver(post_save, sender=User)
 def crear_perfil_usuario(sender, instance, created, **kwargs):
@@ -35,3 +39,39 @@ def actualizar_estado_alumno(sender, instance, **kwargs):
     if alumno.activo != tiene_matriculas:
         alumno.activo = tiene_matriculas
         alumno.save(update_fields=['activo'])
+
+@receiver(m2m_changed, sender=Apoderado.alumnos.through)
+def actualizar_estado_apoderado_m2m(sender, instance, **kwargs):
+    instance.actualizar_estado()
+
+@receiver(post_save, sender=Alumno)
+def generar_thumbnails_alumno(sender, instance, created, **kwargs):
+    campos = [
+        'foto_previa',
+        'foto_frente',  
+        'foto_lado',
+        'foto_corte'
+    ]
+    for campo in campos:
+        foto = getattr(instance, campo)
+        if not foto:
+            continue
+        try:
+            ruta = Path(foto.path)
+            if not ruta.exists():
+                continue
+            thumb = ruta.with_name(ruta.stem + "_thumb.jpg")
+            if thumb.exists():
+                continue
+            img = Image.open(ruta)
+            img.thumbnail((300, 300))
+            if img.mode != "RGB":
+                img = img.convert("RGB")
+            img.save(
+                thumb,
+                format="JPEG",
+                quality=60,
+                optimize=True
+            )
+        except Exception:
+            continue

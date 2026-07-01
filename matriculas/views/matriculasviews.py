@@ -1,3 +1,6 @@
+from datetime import datetime
+import locale
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import *
 from matriculas.models import *
@@ -49,7 +52,7 @@ class MatriculaListView(LoginRequiredMixin, ListView):
         if fondo_filtro == 'true':
             queryset = queryset.filter(alumno__fondo_social=True)
 
-        return queryset.order_by('codigo')
+        return queryset.order_by('-fecha_matricula')
 
 class MatriculaCreateView(LoginRequiredMixin, CreateView):
     model = Matricula
@@ -260,5 +263,80 @@ def ficha_matricula_pdf(request, pk):
 
     if pisa_status.err:
         return HttpResponse('Error al generar el PDF', status=500)
+
+    return response
+
+def generar_constancia_pdf(request, alumno_id):
+    try:
+        alumno = Alumno.objects.get(id=alumno_id)
+    except Alumno.DoesNotExist:
+        return HttpResponse("Alumno no encontrado", status=404)
+
+    matricula = alumno.matriculas.filter(estado='activa').first()
+
+    if not matricula:
+        return HttpResponse("El alumno no tiene matrícula activa", status=400)
+
+    ciclo_obj = matricula.ciclo
+
+    # 🔥 1. TIPO DE CICLO (ajústalo según tu modelo)
+    if hasattr(alumno, 'grado') and alumno.grado in ['1ro', '2do', '3ro', '4to', '5to']:
+        tipo_ciclo = "Ciclo Escolar"
+    else:
+        tipo_ciclo = "Ciclo Preuniversitario"
+
+    ciclo_texto = f"{tipo_ciclo} {ciclo_obj.nombre}"
+
+    MESES = {
+        1: "enero",
+        2: "febrero",
+        3: "marzo",
+        4: "abril",
+        5: "mayo",
+        6: "junio",
+        7: "julio",
+        8: "agosto",
+        9: "septiembre",
+        10: "octubre",
+        11: "noviembre",
+        12: "diciembre",
+    }
+
+    mes_inicio = MESES[ciclo_obj.fecha_inicio.month]
+    mes_fin = MESES[ciclo_obj.fecha_fin.month]
+    anio = ciclo_obj.fecha_fin.strftime("%Y")
+
+    texto_fechas = f"iniciando en el mes de {mes_inicio} y culminando en el mes de {mes_fin} del {anio}"
+
+    template = get_template("matriculas/matriculas/constancia.html")
+
+    context = {
+        "alumno": alumno,
+        "dni": alumno.dni,
+        "fecha": datetime.now().strftime("%d/%m/%Y"),
+
+        # 🔥 nuevos datos
+        "ciclo_texto": ciclo_texto,
+        "texto_fechas": texto_fechas,
+
+        # imágenes (si aún las usas)
+        "firma_path": os.path.join(settings.MEDIA_ROOT, "Firma.jpeg"),
+        "logo_path": os.path.join(settings.MEDIA_ROOT, "Logo2.png"),
+        "pie_path": os.path.join(settings.MEDIA_ROOT, "PiePage.png"),
+    }
+
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="constancia_{alumno.dni}.pdf"'
+
+    pisa_status = pisa.CreatePDF(
+        html,
+        dest=response,
+        link_callback=link_callback
+    )
+
+    if pisa_status.err:
+        return HttpResponse("Error generando PDF", status=500)
 
     return response

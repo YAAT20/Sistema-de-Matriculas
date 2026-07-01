@@ -3,8 +3,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import RedirectView
 from django.http import FileResponse
+
+from appPrincipal.views import app_selection_prelogin
 
 def firebase_messaging_sw(request):
     file_path = os.path.join(settings.BASE_DIR, 'matriculas', 'static', 'matriculas', 'js', 'firebase-messaging-sw.js')
@@ -12,10 +13,10 @@ def firebase_messaging_sw(request):
     return FileResponse(open(file_path, 'rb'), content_type='application/javascript')
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/matriculas/login/', permanent=False)),
+    path('', app_selection_prelogin, name='app_selection_prelogin'),
     path('admin/', admin.site.urls),    
     path('matriculas/', include('matriculas.urls', namespace='matriculas')),
-    
+    path('marketing/', include('marketing.urls', namespace='marketing')),
     path('firebase-messaging-sw.js', firebase_messaging_sw),
 ]
 

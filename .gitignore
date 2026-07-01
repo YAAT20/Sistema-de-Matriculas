@@ -29,4 +29,3 @@ firebase-credenciales.json
 matriculas/static/matriculas/js/firebase-messaging-sw.js
 docker-compose.yml
 Dockerfile
-firebase-credenciales.json

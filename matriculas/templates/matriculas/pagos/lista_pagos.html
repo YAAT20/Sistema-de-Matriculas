@@ -10,7 +10,7 @@
 </p>
 
 <div class="overflow-x-auto bg-white shadow rounded-lg">
-    <table class="min-w-full text-sm text-center border border-gray-200 divide-y divide-gray-200">
+    <table class="min-w-full text-sm text-center border border-gray-200 divide-y divide-gray-200 table-auto">
         <thead class="bg-blue-100 text-gray-700 uppercase text-xs font-semibold">
             <tr>
                 <th class="px-4 py-3"># Cuota</th>
@@ -20,8 +20,9 @@
                 <th class="px-4 py-3">Vencimiento</th>
                 <th class="px-4 py-3">Fecha Pago</th>
                 <th class="px-4 py-3">Estado</th>
-                <th class="px-4 py-3">Forma Pago</th>        
-                <th class="px-4 py-3">Observación</th>
+                <th class="px-4 py-3">Forma</th>        
+                <th class="px-4 py-3">Obs.</th>
+                <th class="px-4 py-3">Comprobante</th>
                 <th class="px-4 py-3">Acciones</th>
             </tr>
         </thead>
@@ -45,6 +46,17 @@
                 </td>
                 <td class="px-4 py-2 text-gray-600 italic">{{ pago.forma_pago|default:"-" }}</td>        
                 <td class="px-4 py-2 text-gray-600">{{ pago.observacion|truncatewords:5|default:"-" }}</td>
+                <td class="px-4 py-2 text-center">
+                    {% if pago.foto_comprobante %}
+                        <button type="button"
+                            class="text-blue-600 hover:text-blue-800 text-sm btn-ver-comprobante"
+                            data-url="{{ pago.foto_comprobante.url }}">
+                            <i class="bi bi-eye"></i> Ver
+                        </button>
+                    {% else %}
+                        <span class="text-gray-300 text-xs">Aún no registrado</span>
+                    {% endif %}
+                </td>
                 <td class="px-4 py-2 space-y-1">
                 {% if pago.estado == 'pendiente' %}
                     <button class="w-full inline-flex items-center justify-center gap-1 text-sm text-white bg-green-600 rounded-md px-2 py-1 hover:bg-green-700 btn-abrir-pago" 
@@ -55,7 +67,8 @@
                 {% else %}
                     <span class="text-gray-400 text-xs">✔ Ya pagado</span>
                 {% endif %}
-                    <a href="{% url 'matriculas:editar_pago' pago.id %}" class="w-full inline-flex items-center justify-center gap-1 text-sm text-gray-700 border border-gray-400 rounded-md px-2 py-1 hover:bg-gray-100">
+                    <a href="{% url 'matriculas:editar_pago' pago.id %}"
+                        class="w-full inline-flex items-center justify-center gap-1 text-sm text-gray-700 border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100">
                         <i class="bi bi-pencil"></i> Editar
                     </a>
                 </td>
@@ -71,6 +84,33 @@
     <a href="{% url 'matriculas:resumen_general_pagos' %}" class="inline-flex items-center gap-2 text-sm text-white bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded shadow transition">
         <i class="bi bi-arrow-left-circle"></i> Volver
     </a>
+    <a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}" target="_blank"
+        class="w-full sm:w-auto inline-flex justify-center items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        Descargar Ficha PDF
+    </a>
+</div>
+
+<div id="modalComprobante" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black bg-opacity-60"></div>
+    <div class="relative z-50 flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-3xl">
+            <div class="flex justify-between items-center px-4 py-3 border-b">
+                <h3 class="text-lg font-semibold text-gray-700">
+                    📄 Comprobante
+                </h3>
+                <button onclick="cerrarModalComprobante()" class="text-gray-500 hover:text-red-500">
+                    x
+                </button>
+            </div>
+
+            <div class="p-4 flex justify-center">
+                <!-- imagen o pdf -->
+                <img id="imgComprobante" class="max-h-[70vh] rounded hidden">
+                <iframe id="pdfComprobante" class="w-full h-[70vh] hidden"></iframe>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="modalPago_v2" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -209,5 +249,40 @@
         document.getElementById('modalPago_v2').classList.add('hidden');
     }    
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
+    const modal = document.getElementById('modalComprobante');
+    const img = document.getElementById('imgComprobante');
+    const pdf = document.getElementById('pdfComprobante');
+
+    document.querySelectorAll('.btn-ver-comprobante').forEach(btn => {
+        btn.addEventListener('click', function () {
+
+            const url = this.dataset.url;
+
+            modal.classList.remove('hidden');
+
+            // reset
+            img.classList.add('hidden');
+            pdf.classList.add('hidden');
+
+            if (url.endsWith('.pdf')) {
+                pdf.src = url;
+                pdf.classList.remove('hidden');
+            } else {
+                img.src = url;
+                img.classList.remove('hidden');
+            }
+        });
+    });
+
+    window.cerrarModalComprobante = function () {
+        modal.classList.add('hidden');
+        img.src = '';
+        pdf.src = '';
+    };
+
+});
+</script>
 {% endblock %}

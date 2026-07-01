@@ -19,7 +19,6 @@
     <form method="get" class="relative">
         <div class="flex flex-col sm:flex-row gap-2">
 
-            <!-- Input búsqueda -->
             <div class="relative flex-1">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +33,6 @@
                     class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
             </div>
 
-            <!-- Botón buscar -->
             <button type="submit"
                     class="flex items-center justify-center gap-2 px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg 
                             hover:bg-indigo-700 transition-colors duration-200 shadow-sm hover:shadow-md">
@@ -42,7 +40,6 @@
                 <span>Buscar</span>
             </button>
 
-            <!-- Botón limpiar -->
             {% if request.GET.search %}
             <a href="{% url 'matriculas:matricula_list' %}"
                 class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg 
@@ -144,6 +141,9 @@
 
         </div>
     </div>
+    <p class="text-sm text-gray-600 mb-2">
+        Total de matrículas: <strong>{{ paginator.count }}</strong>
+    </p>
 </div>  
 
 </div>
@@ -171,7 +171,7 @@
                     <td class="px-3 py-2 font-semibold">{{ matricula.codigo }}</td>
                     <td class="px-3 py-2">
                         <div class="flex items-center gap-2">
-                            <span>{{ matricula.alumno.nombres_completos }}</span>
+                            <span>{{ matricula.alumno.nombres_completos|upper }}</span>
                             {% if matricula.alumno.foto_previa %}
                             <span class="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full" title="Foto previa cargada">
                                 <i class="fa-solid fa-check text-green-600 text-xs"></i>
@@ -184,12 +184,12 @@
                     <td class="px-4 py-3 text-center min-w-[120px]">
                         <div class="flex justify-center gap-2">
                             <a href="{% url 'matriculas:matricula_detail' matricula.id %}" 
-                               class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver detalles">
+                            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Ver detalles">
                                 <i class="fa-solid fa-eye text-lg"></i>
                             </a>
                             {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
                             <a href="{% url 'matriculas:matricula_update' matricula.id %}" 
-                               class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
+                            class="p-2 text-amber-600 hover:bg-amber-50 rounded-lg" title="Editar">
                                 <i class="fa-solid fa-pen-to-square text-lg"></i>
                             </a>
                             <button data-id="{{ matricula.id }}" data-nombre="{{ matricula.codigo }}"
@@ -202,24 +202,24 @@
 
                     <td class="px-4 py-3 text-center">
                         <a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}" 
-                           class="inline-flex justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg" 
-                           target="_blank" title="Ficha PDF">
+                        class="inline-flex justify-center p-2 text-red-600 hover:bg-red-50 rounded-lg" 
+                        target="_blank" title="Ficha PDF">
                             <i class="fa-solid fa-file-pdf text-lg"></i>
                         </a>
                     </td>
 
                     <td class="px-4 py-3 text-center">
                         <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp' matricula.id %}" 
-                           class="inline-flex justify-center p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                           target="_blank" title="Enviar por WhatsApp">
+                        class="inline-flex justify-center p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                        target="_blank" title="Enviar por WhatsApp">
                             <i class="fa-brands fa-whatsapp text-lg"></i>
                         </a>
                     </td>
 
                     <td class="px-4 py-3 text-center">
                         <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp_estudiante' matricula.id %}" 
-                           class="inline-flex justify-center p-2 text-green-600 hover:bg-green-50 rounded-lg"
-                           target="_blank" title="Enviar por WhatsApp">
+                        class="inline-flex justify-center p-2 text-green-600 hover:bg-green-50 rounded-lg"
+                        target="_blank" title="Enviar por WhatsApp">
                             <i class="fa-brands fa-whatsapp text-lg"></i>
                         </a>
                     </td>
@@ -241,99 +241,121 @@
 </div>
 
 <!-- Vista móvil -->
-<div class="block lg:hidden space-y-4 px-4">
+<div class="block lg:hidden space-y-4 px-4 pb-6">
     {% for matricula in matriculas %}
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition relative" x-data="{ open: false }">
-
-        <!-- Encabezado -->
-        <div class="p-4 border-b border-gray-100 bg-gray-50 relative">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative" x-data="{ open: false }">
+        <div class="p-4 border-b border-gray-100 bg-gray-50/80 rounded-t-2xl">
             <div class="flex items-start justify-between gap-3">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h2 class="text-lg font-semibold text-indigo-700 leading-tight">
-                            {{ matricula.alumno.nombres_completos }}
+                <div class="flex-1 pr-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-lg font-bold leading-tight">
+                            <a href="{% url 'matriculas:matricula_detail' matricula.id %}" 
+                               class="text-gray-800 hover:text-indigo-600 hover:underline decoration-indigo-300 decoration-2 transition-all">
+                                {{ matricula.alumno.nombres_completos }}
+                            </a>
                         </h2>
                         {% if matricula.alumno.foto_previa %}
-                        <span class="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full" title="Foto previa cargada">
-                            <i class="fa-solid fa-check text-green-600 text-xs"></i>
+                        <span class="inline-flex items-center justify-center w-5 h-5 bg-green-100 rounded-full shrink-0" title="Foto previa cargada">
+                            <i class="fa-solid fa-check text-green-600 text-[10px]"></i>
                         </span>
                         {% endif %}
                     </div>
-                    <span class="block mt-1 font-mono text-xs text-gray-500">{{ matricula.codigo }}</span>
+                    <span class="inline-block mt-1.5 px-2 py-0.5 bg-indigo-50 text-indigo-600 font-mono text-xs rounded border border-indigo-100">
+                        {{ matricula.codigo }}
+                    </span>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <span class="flex-shrink-0 inline-flex px-2.5 py-1 text-xs font-medium rounded-full
-                        {% if matricula.estado == 'activo' %} bg-green-100 text-green-700
-                        {% elif matricula.estado == 'inactivo' %} bg-red-100 text-red-700
-                        {% else %} bg-gray-100 text-gray-700 {% endif %}">
-                        {{ matricula.estado|title }}
+                <div class="flex flex-col items-end gap-2 shrink-0">
+                    <span class="inline-flex px-2.5 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider
+                        {% if matricula.estado == 'activo' %} bg-green-100 text-green-700 border border-green-200
+                        {% elif matricula.estado == 'inactivo' %} bg-red-100 text-red-700 border border-red-200
+                        {% else %} bg-gray-100 text-gray-700 border border-gray-200 {% endif %}">
+                        {{ matricula.estado }}
                     </span>
 
-                    <!-- Botón menú -->
-                    <button @click="open = !open" class="relative z-20 p-1.5 rounded-full hover:bg-gray-100 focus:outline-none">
-                        <i class="fa-solid fa-ellipsis-vertical text-gray-600 text-sm"></i>
+                    <button @click="open = !open" 
+                            @keydown.escape.window="open = false"
+                            class="relative z-20 p-2 -mr-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 focus:outline-none transition-colors"
+                            aria-haspopup="true" :aria-expanded="open">
+                        <i class="fa-solid fa-ellipsis-vertical text-lg px-1"></i>
                     </button>
-
-                    <!-- Menú flotante -->
-                    <div x-show="open" x-cloak @click.outside="open = false" x-transition
-                        class="absolute right-3 top-10 bg-white border border-gray-200 rounded-lg shadow-md z-30 w-40 py-1 text-sm">
-                        <a href="{% url 'matriculas:matricula_detail' matricula.id %}"
-                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-blue-600">
-                            <i class="fa-solid fa-eye text-xs"></i> Ver detalles
-                        </a>
-                        {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
-                        <a href="{% url 'matriculas:matricula_update' matricula.id %}"
-                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-amber-600">
-                            <i class="fa-solid fa-pen-to-square text-xs"></i> Editar
-                        </a>
-                        <button data-id="{{ matricula.id }}" data-nombre="{{ matricula.codigo }}"
-                                class="flex items-center gap-2 px-3 py-2 w-full text-left hover:bg-gray-50 text-red-600 btn-delete-matricula">
-                            <i class="fa-solid fa-trash text-xs"></i> Eliminar
-                        </button>
-                        {% endif %}
-                        <a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}" target="_blank"
-                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-rose-600">
-                            <i class="fa-solid fa-file-pdf text-xs"></i> Generar PDF
-                        </a>
-                        <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp' matricula.id %}" target="_blank"
-                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-green-600">
-                            <i class="fa-brands fa-whatsapp text-xs"></i> Enviar a padre
-                        </a>
-                        <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp_estudiante' matricula.id %}" target="_blank"
-                           class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-green-600">
-                            <i class="fa-brands fa-whatsapp text-xs"></i> Enviar a alumno
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Contenido principal -->
-        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-4 text-sm">
-            <div>
-                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Apoderado</span>
-                <span class="text-base text-gray-800">{{ matricula.apoderado.nombre_completo }}</span>
-            </div>
+        <div x-show="open" x-cloak @click.outside="open = false" 
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+            class="absolute right-4 top-16 bg-white border border-gray-200 rounded-xl shadow-xl z-30 w-56 py-2 text-sm font-medium overflow-hidden">
+            
+            <a href="{% url 'matriculas:matricula_detail' matricula.id %}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 active:bg-gray-100">
+                <i class="fa-solid fa-eye text-blue-500 w-4 text-center"></i> Ver detalles
+            </a>
+            
+            {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
+            <a href="{% url 'matriculas:matricula_update' matricula.id %}" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 active:bg-gray-100">
+                <i class="fa-solid fa-pen-to-square text-amber-500 w-4 text-center"></i> Editar
+            </a>
+            <button data-id="{{ matricula.id }}" data-nombre="{{ matricula.codigo }}" class="flex items-center gap-3 px-4 py-3 w-full text-left hover:bg-red-50 text-red-600 active:bg-red-100 btn-delete-matricula transition-colors">
+                <i class="fa-solid fa-trash w-4 text-center"></i> Eliminar
+            </button>
+            <div class="h-px bg-gray-100 my-1"></div>
+            {% endif %}
+            
+            <a href="{% url 'matriculas:ficha_matricula_pdf' matricula.uuid %}" target="_blank" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 active:bg-gray-100">
+                <i class="fa-solid fa-file-pdf text-rose-500 w-4 text-center"></i> Ficha PDF
+            </a>
+            <a href="{% url 'matriculas:generar_constancia_pdf' matricula.alumno.id %}" target="_blank" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 active:bg-gray-100">
+                <i class="fa-solid fa-file-contract text-indigo-500 w-4 text-center"></i> Constancia
+            </a>
+            
+            <div class="h-px bg-gray-100 my-1"></div>
+            
+            <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp' matricula.id %}" target="_blank" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 active:bg-gray-100">
+                <i class="fa-brands fa-whatsapp text-green-500 w-4 text-center text-lg"></i> Papás
+            </a>
+            <a href="{% url 'matriculas:enviar_ficha_matricula_whatsapp_estudiante' matricula.id %}" target="_blank" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-gray-700 active:bg-gray-100">
+                <i class="fa-brands fa-whatsapp text-emerald-500 w-4 text-center text-lg"></i> Alumno
+            </a>
+        </div>
 
-            <div>
-                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Ciclo</span>
-                <span class="text-base text-gray-800">{{ matricula.ciclo }}</span>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div class="flex items-start gap-3">
+                <div class="mt-0.5 bg-blue-50 p-2 rounded-lg text-blue-500 shrink-0">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div>
+                    <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Apoderado</span>
+                    <span class="text-sm font-medium text-gray-800">{{ matricula.apoderado.nombre_completo|default:"No registrado" }}</span>
+                </div>
             </div>
-
-            <div>
-                <span class="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Turno</span>
-                <span class="text-base text-gray-800">{{ matricula.turno|title }}</span>
+            <div class="flex items-start gap-3">
+                <div class="mt-0.5 bg-orange-50 p-2 rounded-lg text-orange-500 shrink-0">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div>
+                    <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Turno</span>
+                    <span class="text-sm font-medium text-gray-800">{{ matricula.turno|title }}</span>
+                </div>
             </div>
         </div>
 
     </div>
 
     {% empty %}
-    <div class="bg-white rounded-lg shadow-md p-12 text-center text-gray-500">
-        <p class="text-lg font-medium">No hay matrículas registradas</p>
+    <div class="bg-white rounded-2xl border border-dashed border-gray-300 p-12 text-center flex flex-col items-center justify-center">
+        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+            <i class="fa-regular fa-folder-open text-2xl text-gray-400"></i>
+        </div>
+        <p class="text-gray-800 font-semibold mb-1">No hay matrículas registradas</p>
         {% if request.GET.search %}
-        <p class="text-sm text-gray-400">Intenta con otros términos de búsqueda</p>
+        <p class="text-sm text-gray-500">No encontramos resultados para tu búsqueda. Intenta con otros términos.</p>
+        {% else %}
+        <p class="text-sm text-gray-500">Las matrículas que registres aparecerán aquí.</p>
         {% endif %}
     </div>
     {% endfor %}
@@ -350,7 +372,7 @@
         
         {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}" 
-           class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+        class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
             <span class="sr-only">Anterior</span>
             <i class="fa-solid fa-chevron-left h-5 w-5 flex items-center justify-center"></i>
         </a>
@@ -363,12 +385,12 @@
         {% for num in paginator.page_range %}
             {% if page_obj.number == num %}
                 <span aria-current="page" 
-                      class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                     {{ num }}
                 </span>
             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                 <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}" 
-                   class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                     {{ num }}
                 </a>
             {% endif %}
@@ -376,7 +398,7 @@
 
         {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.grado %}&grado={{ request.GET.grado }}{% endif %}" 
-           class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+        class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
             <span class="sr-only">Siguiente</span>
             <i class="fa-solid fa-chevron-right h-5 w-5 flex items-center justify-center"></i>
         </a>

@@ -26,15 +26,35 @@ class ApoderadoListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+
         search_query = self.request.GET.get('search')
+        estado = self.request.GET.get('estado', 'activo')
+
         if search_query:
             queryset = queryset.filter(
-                models.Q(nombre_completo__icontains=search_query) |
-                models.Q(dni__icontains=search_query) |
-                models.Q(codigo__icontains=search_query) |
-                models.Q(celular=search_query)
+                Q(nombre_completo__icontains=search_query) |
+                Q(dni__icontains=search_query) |
+                Q(codigo__icontains=search_query) |
+                Q(celular__icontains=search_query)
             )
+
+        if estado == 'activo':
+            queryset = queryset.filter(activo=True)
+        elif estado == 'inactivo':
+            queryset = queryset.filter(activo=False)
+
         return queryset.order_by('codigo')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        base = Apoderado.objects.all()
+
+        context['total_apoderados'] = base.count()
+        context['activos_apoderados'] = base.filter(activo=True).count()
+        context['inactivos_apoderados'] = base.filter(activo=False).count()
+
+        return context
 
 class ApoderadoCreateView(LoginRequiredMixin, CreateView):
     model = Apoderado
@@ -171,7 +191,7 @@ def enviar_ficha_matricula_whatsapp(request, matricula_id):
         f"📄 *Puede descargar su ficha de matrícula aquí:*\n"
         f"{pdf_url}\n\n"
         f"🔗 *Para acceder al sistema de reportes de avances, simulacros y asistencias:*\n"
-        f"https://tinyurl.com/2ygs2dc7 \n\n"
+        f"https://reportes.academiaroberthooke.com/reportes\n\n"
         f"*Sus credenciales son:*\n"
         f"👤 Usuario: {matricula.alumno.codigo}\n"
         f"🔒 Contraseña: {matricula.alumno.dni}\n\n"

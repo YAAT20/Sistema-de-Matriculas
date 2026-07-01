@@ -27,13 +27,14 @@ class Ciclo(models.Model):
     def finalizar_ciclo(self):
         with transaction.atomic():
             matriculas_activas = self.matricula_set.filter(estado='activa')
-            matriculas_activas.update(estado='finalizada')            
-            alumnos_ids = matriculas_activas.values_list('alumno_id', flat=True).distinct()            
-            Alumno.objects.filter(id__in=alumnos_ids).update(activo=False)
-            
+
+            for matricula in matriculas_activas:
+                matricula.estado = 'finalizada'
+                matricula.save()
+
             self.activo = False
             self.save()
-            
+
         return True
 
     @classmethod
@@ -67,12 +68,9 @@ class Horario(models.Model):
         help_text="Ej: Turno Mañana, Grupo Intensivo"
     )
 
-    # Bloque 1
     hora_inicio1 = models.TimeField(null=True, blank=True)
     hora_fin1 = models.TimeField(null=True, blank=True)
     dias_bloque1 = models.CharField(max_length=50)
-
-    # Bloque 2 (opcional)
     hora_inicio2 = models.TimeField(null=True, blank=True)
     hora_fin2 = models.TimeField(null=True, blank=True)
     dias_bloque2 = models.CharField(max_length=50, blank=True)
@@ -90,17 +88,14 @@ class Horario(models.Model):
     def clean(self):
         errores = {}
 
-        # Validar bloque 2 si se especifica parcialmente
         if any([self.hora_inicio2, self.hora_fin2, self.dias_bloque2]):
             if not all([self.hora_inicio2, self.hora_fin2, self.dias_bloque2]):
                 errores['hora_inicio2'] = "Si especifica un segundo bloque horario, debe completar todos sus campos"
 
-        # Validar horas de bloque 1
         if self.hora_inicio1 and self.hora_fin1:
             if self.hora_fin1 <= self.hora_inicio1:
                 errores['hora_fin1'] = "La hora de fin debe ser posterior a la hora de inicio en el Bloque 1"
 
-        # Validar horas de bloque 2
         if self.hora_inicio2 and self.hora_fin2:
             if self.hora_fin2 <= self.hora_inicio2:
                 errores['hora_fin2'] = "La hora de fin debe ser posterior a la hora de inicio en el Bloque 2"
@@ -145,15 +140,13 @@ class CodigoManager:
 
         base_prefijo = grado_map.get(grado_estudios, 'RSX')
 
-        # Si es fondo social → insertar "F" después de las dos primeras letras
         if fondo_social:
-            prefijo = base_prefijo[:2] + 'F' + base_prefijo[2:]  # Ej: RS4 → RSF4
-            digitos = 2  # Solo cambia el número final: RSF401, RSF402
+            prefijo = base_prefijo[:2] + 'F' + base_prefijo[2:]
+            digitos = 2 
         else:
-            prefijo = base_prefijo  # Ej: RS4 → RS4
-            digitos = 3  # RS4001, RS4002
+            prefijo = base_prefijo
+            digitos = 3
 
-        # Buscar el sufijo más alto actual
         sufijo_max = (
             Alumno.objects
             .filter(codigo__regex=rf'^{prefijo}\d+$')
@@ -165,25 +158,43 @@ class CodigoManager:
 
         numero = (sufijo_max or 0) + 1
 
-        # Generar el código final con la cantidad de dígitos correcta
         return f"{prefijo}{numero:0{digitos}d}"
 
     @staticmethod
     def generar_codigo_apoderado(codigo_alumno):
+        if 'F' in codigo_alumno[:4]:
+            if codigo_alumno.startswith('RPF'):
+                return f"APF{codigo_alumno[3:]}"
+            elif codigo_alumno.startswith('RSF'):
+                return f"ASF{codigo_alumno[3:]}"
+            elif codigo_alumno.startswith('EPF'):
+                return f"AEF{codigo_alumno[3:]}"
+        
+        # Casos Regulares
         if codigo_alumno.startswith('RP'):
-            return f"AP{codigo_alumno[2:]}" 
+            return f"AP{codigo_alumno[2:]}"
         elif codigo_alumno.startswith(('RS', 'EP')):
-            return f"AS{codigo_alumno[2:]}" 
-        return f"AX{codigo_alumno[2:]}" 
-         
+            return f"AS{codigo_alumno[2:]}"
+        
+        return f"AX{codigo_alumno[2:]}"
+
     @staticmethod
     def generar_codigo_matricula(codigo_alumno):
-        if codigo_alumno.startswith('RP'):
-            return f"MP{codigo_alumno[2:]}" 
-        elif codigo_alumno.startswith(('RS', 'EP')):
-            return f"MS{codigo_alumno[2:]}"
-        return f"MX{codigo_alumno[2:]}"
+        es_fondo = 'F' in codigo_alumno[:4]
 
+        if es_fondo:
+            numero = codigo_alumno[3:]
+        else:
+            numero = codigo_alumno[2:]
+
+        if codigo_alumno.startswith('RP'):
+            prefijo = 'MPF' if es_fondo else 'MP'
+        elif codigo_alumno.startswith(('RS', 'EP')):
+            prefijo = 'MSF' if es_fondo else 'MS'
+        else:
+            prefijo = 'MXF' if es_fondo else 'MX'
+
+        return f"{prefijo}{numero}"
 
 class Alumno(models.Model):
     GRADO_OPCIONES = [
@@ -257,7 +268,6 @@ class Alumno(models.Model):
         self.actualizar_codigos_relacionados()
 
     def actualizar_codigos_relacionados(self):
-        # No se actualiza el código del apoderado (se mantiene con el primer alumno)
         for matricula in self.matriculas.all():
             nuevo_codigo = CodigoManager.generar_codigo_matricula(self.codigo)
             if matricula.codigo != nuevo_codigo:
@@ -269,6 +279,13 @@ class Alumno(models.Model):
 
     def __str__(self):
         return f"{self.codigo} - {self.nombres_completos}"
+
+    def actualizar_estado(self):
+        tiene_matriculas_activas = self.matriculas.filter(estado='activa').exists()
+
+        if self.activo != tiene_matriculas_activas:
+            self.activo = tiene_matriculas_activas
+            self.save(update_fields=['activo'])
 
 class Apoderado(models.Model):
     PARENTESCO_CHOICES = [
@@ -289,6 +306,7 @@ class Apoderado(models.Model):
     parentesco = models.CharField(max_length=10, choices=PARENTESCO_CHOICES)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     abreviatura = models.CharField( max_length= 10, choices=ABREVIATURA_CHOICES)
+    activo = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Apoderado"
@@ -301,6 +319,16 @@ class Apoderado(models.Model):
 
         super().save(*args, **kwargs)
 
+    def actualizar_estado(self):
+        tiene_matriculas_activas = Matricula.objects.filter(
+            alumno__in=self.alumnos.all(),
+            estado='activa'
+        ).exists()
+
+        if self.activo != tiene_matriculas_activas:
+            self.activo = tiene_matriculas_activas
+            self.save(update_fields=['activo'])
+
     def get_absolute_url(self):
         return reverse('apoderado_detail', args=[str(self.id)])
 
@@ -311,7 +339,7 @@ class Matricula(models.Model):
     ESTADO_CHOICES = [
         ('activa', 'Activa'), ('congelada', 'Congelada'), ('finalizada', 'Finalizada'),]
     MODALIDADES = [('presencial', 'Presencial'), ('virtual', 'Virtual'),('mixta', 'Mixta')]
-    TIPOS_MATRICULA = [ ('regular', 'REGULAR'), ('promocion', 'PROMOCION'), ('beca50', 'BECA 50%'), ('beca100', 'BECA 100%'), ('fondo_social', 'FONDO SOCIAL'),]
+    TIPOS_MATRICULA = [ ('regular', 'REGULAR'), ('promocion', 'PROMOCION'), ('beca50', 'BECA 50%'), ('beca100', 'BECA 100%'), ('fondo_social', 'FONDO SOCIAL'),('exalumno', 'EXALUMNO'),('gerencia', 'GERENCIA')]
 
     TIPOS_ALUMNO = [
         ('pre_uni_promo', 'Pre Universitario Promoción'),
@@ -337,11 +365,8 @@ class Matricula(models.Model):
     fecha_matricula = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activa')
     tipo_matricula = models.CharField(max_length=20, choices=TIPOS_MATRICULA, default='regular')
-    usuario_registro = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.PROTECT,
-        related_name='matriculas_registradas'
-    )
+    usuario_registro = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,related_name='matriculas_registradas')
+    
     class Meta:
         verbose_name = "Matrícula"
         verbose_name_plural = "Matrículas"
@@ -356,6 +381,24 @@ class Matricula(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
+        if self.alumno:
+            self.alumno.actualizar_estado()
+
+        if self.apoderado:
+            self.apoderado.actualizar_estado()
+
+    def delete(self, *args, **kwargs):
+        alumno = self.alumno
+        apoderado = self.apoderado
+
+        super().delete(*args, **kwargs)
+
+        if alumno:
+            alumno.actualizar_estado()
+
+        if apoderado:
+            apoderado.actualizar_estado()
 
     def get_absolute_url(self):
         return reverse('matricula_detail', args=[str(self.id)])
@@ -373,9 +416,6 @@ class Matricula(models.Model):
             raise ValidationError("El nuevo ciclo no está activo")
         if nuevo_turno not in nuevo_ciclo.turnos.all():
             raise ValidationError("El turno seleccionado no está disponible en este ciclo")
-        if not self.alumno.activo:
-            self.alumno.activo = True
-            self.alumno.save()
             
         nueva_matricula = Matricula.objects.create(
             alumno=self.alumno,
@@ -394,18 +434,14 @@ class Matricula(models.Model):
         return nueva_matricula
 
 # Modelo para guardar el template editable del mensaje de WhatsApp
-
 class MensajeWhatsAppConfig(models.Model):
     nombre = models.CharField(max_length=50, default="Recordatorio de pago")
-    template = models.TextField(
-        default="Estimado/a {apoderado}, le recordamos que tiene una cuota pendiente para la matrícula de {alumno} (cuota {numero_cuota}) por S/ {monto} con vencimiento el {fecha_vencimiento}. Por favor, regularice su pago para evitar inconvenientes."
-    )
+    template = models.TextField(default="Estimado/a {apoderado}, le recordamos que tiene una cuota pendiente para la matrícula de {alumno} (cuota {numero_cuota}) por S/ {monto} con vencimiento el {fecha_vencimiento}. Por favor, regularice su pago para evitar inconvenientes.")
     activo = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nombre
 
-# Método directo en el modelo Pago
 class Pago(models.Model):
     ESTADO_PAGO = [
         ('pendiente', 'Pendiente'),
@@ -437,7 +473,7 @@ class Pago(models.Model):
     observacion = models.TextField(blank=True)
     usuario_registro = models.ForeignKey(User, on_delete=models.PROTECT, related_name='pagos_registrados')
     fecha_registro = models.DateTimeField(auto_now_add=True)
-    foto_comprobante = models.ImageField(upload_to="comprobantes/", blank=True, null=True)
+    foto_comprobante = models.FileField(upload_to="pagos/comprobantes/", blank=True, null=True)
 
     class Meta:
         verbose_name = "Pago"
@@ -465,9 +501,7 @@ class Pago(models.Model):
         self.save()
 
     def get_whatsapp_url(self):
-        """
-        Genera el enlace de WhatsApp para el apoderado con el mensaje personalizado según el template activo.
-        """
+
         from urllib.parse import quote
         config = MensajeWhatsAppConfig.objects.filter(activo=True).first()
         if not config:
@@ -510,11 +544,10 @@ class Perfil(models.Model):
     def __str__(self):
         return f'{self.user.username} ({self.get_tipo_display()})'
 
-
 class Seguimiento(models.Model):
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE, related_name='seguimientos')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    texto = models.TextField()  # Antes era 'comentario', ahora solo texto puro
+    texto = models.TextField()
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -522,14 +555,12 @@ class Seguimiento(models.Model):
 
     def __str__(self):
         return f"{self.matricula} - {self.fecha_registro}"
-    
 
 class Simulacro(models.Model):
-    # Atributos del Simulacro
     nombre = models.CharField(max_length=100, verbose_name="Nombre")
     fecha = models.DateField(verbose_name="Fecha")
     costo = models.DecimalField(max_digits=6, decimal_places=2, default=10.00, verbose_name="Costo S/.")
-    ciclo = models.ForeignKey(Ciclo, on_delete=models.CASCADE) # Necesario para saber qué alumnos llamar
+    ciclo = models.ForeignKey(Ciclo, on_delete=models.CASCADE)
     turno = models.ForeignKey(Turno, on_delete=models.CASCADE, verbose_name="Turno destinado", null=True, blank=True)
     class Meta:
         verbose_name = "Simulacro"
@@ -541,25 +572,21 @@ class Simulacro(models.Model):
 
     @property
     def ganancia(self):
-        """Dinero real en caja (Solo los que marcaron 'SI')"""
         pagantes = self.asistencias.filter(pago='si').count()
         return pagantes * self.costo
 
     @property
     def total_fondo(self):
-        """Dinero que cubre el fondo (Solo los que marcaron 'FONDO')"""
         becados = self.asistencias.filter(pago='fondo').count()
         return becados * self.costo
 
     @property
     def deuda(self):
-        """Dinero perdido/pendiente (Solo los que marcaron 'DEBE')"""
         deudores = self.asistencias.filter(pago='debe').count()
         return deudores * self.costo
 
 
 class AsistenciaSimulacro(models.Model):
-    # Opciones exactas que pediste
     OPCIONES_PAGO = [
         ('no_dio', 'No dió'),
         ('si', 'Pag'),
@@ -569,8 +596,6 @@ class AsistenciaSimulacro(models.Model):
 
     simulacro = models.ForeignKey(Simulacro, on_delete=models.CASCADE, related_name='asistencias')
     matricula = models.ForeignKey(Matricula, on_delete=models.CASCADE)
-    
-    # Atributo PAGO
     pago = models.CharField(max_length=10, choices=OPCIONES_PAGO, default='no_dio')
 
     class Meta:
@@ -595,14 +620,11 @@ class FCMDevice(models.Model):
         return f"Dispositivo de {self.user.username}"
     
 class Venta(models.Model):
-
     codigo = models.CharField(max_length=20, unique=True)
     descripcion = models.CharField(max_length=200)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-
     fecha = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
-
     observacion = models.TextField(blank=True, null=True)
 
     def __str__(self):
@@ -616,25 +638,12 @@ class Venta(models.Model):
 
 class VentaAlumno(models.Model):
 
-    venta = models.ForeignKey(
-        Venta,
-        related_name="ventas_alumnos",
-        on_delete=models.CASCADE
-    )
-
-    alumno = models.ForeignKey(
-        Alumno,
-        related_name="compras",
-        on_delete=models.CASCADE
-    )
-
+    venta = models.ForeignKey(Venta,related_name="ventas_alumnos",on_delete=models.CASCADE)
+    alumno = models.ForeignKey(Alumno,related_name="compras",on_delete=models.CASCADE    )
     cantidad = models.PositiveIntegerField(default=1)
-
     pagado = models.BooleanField(default=False)
     entregado = models.BooleanField(default=False)
-
     observacion = models.TextField(blank=True, null=True)
-
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -643,3 +652,27 @@ class VentaAlumno(models.Model):
     @property
     def total(self):
         return self.cantidad * self.venta.precio_unitario
+
+class Procedimiento(models.Model):
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField(blank=True)
+    observacion = models.TextField(blank=True)
+    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    activo = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.titulo
+
+class Paso(models.Model):
+    procedimiento = models.ForeignKey(Procedimiento, related_name='pasos', on_delete=models.CASCADE)
+    orden = models.PositiveIntegerField()
+    descripcion = models.TextField()
+    archivo = models.FileField(upload_to="procesos/recursos/", blank=True, null=True)
+    enlace_video = models.URLField(max_length=500, blank=True, null=True)
+
+    class Meta:
+        ordering = ['orden']
+
+    def __str__(self):
+        return f"{self.orden}. {self.descripcion}"

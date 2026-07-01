@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib.auth import logout
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 
 #usuarios
 class CustomLoginView(LoginView):
@@ -30,7 +31,12 @@ class CustomLoginView(LoginView):
             return self.form_invalid(form)
 
     def get_success_url(self):
-        return reverse_lazy('matriculas:home')
+        next_url = self.request.GET.get('next') or self.request.POST.get('next')
+        
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
+            return next_url
+        
+        return reverse_lazy('matriculas:app_selection')
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('matriculas:login')
@@ -41,6 +47,10 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 class CustomPasswordChangeDoneView(PasswordChangeDoneView):
     template_name = 'matriculas/admin/password_change_done.html'
+
+@login_required
+def app_selection(request):
+    return render(request, 'matriculas/admin/app_selection.html')
 
 @method_decorator(login_required, name='dispatch')
 class UsuarioCreateView(CreateView):

@@ -1,0 +1,79 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+    
+    <!-- Encabezado -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Biblioteca de Recursos</h1>
+            <p class="text-gray-500 text-sm">Repositorio institucional permanente de material reutilizable.</p>
+        </div>
+        <a href="{% url 'marketing:marketing_nuevo_recurso' %}" 
+           class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
+            Subir Recurso
+        </a>
+    </div>
+
+    <!-- Filtros Rápidos por Categoría -->
+    <div class="flex flex-wrap gap-2 border-b pb-3 border-gray-100">
+        <a href="?categoria=" 
+           class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {% if not categoria_actual %} bg-gray-800 text-white {% else %} bg-gray-100 text-gray-600 hover:bg-gray-200 {% endif %}">
+            Todos
+        </a>
+        {% for cat_slug, cat_nombre in categorias %}
+            <a href="?categoria={{ cat_slug }}" 
+               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {% if categoria_actual == cat_slug %} bg-blue-600 text-white {% else %} bg-gray-100 text-gray-600 hover:bg-gray-200 {% endif %}">
+                {{ cat_nombre }}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Malla de Recursos -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for recurso in recursos %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-between hover:shadow-md transition">
+                <div>
+                    <!-- Icono representativo por tipo de contenido -->
+                    <div class="h-32 w-full bg-gray-50 rounded-lg flex items-center justify-center mb-3 border border-gray-100 text-gray-400">
+                        {% if recurso.categoria == 'imagen' or recurso.categoria == 'logo' or recurso.categoria == 'plantilla' %}
+                            <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        {% elif recurso.categoria == 'video' %}
+                            <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        {% elif recurso.categoria == 'musica' %}
+                            <svg class="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                        {% else %}
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-900 truncate" title="{{ recurso.nombre }}">{{ recurso.nombre }}</h3>
+                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-0.5">{{ recurso.get_categoria_display }}</p>
+                    {% if recurso.descripcion %}
+                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ recurso.descripcion }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Acciones de la Tarjeta -->
+                <div class="flex items-center justify-between border-t pt-3 mt-4">
+                    <a href="{% url 'marketing:marketing_descargar_recurso' recurso.pk %}" 
+                       class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Descargar
+                    </a>
+                    
+                    <a href="{% url 'marketing:marketing_eliminar_recurso' recurso.pk %}" 
+                       onclick="return confirm('¿Está seguro de eliminar este recurso permanentemente de la biblioteca institucional?')"
+                       class="text-xs font-semibold text-red-500 hover:text-red-700">
+                        Eliminar
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-span-full bg-white text-center py-16 rounded-xl shadow border border-gray-100 text-gray-500">
+                No hay recursos subidos en esta categoría.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

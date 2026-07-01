@@ -37,7 +37,7 @@ class AlumnoAdmin(admin.ModelAdmin):
 
 @admin.register(Apoderado)
 class ApoderadoAdmin(admin.ModelAdmin):
-    list_display = ('codigo', 'nombre_completo', 'mostrar_alumnos', 'dni', 'celular', 'parentesco')
+    list_display = ('codigo', 'nombre_completo', 'mostrar_alumnos', 'dni', 'celular', 'parentesco', 'activo')
     search_fields = ('codigo', 'nombre_completo', 'dni')
     list_filter = ('parentesco',)
     readonly_fields = ('codigo', 'fecha_registro')
@@ -221,3 +221,15 @@ class VentaAlumnoAdmin(admin.ModelAdmin):
         # Muestra el subtotal (cantidad * precio)
         return f"S/. {obj.total}"
     get_total_linea.short_description = 'Subtotal'
+
+class PasoInline(admin.TabularInline):
+    model = Paso
+    extra = 1
+    fields = ('orden', 'descripcion')
+
+@admin.register(Procedimiento)
+class ProcedimientoAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'creado_por', 'creado_en', 'activo')
+    search_fields = ('titulo',)
+    list_filter = ('activo', 'creado_en')
+    inlines = [PasoInline]

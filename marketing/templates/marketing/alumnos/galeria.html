@@ -1,0 +1,154 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+    
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Galería de Alumnos</h1>
+            <p class="text-gray-500 text-sm">
+                {{ titulo }} — Consulta y seguimiento del material visual institucional.
+            </p>
+        </div>
+        
+        <button
+            onclick="descargarSeleccionadas()"
+            class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition flex items-center gap-2 self-start md:self-auto"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Descargar seleccionadas
+        </button>
+    </div>
+
+    <div class="flex flex-wrap gap-2 border-b pb-1 border-gray-100">
+        <a href="?grupo=pre5&filtro={{ filtro_actual }}&q={{ q }}"
+           class="px-4 py-2 rounded-lg font-medium text-sm transition {% if grupo_actual == 'pre5' %} bg-blue-600 text-white shadow-sm {% else %} bg-gray-100 text-gray-600 hover:bg-gray-200 {% endif %}">
+            Pre y 5to
+        </a>
+
+        <a href="?grupo=34&filtro={{ filtro_actual }}&q={{ q }}"
+           class="px-4 py-2 rounded-lg font-medium text-sm transition {% if grupo_actual == '34' %} bg-blue-600 text-white shadow-sm {% else %} bg-gray-100 text-gray-600 hover:bg-gray-200 {% endif %}">
+            3ro y 4to
+        </a>
+
+        <a href="?grupo=12&filtro={{ filtro_actual }}&q={{ q }}"
+           class="px-4 py-2 rounded-lg font-medium text-sm transition {% if grupo_actual == '12' %} bg-blue-600 text-white shadow-sm {% else %} bg-gray-100 text-gray-600 hover:bg-gray-200 {% endif %}">
+            1ro y 2do
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-4 flex flex-col md:flex-row gap-4 items-center justify-between border border-gray-100">
+        <form method="get" class="w-full md:w-1/2 flex gap-2">
+            <input type="hidden" name="grupo" value="{{ grupo_actual }}">
+            
+            <input type="text" name="q" value="{{ q }}" placeholder="Buscar por alumno o código..." 
+                   class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border-gray-200">
+            <button type="submit" class="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm hover:bg-gray-900 transition">
+                Buscar
+            </button>
+        </form>
+    </div>
+
+    <div class="text-sm text-gray-500 font-medium pl-1">
+        Mostrando {{ fotos|length }} fotografías individuales
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+        {% for foto in fotos %}
+        <div class="relative group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm transition hover:shadow-md">
+            
+            <input
+                type="checkbox"
+                value="{{ foto.url }}"
+                class="foto-checkbox absolute top-2 left-2 z-10 w-4 h-4 rounded text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer bg-white/80 backdrop-blur-sm"
+            >
+
+            <img
+                src="{{ foto.thumb_url }}"
+                loading="lazy"
+                decoding="async"
+                alt="{{ foto.alumno.nombres_completos }} - {{ foto.tipo }}"
+                onclick="abrirImagen('{{ foto.url }}')"
+                class="w-full aspect-square object-cover cursor-pointer transition duration-200 group-hover:scale-105"
+            >
+
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent text-white p-2 opacity-0 group-hover:opacity-100 transition duration-200 pointer-events-none">
+                <div class="truncate text-[11px] font-semibold">
+                    {{ foto.alumno.nombres_completos }} ({{ foto.alumno.codigo }})
+                </div>
+                <div class="text-[9px] text-gray-300">
+                    {{ foto.tipo }}
+                </div>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white text-center py-16 rounded-xl shadow border border-gray-100 text-gray-500">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 002-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            No se encontraron fotografías registradas para estos criterios.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="modalImagen" class="hidden fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 transition-all duration-300">
+    <button onclick="cerrarImagen()" class="absolute top-4 right-6 text-white text-4xl hover:text-gray-300 transition focus:outline-none">
+        &times;
+    </button>
+    <img
+        id="imagenGrande"
+        src=""
+        loading="lazy"
+        class="max-w-full max-h-[90vh] rounded-lg shadow-2xl border border-white/10"
+    >
+</div>
+
+<script>
+function abrirImagen(url) {
+    document.getElementById('imagenGrande').src = url;
+    document.getElementById('modalImagen').classList.remove('hidden');
+    document.body.style.overflow = 'hidden'; // Bloquear scroll de fondo
+}
+
+function cerrarImagen() {
+    document.getElementById('modalImagen').classList.add('hidden');
+    document.body.style.overflow = ''; // Restaurar scroll
+}
+
+document.getElementById('modalImagen').addEventListener('click', function(e) {
+    if (e.target === this) {
+        cerrarImagen();
+    }
+});
+
+// Forzar el cierre con la tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        cerrarImagen();
+    }
+});
+
+function descargarSeleccionadas() {
+    const seleccionadas = document.querySelectorAll('.foto-checkbox:checked');
+    if (seleccionadas.length === 0) {
+        alert('Por favor, seleccione al menos una fotografía para descargar.');
+        return;
+    }
+    
+    seleccionadas.forEach((checkbox, index) => {
+        setTimeout(() => {
+            const enlace = document.createElement('a');
+            enlace.href = checkbox.value;
+            enlace.download = '';
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+        }, index * 300);
+    });
+}
+</script>
+{% endblock %}

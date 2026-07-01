@@ -1,0 +1,241 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+
+<style>
+    .django-form input[type="text"],
+    .django-form input[type="url"],
+    .django-form textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.75rem;
+        outline: none;
+        transition: all 0.2s ease-in-out;
+        background-color: #f9fafb;
+        color: #1f2937;
+    }
+    .django-form input[type="text"]:focus,
+    .django-form input[type="url"]:focus,
+    .django-form textarea:focus {
+        background-color: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+    }
+    
+    .formset-row input[type="checkbox"][name$="-DELETE"],
+    .formset-row label[for$="-DELETE"] {
+        display: none !important;
+    }
+
+    /* Animación de entrada para nuevos pasos */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.3s ease-out forwards;
+    }
+</style>
+
+<div class="max-w-5xl mx-auto py-10 space-y-8">
+
+    <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-lg p-8 text-white">
+        <h1 class="text-3xl font-extrabold tracking-tight">
+            Crear Procedimiento
+        </h1>
+        <p class="text-blue-100 mt-2 text-sm font-medium opacity-90">
+            Define los pasos de forma clara y ordenada para el sistema.
+        </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-8 django-form">
+        {% csrf_token %}
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
+            <div class="flex items-center gap-2 border-b border-gray-100 pb-4 mb-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h2 class="text-xl font-bold text-gray-800">Información General</h2>
+            </div>
+
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Título del procedimiento</label>
+                    {{ form.titulo }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción breve</label>
+                    {{ form.descripcion }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+
+            <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-6">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <h2 class="text-xl font-bold text-gray-800">Pasos a seguir</h2>
+                </div>
+
+                <button type="button" onclick="agregarPaso()"
+                    class="group flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Nuevo Paso
+                </button>
+            </div>
+
+            {{ pasos_formset.management_form }}
+
+            <div id="pasos" class="space-y-4">
+                {% for form in pasos_formset %}
+                <div class="formset-row flex items-start gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md hover:border-blue-200 transition-all duration-200 group">
+
+                    {{ form.id }}
+                    
+                    <div class="step-number mt-1 shrink-0 w-10 h-10 flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-extrabold text-sm shadow-sm border border-blue-200">
+                        {{ forloop.counter }}
+                    </div>
+                    
+                    <div class="flex-1">
+                        {{ form.descripcion }}
+                    </div>
+                    
+                    <div class="w-64 shrink-0 flex flex-col gap-3 border-l pl-4 border-gray-200">
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider font-bold text-gray-500 mb-1">Doc / Img</label>
+                            {{ form.archivo }}
+                        </div>
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider font-bold text-gray-500 mb-1">Enlace Video</label>
+                            {{ form.enlace_video }}
+                        </div>
+                    </div>
+
+                    <button type="button"
+                        onclick="eliminarPaso(this)"
+                        class="mt-1 text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                        title="Eliminar paso">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+
+                    {{ form.DELETE }}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div id="empty-form" class="hidden">
+                <div class="formset-row animate-fade-in flex items-start gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50 hover:bg-white hover:shadow-md hover:border-blue-200 transition-all duration-200 group">
+                    
+                    {{ pasos_formset.empty_form.id }}
+                    
+                    <div class="step-number mt-1 shrink-0 w-10 h-10 flex items-center justify-center bg-blue-100 text-blue-700 rounded-full font-extrabold text-sm shadow-sm border border-blue-200">
+                        0
+                    </div>
+                    
+                    <div class="flex-1">
+                        {{ pasos_formset.empty_form.descripcion }}
+                    </div>
+                    
+                    <div class="w-64 shrink-0 flex flex-col gap-3 border-l pl-4 border-gray-200">
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider font-bold text-gray-500 mb-1">Doc / Img</label>
+                            {{ pasos_formset.empty_form.archivo }}
+                        </div>
+                        <div>
+                            <label class="block text-[11px] uppercase tracking-wider font-bold text-gray-500 mb-1">Enlace Video</label>
+                            {{ pasos_formset.empty_form.enlace_video }}
+                        </div>
+                    </div>
+
+                    <button type="button"
+                        onclick="eliminarPaso(this)"
+                        class="mt-1 text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                        title="Eliminar paso">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+
+                    {{ pasos_formset.empty_form.DELETE }}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="flex justify-end pt-4">
+            <button type="submit" class="flex items-center gap-2 bg-gray-900 text-white hover:bg-gray-800 px-8 py-3 rounded-xl font-bold shadow-lg shadow-gray-900/20 transition-all active:scale-95">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                Guardar Procedimiento
+            </button>
+        </div>  
+
+    </form>
+</div>
+
+<script>
+window.onload = actualizarNumeros;
+
+function agregarPaso() {
+    let total = document.getElementById("id_pasos-TOTAL_FORMS");
+    let formNum = parseInt(total.value);
+
+    let template = document.getElementById("empty-form").innerHTML;
+    template = template.replace(/__prefix__/g, formNum);
+
+    let container = document.getElementById("pasos");
+    container.insertAdjacentHTML("beforeend", template);
+
+    total.value = formNum + 1;
+
+    actualizarNumeros();
+
+    setTimeout(() => {
+        let inputs = container.querySelectorAll("input[type='text'], textarea");
+        if(inputs.length > 0) {
+            inputs[inputs.length - 1].focus();
+        }
+    }, 50);
+}
+
+function eliminarPaso(btn) {
+    let row = btn.closest('.formset-row');
+    let checkbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+    if (checkbox) {
+        checkbox.checked = true;
+        row.style.transition = "all 0.3s ease";
+        row.style.opacity = "0";
+        row.style.transform = "scale(0.95)";
+        
+        setTimeout(() => {
+            row.style.display = 'none';
+            actualizarNumeros();
+        }, 300);
+    } else {
+        row.remove();
+        actualizarNumeros();
+    }
+}
+
+function actualizarNumeros() {
+    let pasos = document.querySelectorAll("#pasos .formset-row");
+    let index = 1;
+
+    pasos.forEach(row => {
+        if (row.style.display !== 'none') {
+            let badge = row.querySelector('.step-number');
+            if(badge) badge.innerText = index;
+            index++;
+        }
+    });
+}
+
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && (e.target.tagName === "TEXTAREA" || e.target.tagName === "INPUT")) {
+        e.preventDefault();
+        agregarPaso();
+    }
+});
+</script>
+
+{% endblock %}

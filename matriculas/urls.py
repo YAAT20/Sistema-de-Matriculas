@@ -2,22 +2,26 @@
 from django.urls import path
 from matriculas.views import *
 
-app_name = 'matriculas'  # Esto define el namespace
+app_name = 'matriculas'
 
 urlpatterns = [
     path('', dashboard_view, name='home'),
     path('registrar-token/', registrar_token_fcm, name='registrar_token_fcm'),
 
     path('dashboard/', dashboard_view, name='dashboard'),
+    
+    #gestion de simulacros
     path('simulacros/crear/', crear_simulacro, name='crear_simulacro'),
     path('simulacros/', lista_simulacros, name='lista_simulacros'),
     path('simulacros/<int:simulacro_id>/gestionar/', gestionar_simulacro, name='gestionar_simulacro'),
+
     # Cobranza y recordatorios
     path('cobranzas/vencidas/', cobranza_vencidas_view, name='cobranzas_vencidas'),
     path('cobranzas/recordatorio/<int:apoderado_id>/', enviar_recordatorio_cobranza, name='enviar_recordatorio_cobranza'),
 
     # Configuración de WhatsApp
     path('config/mensaje-whatsapp/', editar_mensaje_whatsapp, name='editar_mensaje_whatsapp'),
+    path('galeria-alumnos/', galeria_alumnos, name='galeria_alumnos'),
 
     # Alumnos
     path('alumnos/', AlumnoListView.as_view(), name='alumno_list'),
@@ -45,6 +49,7 @@ urlpatterns = [
     path('matriculas/<int:pk>/', MatriculaDetailView.as_view(), name='matricula_detail'),
     path('matriculas/<int:pk>/editar/', MatriculaUpdateView.as_view(), name='matricula_update'),
     path('matriculas/ficha/<uuid:pk>/pdf/', ficha_matricula_pdf, name='ficha_matricula_pdf'),
+    path('constancia/<int:alumno_id>/', generar_constancia_pdf, name='generar_constancia_pdf'),    
     path('matriculas/eliminar/<int:pk>/', MatriculaDeleteView.as_view(), name='matricula_delete'),
     path('matricula/<int:matricula_id>/enviar-ficha-whatsapp/', enviar_ficha_matricula_whatsapp, name='enviar_ficha_matricula_whatsapp'),
     path('matricula/<int:matricula_id>/enviar-ficha-whatsapp-estudiante/', enviar_ficha_matricula_whatsapp_estudiante, name='enviar_ficha_matricula_whatsapp_estudiante'),
@@ -70,7 +75,7 @@ urlpatterns = [
     path('ajax/buscar-alumnos/', buscar_alumnos, name='ajax_buscar_alumnos'),
     path('ajax/buscar-apoderados/', buscar_apoderados, name='ajax_buscar_apoderados'),
 
-    # Configuración
+    # Configuración académica
     path('ciclos/', CicloListView.as_view(), name='ciclo_list'),
     path('ciclos/registrar/', CicloCreateView.as_view(), name='ciclo_create'),
     path('ciclos/editar/<int:pk>/', CicloUpdateView.as_view(), name='ciclo_update'),
@@ -87,6 +92,7 @@ urlpatterns = [
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('password_change/', CustomPasswordChangeView.as_view(), name='password_change'),
     path('password_change/done/', CustomPasswordChangeDoneView.as_view(), name='password_change_done'),
+    path('app-selection/', app_selection, name='app_selection'),
     path('usuarios/crear/', UsuarioCreateView.as_view(), name='usuario_create'),
     path('usuario/editar/<int:pk>/', UsuarioUpdateView.as_view(), name='usuario_editar'),
     path('usuarios/', UsuarioListView.as_view(), name='lista_usuarios'),
@@ -95,11 +101,19 @@ urlpatterns = [
     path('crear/', crear_venta, name='crear_venta'),
     path('ventas/<int:venta_id>/', detalle_venta, name='detalle_venta'),
 
-    # Endpoints para Fetch/AJAX
+    # Ajax de ventas
     path('<int:venta_id>/agregar_alumno/', agregar_alumno_venta, name='agregar_alumno_venta'),
     path('registro/<int:id>/pagar/', marcar_pagado, name='marcar_pagado'),
     path('registro/<int:id>/entregar/', marcar_entregado, name='marcar_entregado'),
     path('registro/<int:id>/eliminar/', eliminar_registro, name='eliminar_registro'),
     path('cobranza/alumno/', seguimiento_pagos_alumno, name='seguimiento_alumno'),
     path('registro/<int:id>/observacion/', editar_observacion, name='editar_observacion'),
+
+    # Procedimientos
+    path('procedimientos/lista/', lista_procedimientos, name='lista_procedimientos'),
+    path('procedimientos/crear/', crear_procedimiento, name='crear_procedimiento'),
+    path('procedimientos/<int:id>/', ver_procedimiento, name='ver_procedimiento'),
+    path('procedimientos/<int:id>/editar/', editar_procedimiento, name='editar_procedimiento'),
+    path('procedimientos/<int:id>/eliminar-ajax/',eliminar_procedimiento_ajax, name='eliminar_procedimiento_ajax'
+),
 ]

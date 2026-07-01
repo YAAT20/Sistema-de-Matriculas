@@ -1,0 +1,47 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto p-6 mt-6 bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Subir Recurso Institucional</h1>
+        <p class="text-gray-500 text-sm">Añada archivos a la biblioteca compartida del equipo de marketing.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Recurso</label>
+            {{ form.nombre }}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Categoría institucional</label>
+            {{ form.categoria }}
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Archivo Multimedia / Documento</label>
+            <div class="mt-1 p-2 border border-dashed border-gray-300 rounded-lg bg-gray-50/50">
+                {{ form.archivo }}
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción / Notas de reutilización</label>
+            {{ form.descripcion }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t mt-6">
+            <a href="{% url 'marketing:marketing_recursos' %}" 
+               class="px-4 py-2 border rounded-lg text-sm text-gray-700 hover:bg-gray-50 font-medium transition">
+                Cancelar
+            </a>
+            <button type="submit" 
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition">
+                Subir Archivo
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

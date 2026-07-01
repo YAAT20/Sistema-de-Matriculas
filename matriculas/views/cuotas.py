@@ -5,14 +5,14 @@ from matriculas.models import *
 from django.shortcuts import render, redirect
 from matriculas.forms import *
 from django.contrib import messages
-from django.db.models import Sum, F, Value, DecimalField, ExpressionWrapper, Q, Count
+from django.db.models import Sum, F, Value, DecimalField, ExpressionWrapper, Min, Q, Count, Case, When, IntegerField
 from django.utils import timezone
 from matriculas.models import Matricula
 from django.http import JsonResponse
 from django.utils import timezone
 from urllib.parse import quote
-from django.db.models.functions import Coalesce
 from matriculas.utils import *
+from django.db.models.functions import Coalesce
 
 @login_required
 def lista_pagos_matricula(request, matricula_id):
@@ -65,24 +65,58 @@ def editar_pago(request, pago_id):
 
 @login_required
 def resumen_general_pagos(request):
-    es_admin = request.user.is_authenticated and hasattr(request.user, 'perfil') and request.user.perfil.tipo == 'admin'
+    es_admin = (
+        request.user.is_authenticated and
+        hasattr(request.user, 'perfil') and
+        request.user.perfil.tipo == 'admin'
+    )
 
     estado_filter = request.GET.get('estado')
     search_query = request.GET.get('search')
 
-    matriculas = Matricula.objects.select_related('alumno').annotate(
+    orden = request.GET.get('orden', '-fecha_matricula')
+    direccion = request.GET.get('dir', 'asc')
+
+    if direccion == 'desc':
+        if not orden.startswith('-'):
+            orden = '-' + orden
+    else:
+        orden = orden.lstrip('-')
+
+    matriculas = Matricula.objects.select_related(
+        'alumno',
+        'apoderado'
+    ).annotate(
         total_pagos=Count('pagos'),
         cuotas_pagadas=Count('pagos', filter=Q(pagos__estado='pagado')),
-        
-        monto_total=Coalesce(Sum('pagos__monto_programado'), Value(0, output_field=DecimalField())),
-        monto_pagado=Coalesce(Sum('pagos__monto_pagado'), Value(0, output_field=DecimalField())),
+
+        proximo_vencimiento=Min(
+            'pagos__fecha_vencimiento',
+            filter=~Q(pagos__estado='pagado')
+        ),
+
+        monto_total=Coalesce(
+            Sum('pagos__monto_programado'),
+            Value(0, output_field=DecimalField())
+        ),
+
+        monto_pagado=Coalesce(
+            Sum('pagos__monto_pagado'),
+            Value(0, output_field=DecimalField())
+        ),
     ).annotate(
         deuda=ExpressionWrapper(
             F('monto_total') - F('monto_pagado'),
             output_field=DecimalField()
-        )
-    ).order_by('codigo')
+        ),
     
+        tiene_vencimiento=Case(
+            When(proximo_vencimiento__isnull=True, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField()
+        )
+    )
+
     if search_query:
         matriculas = matriculas.filter(
             Q(alumno__nombres_completos__icontains=search_query) |
@@ -92,28 +126,47 @@ def resumen_general_pagos(request):
         )
 
     if estado_filter == 'completado':
-        matriculas = matriculas.filter(cuotas_pagadas=F('total_pagos'), total_pagos__gt=0)
-    
+        matriculas = matriculas.filter(
+            cuotas_pagadas=F('total_pagos'),
+            total_pagos__gt=0
+        )
+
     elif estado_filter == 'parcial':
-        matriculas = matriculas.filter(cuotas_pagadas__gt=0, cuotas_pagadas__lt=F('total_pagos'))
-    
+        matriculas = matriculas.filter(
+            cuotas_pagadas__gt=0,
+            cuotas_pagadas__lt=F('total_pagos')
+        )
+
     elif estado_filter == 'sin_pagos':
         matriculas = matriculas.filter(cuotas_pagadas=0)
 
     if not es_admin:
-        matriculas = matriculas.exclude(cuotas_pagadas=F('total_pagos'), total_pagos__gt=0)
+        matriculas = matriculas.exclude(
+            cuotas_pagadas=F('total_pagos'),
+            total_pagos__gt=0
+        )
 
+    if orden == 'proximo_vencimiento':
+        matriculas = matriculas.order_by(
+            'tiene_vencimiento',
+            'proximo_vencimiento'
+        )
+    else:
+        matriculas = matriculas.order_by(orden)
     datos_globales = matriculas.aggregate(
         suma_deuda_total=Sum('deuda')
     )
-    
+
     total_por_cobrar = datos_globales['suma_deuda_total'] or 0
 
-    context = {
-        'matriculas': matriculas,
-        'total_por_cobrar': total_por_cobrar,
-    }
-    return render(request, 'matriculas/pagos/lista_general_pagos.html', context)
+    return render(
+        request,
+        'matriculas/pagos/lista_general_pagos.html',
+        {
+            'matriculas': matriculas,
+            'total_por_cobrar': total_por_cobrar,
+        }
+    )
 
 @login_required
 def cobranza_vencidas_view(request):
@@ -361,6 +414,10 @@ def imprimir_reporte_deudas(request):
         cuotas_pagadas=Count('pagos', filter=Q(pagos__estado='pagado')),
         monto_total=Coalesce(Sum('pagos__monto_programado'), Value(0, output_field=DecimalField())),
         monto_pagado=Coalesce(Sum('pagos__monto_pagado'), Value(0, output_field=DecimalField())),
+        proximo_vencimiento=Min(
+            'pagos__fecha_vencimiento',
+            filter=~Q(pagos__estado='pagado')
+        )
     ).annotate(
         deuda=ExpressionWrapper(
             F('monto_total') - F('monto_pagado'),

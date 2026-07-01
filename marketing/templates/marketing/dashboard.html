@@ -1,0 +1,409 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Encabezado con navegación -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">
+                Dashboard de Marketing
+            </h1>
+            <p class="text-gray-600 mt-1">
+                Resumen general de eventos, publicaciones y material publicitario
+            </p>
+        </div>
+
+        <nav class="flex flex-wrap gap-2">
+            <a href="{% url 'marketing:marketing_galeria_alumnos' %}"
+               class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base"
+               aria-label="Ver galería de alumnos">Galería alumnos
+            </a>
+
+            <a href="{% url 'marketing:marketing_eventos' %}"
+               class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base"
+               aria-label="Ver eventos">Ver Eventos
+            </a>
+
+            <a href="{% url 'marketing:marketing_publicaciones' %}"
+               class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 text-sm md:text-base"
+               aria-label="Ver publicaciones">Publicaciones
+            </a>
+            <a href="{% url 'marketing:marketing_recursos' %}"
+               class="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors duration-200 text-sm md:text-base"
+               aria-label="Ver publicaciones">Recursos Visuales
+            </a>
+        </nav>
+    </div>
+
+
+    <!-- KPIs - Cards de métricas principales -->
+    <section aria-labelledby="kpi-section">
+        <h2 id="kpi-section" class="sr-only">Métricas principales</h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+
+            <!-- KPI 1: Eventos futuros -->
+            <article class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-blue-500">
+                <p class="text-gray-600 text-sm font-medium uppercase tracking-wide">
+                    Eventos futuros
+                </p>
+                <p class="text-4xl md:text-5xl font-bold text-blue-600 mt-2">
+                    {{ eventos_futuros }}
+                </p>
+                <p class="text-gray-500 text-xs mt-2">
+                    {% if eventos_futuros == 1 %}
+                        1 evento próximo
+                    {% else %}
+                        {{ eventos_futuros }} eventos próximos
+                    {% endif %}
+                </p>
+            </article>
+
+            <!-- KPI 2: Publicaciones pendientes -->
+            <article class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-yellow-500">
+                <p class="text-gray-600 text-sm font-medium uppercase tracking-wide">
+                    Publicaciones pendientes
+                </p>
+                <p class="text-4xl md:text-5xl font-bold text-yellow-600 mt-2">
+                    {{ publicaciones_pendientes }}
+                </p>
+                <p class="text-gray-500 text-xs mt-2">
+                    {% if publicaciones_pendientes == 1 %}
+                        1 por publicar
+                    {% else %}
+                        {{ publicaciones_pendientes }} por publicar
+                    {% endif %}
+                </p>
+            </article>
+
+            <!-- KPI 3: Fotos de eventos -->
+            <article class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-green-500">
+                <p class="text-gray-600 text-sm font-medium uppercase tracking-wide">
+                    Fotos de eventos
+                </p>
+                <p class="text-4xl md:text-5xl font-bold text-green-600 mt-2">
+                    {{ total_fotos_eventos }}
+                </p>
+                <p class="text-gray-500 text-xs mt-2">
+                    Fotografías registradas
+                </p>
+            </article>
+
+            <!-- KPI 4: Recursos de marketing -->
+            <article class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500">
+                <p class="text-gray-600 text-sm font-medium uppercase tracking-wide">
+                    Recursos
+                </p>
+                <p class="text-4xl md:text-5xl font-bold text-purple-600 mt-2">
+                    {{ total_recursos }}
+                </p>
+                <p class="text-gray-500 text-xs mt-2">
+                    Materiales disponibles
+                </p>
+            </article>
+
+        </div>
+    </section>
+
+
+    <!-- Alertas y notificaciones -->
+    <section aria-labelledby="alerts-section" class="bg-white rounded-lg shadow-md p-6">
+        <h2 id="alerts-section" class="text-lg font-semibold text-gray-900 mb-4">Alertas
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-3">
+
+            {% if sin_foto_previa > 0 %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded p-4">
+                <p class="font-medium text-yellow-900">
+                    {{ sin_foto_previa }}
+                    <span class="font-normal">alumno{% if sin_foto_previa != 1 %}s{% endif %} sin foto previa</span>
+                </p>
+            </div>
+            {% endif %}
+
+            {% if sin_foto_frente > 0 %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded p-4">
+                <p class="font-medium text-yellow-900">
+                    {{ sin_foto_frente }}
+                    <span class="font-normal">alumno{% if sin_foto_frente != 1 %}s{% endif %} sin foto frente</span>
+                </p>
+            </div>
+            {% endif %}
+
+            {% if sin_foto_lado > 0 %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded p-4">
+                <p class="font-medium text-yellow-900">
+                    {{ sin_foto_lado }}
+                    <span class="font-normal">alumno{% if sin_foto_lado != 1 %}s{% endif %} sin foto lado</span>
+                </p>
+            </div>
+            {% endif %}
+
+            {% if sin_foto_corte > 0 %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded p-4">
+                <p class="font-medium text-yellow-900">
+                    {{ sin_foto_corte }}
+                    <span class="font-normal">alumno{% if sin_foto_corte != 1 %}s{% endif %} sin foto corte</span>
+                </p>
+            </div>
+            {% endif %}
+
+            {% if cantidad_eventos_sin_fotos > 0 %}
+            <div class="bg-red-50 border-l-4 border-red-400 rounded p-4">
+                <p class="font-medium text-red-900">
+                    {{ cantidad_eventos_sin_fotos }}
+                    <span class="font-normal">evento{% if cantidad_eventos_sin_fotos != 1 %}s{% endif %} sin fotografías</span>
+                </p>
+            </div>
+            {% endif %}
+
+            {% if sin_foto_previa == 0 and sin_foto_frente == 0 and sin_foto_lado == 0 and sin_foto_corte == 0 and cantidad_eventos_sin_fotos == 0 %}
+            <div class="bg-green-50 border-l-4 border-green-400 rounded p-4 md:col-span-2">
+                <p class="font-medium text-green-900">
+                    ✓ No hay alertas pendientes
+                </p>
+            </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+
+    <!-- Estado de expedientes fotográficos -->
+    <section aria-labelledby="expedientes-section" class="bg-white rounded-lg shadow-md p-6">
+        <h2 id="expedientes-section" class="text-lg font-semibold text-gray-900 mb-6">
+            Estado de Expedientes Fotográficos
+        </h2>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+
+            <!-- Total alumnos -->
+            <div class="p-4 bg-gray-50 rounded-lg">
+                <p class="text-gray-600 text-sm font-medium">Total alumnos</p>
+                <p class="text-3xl font-bold text-gray-900 mt-2">{{ total_alumnos }}</p>
+            </div>
+
+            <!-- Completos -->
+            <div class="p-4 bg-green-50 rounded-lg">
+                <p class="text-gray-600 text-sm font-medium">Completos</p>
+                <p class="text-3xl font-bold text-green-600 mt-2">{{ alumnos_completos }}</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    {% if total_alumnos > 0 %}
+                        {% widthratio alumnos_completos total_alumnos 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Incompletos -->
+            <div class="p-4 bg-red-50 rounded-lg">
+                <p class="text-gray-600 text-sm font-medium">Incompletos</p>
+                <p class="text-3xl font-bold text-red-600 mt-2">{{ alumnos_incompletos }}</p>
+                <p class="text-xs text-gray-500 mt-1">
+                    {% if total_alumnos > 0 %}
+                        {% widthratio alumnos_incompletos total_alumnos 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Cobertura -->
+            <div class="p-4 bg-blue-50 rounded-lg">
+                <p class="text-gray-600 text-sm font-medium">Cobertura</p>
+                <p class="text-3xl font-bold text-blue-600 mt-2">
+                    {% if total_alumnos > 0 %}
+                        {% widthratio alumnos_completos total_alumnos 100 %}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </p>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div class="bg-blue-600 h-2 rounded-full" 
+                         style="width: {% if total_alumnos > 0 %}{% widthratio alumnos_completos total_alumnos 100 %}{% else %}0{% endif %}%;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- Tablas de información en dos columnas -->
+    <div class="grid lg:grid-cols-2 gap-6">
+
+        <section aria-labelledby="next-events-section" class="bg-white rounded-lg shadow-md p-6">
+            <h2 id="next-events-section" class="text-lg font-semibold text-gray-900 mb-4">Próximos eventos
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b-2 border-gray-200">
+                            <th class="text-center py-3 font-semibold text-gray-700">Evento</th>
+                            <th class="text-center py-3 font-semibold text-gray-700">Fecha</th>
+                            <th class="text-center py-3 font-semibold text-gray-700">Estado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-200">
+                        {% for evento in proximos_eventos %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="text-center py-3 font-medium">
+                                <a href="{% url 'marketing:marketing_evento' evento.pk %}" class="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                                    {{ evento.nombre }}
+                                </a>
+                            </td>
+                            <td class="text-center py-3 text-gray-600">
+                                <time datetime="{{ evento.fecha_inicio|date:'Y-m-d\TH:i:s' }}">
+                                    {{ evento.fecha_inicio|date:"d/m/Y H:i" }}
+                                </time>
+                            </td>
+                            <td class="text-center py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if evento.get_estado_display == 'Próximo' %}
+                                        bg-blue-100 text-blue-800
+                                    {% elif evento.get_estado_display == 'En curso' %}
+                                        bg-green-100 text-green-800
+                                    {% elif evento.get_estado_display == 'Finalizado' %}
+                                        bg-gray-100 text-gray-800
+                                    {% else %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% endif %}
+                                ">
+                                    {{ evento.get_estado_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-8 text-center text-gray-500">
+                                No hay eventos próximos.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <section aria-labelledby="pending-publications-section" class="bg-white rounded-lg shadow-md p-6">
+            <h2 id="pending-publications-section" class="text-lg font-semibold text-gray-900 mb-4">Publicaciones pendientes
+            </h2>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b-2 border-gray-200">
+                            <th class="text-center py-3 font-semibold text-gray-700">Título</th>
+                            <th class="text-center py-3 font-semibold text-gray-700">Estado</th>
+                            <th class="text-center py-3 font-semibold text-gray-700">Creado</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-200">
+                        {% for publicacion in publicaciones_pendientes_lista %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="text-center py-3 font-medium">
+                                <a href="{% url 'marketing:marketing_publicacion' publicacion.pk %}" class="text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                                    {{ publicacion.titulo }}
+                                </a>
+                            </td>
+                            <td class="text-center py-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if publicacion.get_estado_display == 'Borrador' %}
+                                        bg-gray-100 text-gray-800
+                                    {% elif publicacion.get_estado_display == 'Pendiente' %}
+                                        bg-yellow-100 text-yellow-800
+                                    {% elif publicacion.get_estado_display == 'Publicado' %}
+                                        bg-green-100 text-green-800
+                                    {% else %}
+                                        bg-red-100 text-red-800
+                                    {% endif %}
+                                ">
+                                    {{ publicacion.get_estado_display }}
+                                </span>
+                            </td>
+                            <td class="text-center py-3 text-gray-600">
+                                <time datetime="{{ publicacion.creado_en|date:'Y-m-d' }}">
+                                    {{ publicacion.creado_en|date:"d/m/Y" }}
+                                </time>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-8 text-center text-gray-500">
+                                No existen publicaciones pendientes.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Estadísticas adicionales - Highlight cards -->
+    <section aria-labelledby="stats-section" class="grid md:grid-cols-2 gap-6">
+        <h2 id="stats-section" class="sr-only">Estadísticas adicionales</h2>
+
+        <!-- Evento con más fotos -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-green-500">
+            <h3 class="font-semibold text-gray-900 mb-4">Evento con más fotos
+            </h3>
+
+            {% if evento_con_mas_fotos %}
+                <div class="space-y-2">
+                    <p class="font-medium text-gray-900 text-lg">
+                        {{ evento_con_mas_fotos.nombre }}
+                    </p>
+                    <p class="text-gray-600">
+                        <span class="text-2xl font-bold text-green-600">
+                            {{ evento_con_mas_fotos.total_fotos }}
+                        </span>
+                        <span class="text-sm">
+                            fotografía{% if evento_con_mas_fotos.total_fotos != 1 %}s{% endif %}
+                        </span>
+                    </p>
+                </div>
+            {% else %}
+                <p class="text-gray-500 italic">
+                    Sin información disponible.
+                </p>
+            {% endif %}
+        </div>
+
+        <!-- Publicación más antigua pendiente -->
+        <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-yellow-500">
+            <h3 class="font-semibold text-gray-900 mb-4">Publicación más antigua pendiente
+            </h3>
+
+            {% if publicacion_mas_antigua %}
+                <div class="space-y-2">
+                    <p class="font-medium text-gray-900 text-lg">
+                        {{ publicacion_mas_antigua.titulo }}
+                    </p>
+                    <p class="text-gray-600">
+                        Desde el 
+                        <time datetime="{{ publicacion_mas_antigua.creado_en|date:'Y-m-d' }}" 
+                              class="font-medium">
+                            {{ publicacion_mas_antigua.creado_en|date:"d/m/Y" }}
+                        </time>
+                    </p>
+                </div>
+            {% else %}
+                <p class="text-gray-500 italic">
+                    No hay publicaciones pendientes.
+                </p>
+            {% endif %}
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}

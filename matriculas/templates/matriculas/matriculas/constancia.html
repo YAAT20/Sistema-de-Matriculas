@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Constancia de Estudios</title>
+
+<style>
+@page {
+    size: A4 portrait;
+    margin: 60px 0px 0px 0px;
+}
+
+body {
+    font-family: "Times New Roman", serif;
+    font-size: 14px;
+    color: #222;
+}
+
+.pagina {
+    width: 100%;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.titulo {
+    text-align: center;
+    margin-top: 70px;
+    margin-bottom: 55px;
+}
+
+.titulo h1 {
+    font-size: 30px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+    display: inline-block;
+    color: black;
+}
+
+.texto {
+    text-align: justify;
+    line-height: 1.7;
+    margin-left: 2cm;
+    margin-right: 2cm;
+    font-size: 16px;
+}
+
+.destacado {
+    font-weight: bold;
+}
+
+.alumno {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.fecha {
+    text-align: right;
+    font-style: italic;
+    margin-right: 2cm;    
+    margin-top: 35px;
+}
+
+.firma {
+    text-align: center;
+    line-height: 1.2;
+}
+
+.firma-cargo {
+    font-size: 13px;
+    color: #555;
+    margin: 0;
+    padding: -20px;
+}
+
+.pie {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    line-height: 0;
+    margin-top: 20px;
+}
+
+.pie img {
+    width: 100%;
+    display: block;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="pagina">
+
+    <!-- LOGO -->
+    <div class="logo">
+        <img src="{% static 'matriculas/images/Logo2.png' %}" width="200">
+    </div>
+
+    <!-- TITULO -->
+    <div class="titulo">
+        <h1>CONSTANCIA DE ESTUDIOS</h1>
+    </div>  
+
+    <!-- TEXTO -->
+    <div class="texto">
+
+        <p>
+            La ACADEMIA PREUNIVERSITARIA <span class="destacado">ROBERT HOOKE</span>,
+            con RUC <span class="destacado">20608781481</span>, debidamente representada
+            por su promotor <span class="destacado">FRANCO DAVID VENTURA GUEVARA</span>,
+            identificado con DNI N° <span class="destacado">42967083</span>, deja constancia que:
+        </p>
+
+        <p>
+            <span class="alumno">{{ alumno.nombres_completos|upper }}</span>,
+            identificado(a) con DNI <span class="destacado">{{ dni }}</span>,
+            se encuentra matriculado(a) en el
+            <span class="destacado">{{ ciclo_texto }}</span>, {{ texto_fechas }}.
+        </p>
+
+        <p>
+            Se expide la presente constancia a solicitud del interesado(a),
+            para los fines que estime convenientes.
+        </p>
+
+    </div>
+
+    <!-- FECHA -->
+    <div class="fecha">
+        Cajamarca, {{ fecha }}
+    </div>
+
+    <!-- FIRMA -->
+    <div class="firma">
+        <img src="{% static 'matriculas/images/Firma.jpeg' %}" width="160">
+        <div class="firma-cargo">ACADEMIA PREUNIVERSITARIA ROBERT HOOKE</div>
+    </div>
+
+</div>
+
+<!-- PIE DE PAGINA -->
+<div class="pie">
+    <img src="{% static 'matriculas/images/PiePage.png' %}">
+</div>
+
+</body>
+</html>

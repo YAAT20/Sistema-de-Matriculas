@@ -102,40 +102,34 @@
             </div>
 
             <div class="bg-gray-50 rounded-xl shadow-sm p-4 sm:p-5 hover:shadow-md transition-shadow">
+
                 <h5 class="text-gray-800 font-semibold mb-3 flex items-center gap-2 text-base sm:text-lg">
                     <i class="bi bi-camera-fill text-sky-600"></i> Fotografías
                 </h5>
-
-                {% if alumno.foto_previa or alumno.foto_frente or alumno.foto_corte %}
+                {% if fotos %}
                 <div class="flex overflow-x-auto gap-3 scrollbar-hide snap-x pb-2">
-                    {% if alumno.foto_previa %}
-                    <div class="snap-start flex-shrink-0 w-48 text-center">
-                        <p class="font-medium text-gray-700 text-sm mb-2">Foto Previa</p>
-                        <img src="{{ alumno.foto_previa.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
-                    </div>
-                    {% endif %}
-                    {% if alumno.foto_frente %}
-                    <div class="snap-start flex-shrink-0 w-48 text-center">
-                        <p class="font-medium text-gray-700 text-sm mb-2">Foto de Frente</p>
-                        <img src="{{ alumno.foto_frente.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
-                    </div>
-                    {% endif %}
-                    {% if alumno.foto_lado %}
-                    <div class="snap-start flex-shrink-0 w-48 text-center">
-                        <p class="font-medium text-gray-700 text-sm mb-2">Foto de Lado</p>
-                        <img src="{{ alumno.foto_lado.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
-                    </div>
-                    {% endif %}                    
-                    {% if alumno.foto_corte %}
-                    <div class="snap-start flex-shrink-0 w-48 text-center">
-                        <p class="font-medium text-gray-700 text-sm mb-2">Foto con Corte</p>
-                        <img src="{{ alumno.foto_corte.url }}" class="mx-auto rounded-xl shadow h-48 w-48 object-cover hover:scale-105 transition-transform">
-                    </div>
-                    {% endif %}
+                    {% for foto in fotos %}
+                        {% if foto.thumb %}
+                        <div class="snap-start flex-shrink-0 w-28 text-center">
+                            <p class="font-medium text-gray-700 text-[11px] mb-1">
+                                {{ foto.tipo }}
+                            </p>
+                            <img
+                                src="{{ foto.thumb }}"
+                                class="mx-auto rounded-lg shadow w-28 h-28 object-cover hover:scale-105 transition-transform cursor-pointer"
+                                onclick="abrirImagen('{{ foto.url }}')"
+                                loading="lazy"
+                            >
+                        </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
                 {% else %}
-                <p class="text-gray-500 italic text-center py-4">No hay fotografías registradas.</p>
+                    <p class="text-gray-500 italic text-center py-4">
+                        No hay fotografías registradas.
+                    </p>
                 {% endif %}
+
             </div>
 
             <div class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-3 border-t pt-4">

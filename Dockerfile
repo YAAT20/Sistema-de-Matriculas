@@ -17,15 +17,14 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libgif-dev \
     python3-dev \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Instalar dependencias de Python
 COPY requirements.txt /app/
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt    
 
 # Copiar el código del proyecto
 COPY . /app/
 
-# Comando para arrancar (Ajusta 'NOMBRE_DE_TU_PROYECTO' abajo)
-# Gunicorn correrá en el puerto 8000 interno del n", "--bind", "0.0.0.0:8000"]
 CMD ["gunicorn", "appPrincipal.wsgi:application", "--bind", "0.0.0.0:8000"]

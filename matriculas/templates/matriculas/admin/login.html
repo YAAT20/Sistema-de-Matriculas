@@ -3,107 +3,118 @@
 {% block content %}
 
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-500 hover:scale-[1.01]">
-    
-    <div class="text-center mb-8">
-      <div class="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3zm0 0v6m0 0c-2.761 0-5-2.239-5-5h10c0 2.761-2.239 5-5 5z" />
-        </svg>
-      </div>
-      <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Bienvenido</h2>
-      <p class="mt-2 text-sm text-gray-500">Inicia sesión para continuar</p>
+    <div
+        class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 transform transition-all duration-500 hover:scale-[1.01]">
+
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5s-3 1.343-3 3 1.343 3 3 3zm0 0v6m0 0c-2.761 0-5-2.239-5-5h10c0 2.761-2.239 5-5 5z" />
+                </svg>
+            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">Bienvenido</h2>
+            <p class="mt-2 text-sm text-gray-500">Inicia sesión para continuar</p>
+        </div>
+
+        <form class="space-y-6" method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% if form.errors %}
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                <strong>⚠️ Error:</strong> Usuario o contraseña incorrectos.
+            </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                <div>
+                    <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.607 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </span>
+                        <input id="id_username" name="username" type="text" autocomplete="username" required
+                            class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
+                            placeholder="Tu usuario">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3zM5 21v-2a7 7 0 0114 0v2" />
+                            </svg>
+                        </span>
+
+                        <input id="id_password" name="password" type="password" autocomplete="current-password" required
+                            class="pl-10 pr-10 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
+                            placeholder="Tu contraseña">
+
+                        <button type="button" onclick="togglePassword()"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer">
+
+                            <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+
+                            <svg id="eye-off-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-2.5 px-4 text-sm font-semibold rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <svg class="w-5 h-5 text-primary-light group-hover:text-white transition-colors" fill="none"
+                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7v14" />
+                        </svg>
+                    </span>
+                    Ingresar
+                </button>
+            </div>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-500">
+            © {{ now|date:"Y" }} Academia Robert Hooke. Todos los derechos reservados.
+        </p>
     </div>
-
-    <form class="space-y-6" method="post" action="">
-      {% csrf_token %}
-
-      {% if form.errors %}
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-          <strong>⚠️ Error:</strong> Usuario o contraseña incorrectos.
-        </div>
-      {% endif %}
-
-      <div class="space-y-4">
-        <div>
-          <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.797.607 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-            </span>
-            <input id="id_username" name="username" type="text" autocomplete="username" required
-              class="pl-10 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="Tu usuario">
-          </div>
-        </div>
-
-        <div>
-          <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.657 0 3-1.343 3-3S13.657 5 12 5 9 6.343 9 8s1.343 3 3 3zM5 21v-2a7 7 0 0114 0v2"/>
-              </svg>
-            </span>
-            
-            <input id="id_password" name="password" type="password" autocomplete="current-password" required
-              class="pl-10 pr-10 w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="Tu contraseña">
-
-            <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer">
-              
-              <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-
-              <svg id="eye-off-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <button type="submit"
-          class="group relative w-full flex justify-center py-2.5 px-4 text-sm font-semibold rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
-          <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-            <svg class="w-5 h-5 text-primary-light group-hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7v14"/>
-            </svg>
-          </span>
-          Ingresar
-        </button>
-      </div>
-    </form>
-
-    <p class="mt-6 text-center text-sm text-gray-500">
-      © {{ now|date:"Y" }} Academia Robert Hooke. Todos los derechos reservados.
-    </p>
-  </div>
 </div>
 
 <script>
-  function togglePassword() {
-    const passwordInput = document.getElementById('id_password');
-    const eyeIcon = document.getElementById('eye-icon');
-    const eyeOffIcon = document.getElementById('eye-off-icon');
+    function togglePassword() {
+        const passwordInput = document.getElementById('id_password');
+        const eyeIcon = document.getElementById('eye-icon');
+        const eyeOffIcon = document.getElementById('eye-off-icon');
 
-    if (passwordInput.type === 'password') {
-      // Mostrar contraseña
-      passwordInput.type = 'text';
-      eyeIcon.classList.add('hidden');
-      eyeOffIcon.classList.remove('hidden');
-    } else {
-      // Ocultar contraseña
-      passwordInput.type = 'password';
-      eyeIcon.classList.remove('hidden');
-      eyeOffIcon.classList.add('hidden');
+        if (passwordInput.type === 'password') {
+            // Mostrar contraseña
+            passwordInput.type = 'text';
+            eyeIcon.classList.add('hidden');
+            eyeOffIcon.classList.remove('hidden');
+        } else {
+            // Ocultar contraseña
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('hidden');
+            eyeOffIcon.classList.add('hidden');
+        }
     }
-  }
 </script>
 
 {% endblock %}

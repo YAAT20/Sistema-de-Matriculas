@@ -1,5 +1,5 @@
 # Modelos
-from matriculas.models import Alumno, Matricula  
+from matriculas.models import Alumno, Matricula, Ciclo
 
 # Django auth y views
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 # Views genéricas
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView 
 # Forms
-from matriculas.forms import AlumnoForm 
+from ..forms import AlumnoForm 
 #son utilities
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -24,6 +24,16 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from datetime import datetime
 
 from matriculas.views.admin import es_admin_check, SoloAdminMixin
+from pathlib import Path
+def get_thumb_url(filefield):
+    if not filefield:
+        return None
+
+    try:
+        base = Path(filefield.url)
+        return base.with_name(base.stem + "_thumb.jpg").as_posix()
+    except Exception:
+        return filefield.url
 
 ##CRUD ALUMNOS
 
@@ -68,7 +78,7 @@ class AlumnoTotalListView(LoginRequiredMixin, ListView):
     model = Alumno
     template_name = 'matriculas/alumno/alumno_total_list.html'
     context_object_name = 'alumnos'
-    paginate_by = 40
+    paginate_by = 80
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -76,6 +86,7 @@ class AlumnoTotalListView(LoginRequiredMixin, ListView):
         grado_filtro = self.request.GET.get('grado')
         estado_filtro = self.request.GET.get('estado')
         sin_foto = self.request.GET.get('sin_foto')
+        ciclo_filtro = self.request.GET.get('ciclo')
 
         # Filtro por búsqueda
         if search_query:
@@ -99,15 +110,20 @@ class AlumnoTotalListView(LoginRequiredMixin, ListView):
         if sin_foto == 'true':
             queryset = queryset.filter(Q(foto_previa__isnull=True) | Q(foto_previa=''))
 
+        if ciclo_filtro:
+            queryset = queryset.filter(matriculas__ciclo_id=ciclo_filtro).distinct()
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['ciclos'] = Ciclo.objects.all().order_by('-fecha_inicio')
         context['grado_opciones'] = Alumno.GRADO_OPCIONES
         context['estado_actual'] = self.request.GET.get('estado', '')
         context['grado_actual'] = self.request.GET.get('grado', '')
         context['sin_foto_actual'] = self.request.GET.get('sin_foto', '')
-
+        context['ciclo_actual'] = self.request.GET.get('ciclo', '')
+        
         # 👇 Total real de alumnos (sin depender del paginador)
         context['total_alumnos'] = self.get_queryset().count()
         return context
@@ -139,12 +155,37 @@ class AlumnoDetailView(LoginRequiredMixin, DetailView):
     model = Alumno
     template_name = 'matriculas/alumno/alumno_detail.html'
     context_object_name = 'alumno'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         alumno = self.get_object()
+
         context['tiene_matricula'] = alumno.matriculas.exists()
         context['matricula'] = alumno.matriculas.first()
+
+        context['fotos'] = [
+            {
+                'tipo': 'Previa',
+                'url': alumno.foto_previa.url if alumno.foto_previa else None,
+                'thumb': get_thumb_url(alumno.foto_previa),
+            },
+            {
+                'tipo': 'Frente',
+                'url': alumno.foto_frente.url if alumno.foto_frente else None,
+                'thumb': get_thumb_url(alumno.foto_frente),
+            },
+            {
+                'tipo': 'Lado',
+                'url': alumno.foto_lado.url if alumno.foto_lado else None,
+                'thumb': get_thumb_url(alumno.foto_lado),
+            },
+            {
+                'tipo': 'Corte',
+                'url': alumno.foto_corte.url if alumno.foto_corte else None,
+                'thumb': get_thumb_url(alumno.foto_corte),
+            },
+        ]
+
         return context
 
 class AlumnoDeleteView(LoginRequiredMixin, SoloAdminMixin, DeleteView):
@@ -174,7 +215,7 @@ def enviar_ficha_matricula_whatsapp_estudiante(request, matricula_id):
         f"📄 *Puedes descargar tu ficha de matrícula aquí:*\n"
         f"{pdf_url}\n\n"
         f"🔗 *Para acceder al sistema de reportes de avances, simulacros y asistencias aquí:*\n"
-        f"https://tinyurl.com/2ygs2dc7 \n\n"
+        f"https://reportes.academiaroberthooke.com/reportes \n\n"
         f"*Tus credenciales son:*\n"
         f"👤 Usuario: {matricula.alumno.codigo}\n"
         f"🔒 Contraseña: {matricula.alumno.dni}\n\n"

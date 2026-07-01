@@ -1,0 +1,82 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto p-6">
+
+    <div class="flex justify-between items-center mb-6">
+
+        <div>
+            <h1 class="text-3xl font-bold">
+                Fotografías del Evento
+            </h1>
+
+            <p class="text-gray-500">
+                {{ evento.nombre }}
+            </p>
+        </div>
+
+        <a href="{% url 'marketing:marketing_evento' evento.pk %}"
+           class="px-4 py-2 border rounded-lg">
+            Volver
+        </a>
+
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6 mb-6">
+
+        <form method="post" enctype="multipart/form-data">
+
+            {% csrf_token %}
+
+            <input type="file"
+                   name="imagenes"
+                   multiple
+                   class="block w-full border rounded-lg p-2">
+
+            <button type="submit"
+                    class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg">
+                Subir fotos
+            </button>
+
+        </form>
+
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+
+        {% for foto in evento.fotos.all %}
+
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+
+                <img src="{{ foto.imagen.url }}"
+                     class="w-full h-40 object-cover">
+
+            <div class="p-2">
+
+                <p class="text-sm">
+                    {{ foto.descripcion|default:"Sin descripción" }}
+                </p>
+
+                <a href="{% url 'marketing:marketing_eliminar_foto_evento' foto.pk %}" onclick="return confirm('¿Eliminar fotografía?')"
+                class="text-red-600 text-sm">
+                    Eliminar
+                </a>
+
+            </div>
+
+            </div>
+
+        {% empty %}
+
+            <div class="col-span-full text-center py-10 text-gray-500">
+                No hay fotografías registradas.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

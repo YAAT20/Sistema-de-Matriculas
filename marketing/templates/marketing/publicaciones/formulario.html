@@ -1,0 +1,273 @@
+{% extends 'base_matriculas.html' %}
+
+{% block content %}
+
+<div class="max-w-6xl mx-auto p-6">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">
+            {% if publicacion %}
+                Editar publicación
+            {% else %}
+                Nueva publicación
+            {% endif %}
+        </h1>
+
+        <p class="text-gray-500 mt-1">
+            Complete la información de la publicación, los copys y los archivos.
+        </p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-8">
+        {% csrf_token %}
+        <section class="bg-white rounded-xl shadow border border-gray-200">
+
+            <div class="border-b px-6 py-4 bg-gray-50">
+                <h2 class="text-lg font-semibold">
+                    Información de la publicación
+                </h2>
+            </div>
+
+            <div class="p-6 grid md:grid-cols-2 gap-5">
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Título
+                    </label>
+                    {{ form.titulo }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Evento
+                    </label>
+                    {{ form.evento }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Estado
+                    </label>
+                    {{ form.estado }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Fecha programada
+                    </label>
+                    {{ form.fecha_programada }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium mb-2">
+                        Fecha publicación
+                    </label>
+                    {{ form.fecha_publicacion }}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2">
+                        Observaciones
+                    </label>
+                    {{ form.observaciones }}
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="bg-white rounded-xl shadow border border-gray-200">
+            <div class="border-b px-6 py-4 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-semibold">
+                    Copys
+                </h2>
+
+                <button
+                    type="button"
+                    id="add-copy"
+                    class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    + Agregar
+                </button>
+
+            </div>
+
+            <div class="p-6">
+                {{ copy_formset.management_form }}
+                <div id="copies-container" class="space-y-6">
+                    {% for form in copy_formset %}
+                    <div class="copy-form border rounded-lg p-4 bg-gray-50">
+                        {{ form.id }}
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    Plataforma
+                                </label>
+
+                                {{ form.plataforma }}
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    Copy
+                                </label>
+
+                                {{ form.copy }}
+                            </div>
+                        </div>
+
+                        {% if form.instance.pk %}
+                        <div class="mt-4">
+                            <label class="flex items-center gap-2 text-red-600">
+                                {{ form.DELETE }}
+                                Eliminar
+                            </label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-xl shadow border border-gray-200">
+            <div class="border-b px-6 py-4 bg-gray-50 flex justify-between items-center">
+                <h2 class="text-lg font-semibold">
+                    Archivos
+                </h2>
+                <button
+                    type="button"
+                    id="add-file"
+                    class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+
+                    + Agregar
+                </button>
+            </div>
+
+            <div class="p-6">
+                {{ archivo_formset.management_form }}
+                <div id="files-container" class="space-y-6">
+                    {% for form in archivo_formset %}
+                    <div class="archivo-form border rounded-lg p-4 bg-gray-50">
+                        {{ form.id }}
+                        <div class="grid md:grid-cols-3 gap-4">
+
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    Archivo
+                                </label>
+
+                                {{ form.archivo }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    Descripción
+                                </label>
+                                {{ form.descripcion }}
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">
+                                    Orden
+                                </label>
+                                {{ form.orden }}
+                            </div>
+                        </div>
+                        {% if form.instance.pk %}
+                        <div class="mt-4">
+                            <label class="flex items-center gap-2 text-red-600">
+
+                                {{ form.DELETE }}
+
+                                Eliminar
+
+                            </label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <div class="flex justify-end gap-4">
+
+            <a
+                href="{% url 'marketing:marketing_publicaciones' %}"
+                class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+                Cancelar
+            </a>
+
+            <button
+                type="submit"
+                class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                Guardar publicación
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    function setupFormset(btnId, containerId, formClass) {
+        const btn = document.getElementById(btnId);
+        const container = document.getElementById(containerId);
+
+        if (!btn || !container) return;
+
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            const forms = container.querySelectorAll('.' + formClass);
+            const formCount = forms.length;
+
+            if (formCount === 0) return;
+
+            const lastForm = forms[formCount - 1];
+            const newForm = lastForm.cloneNode(true);
+            const regex = new RegExp(`-(\\d+)-`, 'g');
+
+            const inputs = newForm.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                if (input.name) {
+                    input.name = input.name.replace(regex, `-${formCount}-`);
+                    input.id = input.id.replace(regex, `-${formCount}-`);
+                }
+                
+                if (input.type !== 'hidden' && input.type !== 'checkbox' && input.type !== 'radio') {
+                    input.value = '';
+                } else if (input.type === 'checkbox' || input.type === 'radio') {
+                    input.checked = false;
+                }
+            });
+
+            const labels = newForm.querySelectorAll('label');
+            labels.forEach(label => {
+                const htmlFor = label.getAttribute('for');
+                if (htmlFor) {
+                    label.setAttribute('for', htmlFor.replace(regex, `-${formCount}-`));
+                }
+            });
+
+            container.appendChild(newForm);
+
+            const firstInput = forms[0].querySelector('input, select, textarea');
+            if (firstInput && firstInput.name) {
+                const prefixMatch = firstInput.name.match(/^(.*?)-\d+-/);
+                if (prefixMatch) {
+                    const prefix = prefixMatch[1];
+                    const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+                    if (totalFormsInput) {
+                        totalFormsInput.value = formCount + 1;
+                    }
+                }
+            }
+        });
+    }
+
+    setupFormset('add-copy', 'copies-container', 'copy-form');
+    setupFormset('add-file', 'files-container', 'archivo-form');
+});
+</script>
+
+{% endblock %}
