@@ -92,7 +92,6 @@ urlpatterns = [
     path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('password_change/', CustomPasswordChangeView.as_view(), name='password_change'),
     path('password_change/done/', CustomPasswordChangeDoneView.as_view(), name='password_change_done'),
-    path('app-selection/', app_selection, name='app_selection'),
     path('usuarios/crear/', UsuarioCreateView.as_view(), name='usuario_create'),
     path('usuario/editar/<int:pk>/', UsuarioUpdateView.as_view(), name='usuario_editar'),
     path('usuarios/', UsuarioListView.as_view(), name='lista_usuarios'),

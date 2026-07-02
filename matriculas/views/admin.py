@@ -32,6 +32,9 @@ def editar_mensaje_whatsapp(request):
 
 @login_required
 def dashboard_view(request):
+    if getattr(request.user, 'perfil', None) and request.user.perfil.tipo == 'marketing':
+        return redirect('marketing:marketing_dashboard')
+
     hoy = timezone.now().date()
     primer_dia_mes = hoy.replace(day=1)
     
@@ -100,16 +103,21 @@ def enviar_recordatorio_cobranza(request, apoderado_id):
     return redirect(cuota.get_whatsapp_url())
 
 def es_admin_check(user):
-    return user.is_authenticated and hasattr(user, 'perfil') and user.perfil.tipo == 'admin'
+    return (
+        user.is_authenticated
+        and hasattr(user, 'perfil')
+        and user.perfil.tipo in {'admin', 'marketing'}
+    )
 
 class SoloAdminMixin(UserPassesTestMixin):
     """Mixin para permitir acceso solo a usuarios admin en Vistas Basadas en Clases"""
     
     def test_func(self):
-        # Verifica si es admin
-        return self.request.user.is_authenticated and \
-               hasattr(self.request.user, 'perfil') and \
-               self.request.user.perfil.tipo == 'admin'
+        return (
+            self.request.user.is_authenticated
+            and hasattr(self.request.user, 'perfil')
+            and self.request.user.perfil.tipo in {'admin', 'marketing'}
+        )
 
     def handle_no_permission(self):
         # Si no es admin, muestra mensaje y redirige

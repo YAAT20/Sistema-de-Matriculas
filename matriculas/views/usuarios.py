@@ -23,7 +23,7 @@ class CustomLoginView(LoginView):
         if user.is_superuser or user.is_staff:
              return super().form_valid(form)
 
-        if perfil and perfil.tipo in ['admin', 'usuario']:
+        if perfil and perfil.tipo in ['admin', 'usuario', 'marketing']:
             return super().form_valid(form)
         else:
             messages.error(self.request, "No tienes permiso para acceder a este sistema.")
@@ -36,7 +36,7 @@ class CustomLoginView(LoginView):
         if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts=None):
             return next_url
         
-        return reverse_lazy('matriculas:app_selection')
+        return reverse_lazy('matriculas:home')
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('matriculas:login')
@@ -47,10 +47,6 @@ class CustomPasswordChangeView(PasswordChangeView):
 
 class CustomPasswordChangeDoneView(PasswordChangeDoneView):
     template_name = 'matriculas/admin/password_change_done.html'
-
-@login_required
-def app_selection(request):
-    return render(request, 'matriculas/admin/app_selection.html')
 
 @method_decorator(login_required, name='dispatch')
 class UsuarioCreateView(CreateView):

@@ -5,18 +5,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import FileResponse
 
-from appPrincipal.views import app_selection_prelogin
-
 def firebase_messaging_sw(request):
     file_path = os.path.join(settings.BASE_DIR, 'matriculas', 'static', 'matriculas', 'js', 'firebase-messaging-sw.js')
     
     return FileResponse(open(file_path, 'rb'), content_type='application/javascript')
 
 urlpatterns = [
-    path('', app_selection_prelogin, name='app_selection_prelogin'),
     path('admin/', admin.site.urls),    
     path('matriculas/', include('matriculas.urls', namespace='matriculas')),
-    path('marketing/', include('marketing.urls', namespace='marketing')),
+    path('marketing/', include('marketing.urls', namespace='marketing')),   
     path('firebase-messaging-sw.js', firebase_messaging_sw),
 ]
 

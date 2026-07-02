@@ -9,18 +9,31 @@ from matriculas.models import Alumno
 from django.db.models import Q
 from pathlib import Path
 from django.db import transaction
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required, user_passes_test
+from matriculas.views.admin import es_admin_check
+from django.http import Http404, FileResponse, HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
+import io, zipfile, os
+from django.utils.text import slugify
 
+@login_required
+@user_passes_test(es_admin_check)
 def dashboard(request):
     context = DashboardMarketingService.obtener_metricas()
     return render(request,'marketing/dashboard.html',context)
 
 #eventos
+@login_required
+@user_passes_test(es_admin_check)
 def eventos(request):
     eventos = EventoService.listar(q=request.GET.get('q'))
     return render(request,'marketing/eventos/lista.html',
         {'eventos': eventos}
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def nuevo_evento(request):
     if request.method == 'POST':
 
@@ -46,6 +59,8 @@ def nuevo_evento(request):
         }
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def evento(request, pk):
     evento = get_object_or_404(
         Evento.objects.prefetch_related(
@@ -58,50 +73,27 @@ def evento(request, pk):
         {'evento': evento}
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def editar_evento(request, pk):
 
-    evento = get_object_or_404(
-        Evento,
-        pk=pk
-    )
-
+    evento = get_object_or_404(Evento,pk=pk)
     if request.method == 'POST':
-
-        form = EventoForm(
-            request.POST,
-            request.FILES,
-            instance=evento
-        )
-
+        form = EventoForm(request.POST,request.FILES,instance=evento)
         if form.is_valid():
-
             form.save()
-
-            messages.success(
-                request,
-                'Evento actualizado correctamente.'
-            )
-
-            return redirect(
-                'marketing:marketing_evento',
-                pk=evento.pk
-            )
+            messages.success(request,'Evento actualizado correctamente.')
+            return redirect('marketing:marketing_evento',pk=evento.pk)
 
     else:
 
-        form = EventoForm(
-            instance=evento
-        )
+        form = EventoForm(instance=evento)
 
-    return render(
-        request,
-        'marketing/eventos/formulario.html',
-        {
-            'form': form,
-            'evento': evento
-        }
+    return render(request,'marketing/eventos/formulario.html',{'form': form,'evento': evento}
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def eliminar_evento(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
     
@@ -116,6 +108,8 @@ def eliminar_evento(request, pk):
         {'objeto': evento, 'tipo': 'evento'}
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def fotos_evento(request, pk):
 
     evento = get_object_or_404(
@@ -159,6 +153,8 @@ def fotos_evento(request, pk):
         }
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def eliminar_foto_evento(request, pk):
 
     evento_id = EventoService.eliminar_foto(
@@ -173,7 +169,36 @@ def eliminar_foto_evento(request, pk):
         pk=evento_id
     )
 
+@login_required
+@user_passes_test(es_admin_check)
+def descargar_todas_fotos(request, pk):
+    """Empaqueta todas las fotos de un evento en un archivo .ZIP y lo descarga."""
+    evento = get_object_or_404(Evento, pk=pk)
+    fotos = evento.fotos.all()
+    
+    if not fotos:
+        raise Http404("Este evento no tiene fotografías para descargar.")
+        
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w') as zip_file:
+        for contador, foto in enumerate(fotos, start=1):
+            try:
+                nombre_archivo = os.path.basename(foto.imagen.name)
+                extension = nombre_archivo.split('.')[-1] if '.' in nombre_archivo else 'jpg'
+                nombre_en_zip = f"foto_{contador}.{extension}"
+                zip_file.writestr(nombre_en_zip, foto.imagen.read())
+            except Exception:
+                continue
+    buffer.seek(0)
+    nombre_zip = f"fotos_{slugify(evento.nombre)}.zip"
+    response = HttpResponse(buffer, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{nombre_zip}"'
+    
+    return response
+
 #PUBLICACIONES
+@login_required
+@user_passes_test(es_admin_check)
 def publicaciones(request):
 
     publicaciones = PublicacionService.listar()
@@ -183,6 +208,8 @@ def publicaciones(request):
         {"publicaciones": publicaciones}
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def publicacion(request, pk):
 
     publicacion = PublicacionService.obtener(pk)
@@ -191,6 +218,8 @@ def publicacion(request, pk):
         'publicacion': publicacion
     })
 
+@login_required
+@user_passes_test(es_admin_check)
 def nueva_publicacion(request):
 
     if request.method == "POST":
@@ -246,6 +275,8 @@ def nueva_publicacion(request):
         }
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def editar_publicacion(request, pk):
 
     publicacion = get_object_or_404(
@@ -308,6 +339,8 @@ def editar_publicacion(request, pk):
         }
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def eliminar_publicacion(request, pk):
 
     publicacion = PublicacionService.obtener(pk)
@@ -321,18 +354,47 @@ def eliminar_publicacion(request, pk):
         'publicacion': publicacion
     })
 
-def recursos(request):
+@login_required
+@user_passes_test(es_admin_check)
+def descargar_todos_archivos_publicacion(request, pk):
+    """Empaqueta todas las imágenes y vídeos de una publicación en un archivo .ZIP."""
+    # Cambia 'Publicacion' por el nombre real de tu modelo de publicación si es distinto
+    publicacion = get_object_or_404(Publicacion, pk=pk) 
+    archivos = publicacion.archivos.all()
+    
+    if not archivos:
+        raise Http404("Esta publicación no tiene archivos multimedia para descargar.")
+        
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, 'w') as zip_file:
+        for contador, archivo_obj in enumerate(archivos, start=1):
+            try:
+                # Extraemos el nombre original del archivo físico en disco
+                nombre_original = os.path.basename(archivo_obj.archivo.name)
+                
+                # Prevenimos colisiones de nombres o nombres vacíos
+                if '.' in nombre_original:
+                    extension = nombre_original.split('.')[-1].lower()
+                else:
+                    extension = 'jpg' # Valor por defecto
+                
+                nombre_en_zip = f"archivo_{contador}_{slugify(publicacion.titulo)[:20]}.{extension}"
+                
+                # Añadimos los bytes del archivo (sea .mp4, .png, etc.) al empaquetado zip
+                zip_file.writestr(nombre_en_zip, archivo_obj.archivo.read())
+            except Exception:
+                continue
 
-    recursos = RecursoMarketing.objects.all()
+    buffer.seek(0)
+    nombre_zip = f"recursos_{slugify(publicacion.titulo)[:40]}.zip"
+    
+    response = HttpResponse(buffer, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{nombre_zip}"'
+    
+    return response
 
-    return render(
-        request,
-        'marketing/recursos/lista.html',
-        {
-            'recursos': recursos
-        }
-    )
-
+@login_required
+@user_passes_test(es_admin_check)
 def galeria_alumnos(request):
     grupo_seleccionado = request.GET.get('grupo', 'pre5')
     q = request.GET.get('q', '').strip()
@@ -397,6 +459,8 @@ def galeria_alumnos(request):
     
     return render(request, 'marketing/alumnos/galeria.html', context)
 
+@login_required
+@user_passes_test(es_admin_check)
 def recursos(request):
     """Lista todos los recursos permanentes permitiendo filtrar por categoría."""
     recursos_list = RecursoMarketing.objects.all()
@@ -415,6 +479,8 @@ def recursos(request):
         }
     )
 
+@login_required
+@user_passes_test(es_admin_check)
 def nuevo_recurso(request):
     """Permite subir un nuevo archivo a la biblioteca de recursos."""
     if request.method == 'POST':
@@ -428,6 +494,8 @@ def nuevo_recurso(request):
         
     return render(request, 'marketing/recursos/formulario.html', {'form': form})
 
+@login_required
+@user_passes_test(es_admin_check)
 def eliminar_recurso(request, pk):
     """Elimina el registro de un recurso de manera directa."""
     recurso = get_object_or_404(RecursoMarketing, pk=pk)
@@ -435,11 +503,12 @@ def eliminar_recurso(request, pk):
     messages.success(request, 'Recurso eliminado de la biblioteca.')
     return redirect('marketing:marketing_recursos')
 
+@login_required
+@user_passes_test(es_admin_check)
 def descargar_recurso(request, pk):
-    """Fuerza la descarga del archivo multimedia en el navegador."""
+    """Verifica permisos y redirige a la URL segura del archivo."""
     recurso = get_object_or_404(RecursoMarketing, pk=pk)
-    try:
-        response = FileResponse(recurso.archivo.open(), as_attachment=True)
-        return response
-    except Exception:
-        raise Http404("El archivo no se encuentra físicamente en el servidor.")
+    
+    if not recurso.archivo:
+        raise Http404("El recurso no tiene un archivo asignado.")        
+    return redirect(recurso.archivo.url)

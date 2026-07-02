@@ -15,7 +15,6 @@
         </a>
     </div>
 
-    <!-- Filtros Rápidos por Categoría -->
     <div class="flex flex-wrap gap-2 border-b pb-3 border-gray-100">
         <a href="?categoria=" 
            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition {% if not categoria_actual %} bg-gray-800 text-white {% else %} bg-gray-100 text-gray-600 hover:bg-gray-200 {% endif %}">
@@ -29,49 +28,83 @@
         {% endfor %}
     </div>
 
-    <!-- Malla de Recursos -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {% for recurso in recursos %}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-between hover:shadow-md transition">
+            <div class="group bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                 <div>
-                    <!-- Icono representativo por tipo de contenido -->
-                    <div class="h-32 w-full bg-gray-50 rounded-lg flex items-center justify-center mb-3 border border-gray-100 text-gray-400">
-                        {% if recurso.categoria == 'imagen' or recurso.categoria == 'logo' or recurso.categoria == 'plantilla' %}
-                            <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        {% elif recurso.categoria == 'video' %}
-                            <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-                        {% elif recurso.categoria == 'musica' %}
-                            <svg class="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                    <!-- Contenedor de la vista previa / miniatura -->
+                    <div class="relative h-36 w-full bg-gray-50 rounded-lg flex items-center justify-center mb-3 border border-gray-100 overflow-hidden text-gray-400">
+                        
+                        {% if recurso.categoria == 'imagen' or recurso.categoria == 'logo' or recurso.extension in 'jpg,jpeg,png,webp,gif,svg' %}
+                            <img src="{{ recurso.archivo.url }}" 
+                                alt="{{ recurso.nombre }}" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                loading="lazy">
+                            
+                            <span class="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-[10px] text-white px-2 py-0.5 rounded-md font-medium tracking-wide uppercase">
+                                {{ recurso.get_categoria_display }}
+                            </span>
                         {% else %}
-                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            {% if recurso.categoria == 'video' %}
+                                <div class="absolute inset-0 bg-gradient-to-br from-red-50 to-transparent opacity-60"></div>
+                                <svg class="w-10 h-10 text-red-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            {% elif recurso.categoria == 'musica' %}
+                                <div class="absolute inset-0 bg-gradient-to-br from-purple-50 to-transparent opacity-60"></div>
+                                <svg class="w-10 h-10 text-purple-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>
+                            {% else %}
+                                <div class="absolute inset-0 bg-gradient-to-br from-gray-50 to-transparent opacity-60"></div>
+                                <svg class="w-10 h-10 text-gray-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                            {% endif %}
                         {% endif %}
                     </div>
                     
-                    <h3 class="font-bold text-gray-900 truncate" title="{{ recurso.nombre }}">{{ recurso.nombre }}</h3>
-                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mt-0.5">{{ recurso.get_categoria_display }}</p>
+                    <!-- Información del Recurso -->
+                    <h3 class="font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-150 truncate" title="{{ recurso.nombre }}">
+                        {{ recurso.nombre }}
+                    </h3>
+                    
+                    <!-- Se oculta si ya se muestra arriba en la miniatura para evitar redundancia -->
+                    {% if not recurso.url_miniatura and not recurso.imagen_url %}
+                        <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">{{ recurso.get_categoria_display }}</p>
+                    {% endif %}
+
                     {% if recurso.descripcion %}
-                        <p class="text-xs text-gray-500 mt-2 line-clamp-2">{{ recurso.descripcion }}</p>
+                        <p class="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">{{ recurso.descripcion }}</p>
+                    {% else %}
+                        <p class="text-xs italic text-gray-400 mt-2">Sin descripción disponible.</p>
                     {% endif %}
                 </div>
 
                 <!-- Acciones de la Tarjeta -->
-                <div class="flex items-center justify-between border-t pt-3 mt-4">
+                <div class="flex items-center justify-between border-t border-gray-100 pt-3 mt-4">
+                    <!-- Botón de descarga con forzado desde el navegador -->
                     <a href="{% url 'marketing:marketing_descargar_recurso' recurso.pk %}" 
-                       class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    onclick="fetch(this.href).then(res => res.blob()).then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = '{{ recurso.nombre|slugify }}.{{ recurso.extension }}';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    }).catch(() => window.location.href = '{% url 'marketing:marketing_descargar_recurso' recurso.pk %}'); return false;"
+                    class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
                         Descargar
                     </a>
-                    
                     <a href="{% url 'marketing:marketing_eliminar_recurso' recurso.pk %}" 
-                       onclick="return confirm('¿Está seguro de eliminar este recurso permanentemente de la biblioteca institucional?')"
-                       class="text-xs font-semibold text-red-500 hover:text-red-700">
+                    onclick="return confirm('¿Está seguro de eliminar este recurso permanentemente de la biblioteca institucional?')"
+                    class="text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors p-1 rounded-md hover:bg-red-50">
                         Eliminar
                     </a>
                 </div>
             </div>
         {% empty %}
-            <div class="col-span-full bg-white text-center py-16 rounded-xl shadow border border-gray-100 text-gray-500">
-                No hay recursos subidos en esta categoría.
+            <div class="col-span-full bg-white text-center py-16 rounded-xl shadow border border-gray-100 text-gray-400">
+                <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                <p class="font-medium text-gray-600">No hay recursos subidos en esta categoría.</p>
             </div>
         {% endfor %}
     </div>

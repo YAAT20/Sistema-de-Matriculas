@@ -365,7 +365,7 @@ class Matricula(models.Model):
     fecha_matricula = models.DateField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activa')
     tipo_matricula = models.CharField(max_length=20, choices=TIPOS_MATRICULA, default='regular')
-    usuario_registro = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT,related_name='matriculas_registradas')
+    usuario_registro = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='matriculas_registradas')
     
     class Meta:
         verbose_name = "Matrícula"
@@ -471,7 +471,7 @@ class Pago(models.Model):
     fecha_pago = models.DateField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADO_PAGO, default='pendiente')
     observacion = models.TextField(blank=True)
-    usuario_registro = models.ForeignKey(User, on_delete=models.PROTECT, related_name='pagos_registrados')
+    usuario_registro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='pagos_registrados')
     fecha_registro = models.DateTimeField(auto_now_add=True)
     foto_comprobante = models.FileField(upload_to="pagos/comprobantes/", blank=True, null=True)
 
@@ -536,9 +536,10 @@ class Perfil(models.Model):
     TIPO_USUARIO_CHOICES = [
         ('admin', 'Administrador'),
         ('usuario', 'Usuario'),
+        ('marketing', 'Marketing'),
     ]
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True)
     tipo = models.CharField(max_length=10, choices=TIPO_USUARIO_CHOICES, default='usuario')
 
     def __str__(self):
@@ -657,7 +658,7 @@ class Procedimiento(models.Model):
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True)
     observacion = models.TextField(blank=True)
-    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 

@@ -540,7 +540,10 @@ class PagoForm(forms.ModelForm):
 
 class UsuarioCreateForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    tipo = forms.ChoiceField(choices=Perfil.TIPO_USUARIO_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
+    tipo = forms.ChoiceField(
+        choices=Perfil.TIPO_USUARIO_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
 
     class Meta:
         model = User

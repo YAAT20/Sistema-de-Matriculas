@@ -123,12 +123,20 @@
                     </div>
                     <div class="hidden sm:block">
                         <span class="text-xl font-bold block leading-tight">Academia Robert Hooke</span>
-                        <div class="text-xs opacity-90 font-medium">Sistema de Gestión</div>
+                        <div class="text-xs opacity-90 font-medium">Sistema de Gestión Académico</div>
                     </div>
                 </a>
                 {% if user.is_authenticated %}
                 <!-- Desktop Navigation -->
                 <nav class="hidden lg:flex items-center space-x-1">
+                    {% if user.perfil.tipo == 'admin' or user.perfil.tipo == 'marketing' %}
+                    <a href="{% url 'marketing:marketing_dashboard' %}"
+                        class="nav-link flex items-center space-x-2 hover:bg-white/20 px-4 py-3 rounded-lg font-medium">
+                        <i class="bi bi-megaphone-fill text-lg"></i>
+                        <span>Marketing</span>
+                    </a>
+                    {% endif %}
+                    {% if user.perfil.tipo != 'marketing' %}                                   
                     <!-- Enlaces principales -->
                     <a href="{% url 'matriculas:alumno_list' %}"
                         class="nav-link flex items-center space-x-2 hover:bg-white/20 px-4 py-3 rounded-lg font-medium">
@@ -149,7 +157,8 @@
                         class="nav-link flex items-center space-x-2 hover:bg-white/20 px-4 py-3 rounded-lg font-medium">
                         <i class="bi bi-cash-coin text-lg"></i>
                         <span>Pagos</span>
-                    </a>
+                    </a> 
+                    {% endif %}                                       
                     {% if user.is_authenticated and user.perfil.tipo == 'admin' %}
                     <!-- Dropdown Configuración Mejorado -->
                     <div class="relative group">
@@ -285,8 +294,6 @@
                                     <i class="bi bi-bell w-5 text-blue-500 mr-3"></i>
                                     <span>Notificaciones</span>
                                 </button>
-
-
                             </div>
 
                             <!-- Logout -->
@@ -340,6 +347,13 @@
 
             <!-- Mobile Menu Content -->
             <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+                {% if user.is_authenticated and user.perfil.tipo == 'marketing' %}
+                <a href="{% url 'marketing:marketing_dashboard' %}"
+                    class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all">
+                    <i class="bi bi-megaphone-fill text-lg"></i>
+                    <span class="font-medium">Marketing</span>
+                </a>
+                {% else %}
                 <!-- Main Navigation -->
                 <a href="{% url 'matriculas:alumno_list' %}"
                     class="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 rounded-lg transition-all">
@@ -401,6 +415,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 {% endif %}
 
                 <!-- User Section -->

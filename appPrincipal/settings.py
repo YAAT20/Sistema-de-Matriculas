@@ -97,7 +97,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_URL = '/matriculas/login/' 
-LOGIN_REDIRECT_URL = '/matriculas/app-selection/'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/matriculas/login/'
 
 SESSION_COOKIE_NAME = "sessionid_matriculas"
