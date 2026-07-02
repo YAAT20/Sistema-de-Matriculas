@@ -79,7 +79,8 @@
             {% for copy in publicacion.copies.all %}
             <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-semibold uppercase tracking-wider">
+                    <span
+                        class="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-semibold uppercase tracking-wider">
                         {{ copy.get_plataforma_display }}
                     </span>
                 </div>
@@ -101,44 +102,55 @@
                 Archivos Adjuntos
             </h2>
             {% if publicacion.archivos.all %}
-                <a href="{% url 'marketing:marketing_descargar_todos_archivos_publicacion' publicacion.pk %}" 
-                   class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                    Descargar Todo (.ZIP)
-                </a>
+            <a href="{% url 'marketing:marketing_descargar_todos_archivos_publicacion' publicacion.pk %}"
+                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Descargar Todo (.ZIP)
+            </a>
             {% endif %}
         </div>
 
         {% if publicacion.archivos.all %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {% for archivo in publicacion.archivos.all %}
-            <div class="group rounded-xl overflow-hidden border border-gray-100 bg-white shadow-xs flex flex-col justify-between hover:shadow-md transition duration-200">
-                
+            <div
+                class="group rounded-xl overflow-hidden border border-gray-100 bg-white shadow-xs flex flex-col justify-between hover:shadow-md transition duration-200">
+
                 <div class="relative h-52 w-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                    {% if archivo.archivo.url|lower|slice:"-4:" == ".mp4" or archivo.archivo.url|lower|slice:"-5:" == ".webm" %}
-                        <video controls class="w-full h-full object-cover">
-                            <source src="{{ archivo.archivo.url }}">
-                        </video>
+                    {% if archivo.archivo.url|lower|slice:"-4:" == ".mp4" or archivo.archivo.url|lower|slice:"-5:" ==
+                    ".webm" %}
+                    <video controls class="w-full h-full object-cover">
+                        <source src="{{ archivo.archivo.url }}">
+                    </video>
                     {% else %}
-                        <div onclick="abrirVistaPrevia('{{ archivo.archivo.url }}', '{{ archivo.descripcion|default:'Sin descripción' }}')"
-                            class="w-full h-full cursor-zoom-in relative">
-                            <img src="{{ archivo.archivo.url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
-                            <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
-                            </div>
+                    <div onclick="abrirVistaPrevia('{{ archivo.archivo.url }}', '{{ archivo.descripcion|default:'Sin descripción' }}')"
+                        class="w-full h-full cursor-zoom-in relative">
+                        <img src="{{ archivo.archivo.url }}"
+                            class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                            loading="lazy">
+                        <div
+                            class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white drop-shadow-md" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                            </svg>
                         </div>
+                    </div>
                     {% endif %}
                 </div>
 
                 <div class="p-3 bg-white flex-1 flex flex-col justify-between space-y-3">
-                    <p class="text-xs text-gray-600 line-clamp-2 leading-relaxed" title="{{ archivo.descripcion|default:'Sin descripción' }}">
+                    <p class="text-xs text-gray-600 line-clamp-2 leading-relaxed"
+                        title="{{ archivo.descripcion|default:'Sin descripción' }}">
                         {{ archivo.descripcion|default:"Sin descripción" }}
                     </p>
-                    
+
                     <div class="flex justify-end border-t border-gray-50 pt-2">
-                        <a href="{{ archivo.archivo.url }}" 
-                           download="archivo_{{ archivo.pk }}"
-                           onclick="fetch(this.href).then(res => res.blob()).then(blob => {
+                        <a href="{{ archivo.archivo.url }}" download="archivo_{{ archivo.pk }}" onclick="fetch(this.href).then(res => res.blob()).then(blob => {
                                const url = window.URL.createObjectURL(blob);
                                const a = document.createElement('a');
                                a.href = url;
@@ -148,8 +160,11 @@
                                a.click();
                                window.URL.revokeObjectURL(url);
                            }).catch(() => {}); return false;"
-                           class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            class="text-xs font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
                             Descargar Archivo
                         </a>
                     </div>
@@ -165,13 +180,22 @@
     </div>
 </div>
 
-<div id="modalVistaPrevia" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs transition-opacity duration-300 opacity-0" onclick="cerrarVistaPrevia()">
-    <button class="absolute top-4 right-4 text-white/80 hover:text-white transition p-2 bg-black/20 rounded-full hover:bg-black/40" onclick="cerrarVistaPrevia()">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+<div id="modalVistaPrevia"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs transition-opacity duration-300 opacity-0"
+    onclick="cerrarVistaPrevia()">
+    <button
+        class="absolute top-4 right-4 text-white/80 hover:text-white transition p-2 bg-black/20 rounded-full hover:bg-black/40"
+        onclick="cerrarVistaPrevia()">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
     </button>
     <div class="relative max-w-4xl max-h-[85vh] flex flex-col items-center" onclick="event.stopPropagation()">
-        <img id="imgModal" src="" alt="Vista previa" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl select-none">
-        <p id="txtModal" class="text-white text-sm bg-black/50 backdrop-blur-xs px-4 py-2 rounded-full mt-4 max-w-prose text-center truncate"></p>
+        <img id="imgModal" src="" alt="Vista previa"
+            class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl select-none">
+        <p id="txtModal"
+            class="text-white text-sm bg-black/50 backdrop-blur-xs px-4 py-2 rounded-full mt-4 max-w-prose text-center truncate">
+        </p>
     </div>
 </div>
 
@@ -180,15 +204,15 @@
         const modal = document.getElementById('modalVistaPrevia');
         const img = document.getElementById('imgModal');
         const txt = document.getElementById('txtModal');
-        
+
         img.src = url;
         txt.textContent = descripcion;
-        
+
         modal.classList.remove('hidden');
         setTimeout(() => {
             modal.classList.remove('opacity-0');
         }, 10);
-        
+
         document.body.style.overflow = 'hidden';
     }
 
@@ -201,7 +225,7 @@
         document.body.style.overflow = '';
     }
 
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             cerrarVistaPrevia();
         }
