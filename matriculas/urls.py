@@ -21,7 +21,6 @@ urlpatterns = [
 
     # Configuración de WhatsApp
     path('config/mensaje-whatsapp/', editar_mensaje_whatsapp, name='editar_mensaje_whatsapp'),
-    path('galeria-alumnos/', galeria_alumnos, name='galeria_alumnos'),
 
     # Alumnos
     path('alumnos/', AlumnoListView.as_view(), name='alumno_list'),

@@ -77,16 +77,39 @@
         </h2>
         <div class="space-y-4">
             {% for copy in publicacion.copies.all %}
-            <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50">
-                <div class="flex justify-between items-center mb-2">
-                    <span
-                        class="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full font-semibold uppercase tracking-wider">
+            <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/50 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-3">
+                    <!-- Color dinámico de Badge según plataforma -->
+                    <span class="text-xs px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider
+                        {% if 'facebook' in copy.get_plataforma_display|lower %} bg-blue-50 text-blue-700
+                        {% elif 'instagram' in copy.get_plataforma_display|lower %} bg-pink-50 text-pink-700
+                        {% elif 'whatsapp' in copy.get_plataforma_display|lower %} bg-emerald-50 text-emerald-700
+                        {% elif 'tiktok' in copy.get_plataforma_display|lower %} bg-gray-900 text-white
+                        {% else %} bg-gray-100 text-gray-700 {% endif %}">
                         {{ copy.get_plataforma_display }}
                     </span>
+
+                    <!-- Indicador visual de caracteres -->
+                    <span class="text-[11px] text-gray-400 font-medium">
+                        {{ copy.copy|length }} caracteres
+                    </span>
                 </div>
-                <p class="text-gray-700 whitespace-pre-line leading-relaxed">
+                
+                <!-- ID único para poder extraer el texto con JS -->
+                <p id="copy-text-{{ copy.pk }}" class="text-gray-700 whitespace-pre-line leading-relaxed mb-4 selection:bg-blue-100">
                     {{ copy.copy }}
                 </p>
+
+                <div class="flex justify-end pt-2 border-t border-gray-100/60">
+                    <!-- BOTÓN COPIAR -->
+                    <button onclick="copiarTexto('{{ copy.pk }}', this)" 
+                            class="px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-800 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 shadow-2xs">
+                        <svg class="w-3.5 h-3.5 icon-copy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                        </svg>
+                        <span class="btn-text">Copiar Copy</span>
+                    </button>
+                </div>
             </div>
             {% empty %}
             <p class="text-gray-500 text-sm italic">
@@ -96,6 +119,7 @@
         </div>
     </div>
 
+    <!-- GALERÍA DE ARCHIVOS -->
     <div class="bg-white shadow rounded-2xl p-6">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-lg font-semibold text-gray-800">
@@ -120,8 +144,7 @@
                 class="group rounded-xl overflow-hidden border border-gray-100 bg-white shadow-xs flex flex-col justify-between hover:shadow-md transition duration-200">
 
                 <div class="relative h-52 w-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                    {% if archivo.archivo.url|lower|slice:"-4:" == ".mp4" or archivo.archivo.url|lower|slice:"-5:" ==
-                    ".webm" %}
+                    {% if archivo.archivo.url|lower|slice:"-4:" == ".mp4" or archivo.archivo.url|lower|slice:"-5:" == ".webm" %}
                     <video controls class="w-full h-full object-cover">
                         <source src="{{ archivo.archivo.url }}">
                     </video>
@@ -180,6 +203,7 @@
     </div>
 </div>
 
+<!-- MODAL VISTA PREVIA -->
 <div id="modalVistaPrevia"
     class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs transition-opacity duration-300 opacity-0"
     onclick="cerrarVistaPrevia()">
@@ -199,7 +223,36 @@
     </div>
 </div>
 
+<!-- SCRIPTS JS -->
 <script>
+    // FUNCION COPIAR TEXTO CON ANIMACIÓN DE CONFIRMACIÓN
+    function copiarTexto(id, boton) {
+        const textoParaCopiar = document.getElementById('copy-text-' + id).innerText;
+        const btnText = boton.querySelector('.btn-text');
+        const svgIcon = boton.querySelector('.icon-copy');
+
+        navigator.clipboard.writeText(textoParaCopiar).then(() => {
+            // Cambiar estilos visuales temporales (Éxito)
+            btnText.textContent = '¡Copiado!';
+            boton.classList.remove('text-gray-600', 'border-gray-200');
+            boton.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+            
+            // Reemplazar icono por un check temporal
+            const originalSvg = svgIcon.innerHTML;
+            svgIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`;
+
+            // Revertir el botón a su estado original tras 2 segundos
+            setTimeout(() => {
+                btnText.textContent = 'Copiar Copy';
+                boton.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+                boton.classList.add('bg-white', 'text-gray-600', 'border-gray-200');
+                svgIcon.innerHTML = originalSvg;
+            }, 2000);
+        }).catch(err => {
+            console.error('Error al copiar el texto: ', err);
+        });
+    }
+
     function abrirVistaPrevia(url, descripcion) {
         const modal = document.getElementById('modalVistaPrevia');
         const img = document.getElementById('imgModal');

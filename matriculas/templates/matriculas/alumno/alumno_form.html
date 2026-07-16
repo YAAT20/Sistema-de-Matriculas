@@ -75,7 +75,7 @@
 
         <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-100">
             <h3 class="text-xl font-bold text-sky-700 flex items-center gap-3 mb-6 pb-2 border-b border-sky-100">
-                <i class="bi bi-camera-fill"></i> Galería de Identificación (Optimización Automática)
+                <i class="bi bi-camera-fill"></i> Galería de Identificación
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {% for field in form.visible_fields %}
@@ -121,8 +121,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const inputs = document.querySelectorAll('.photo-input');
-    const submitBtn = document.getElementById('submit-btn');
-    let processingCount = 0;
 
     inputs.forEach(input => {
         const id = input.id;
@@ -130,83 +128,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const previewImg = previewDiv.querySelector('img');
         const loadingDiv = document.getElementById('loading-' + id);
 
+        // Atributos útiles para móviles
         input.setAttribute('accept', 'image/*');
         input.setAttribute('capture', 'environment');
 
         input.addEventListener('change', function(e) {
             const file = e.target.files[0];
             
-            // Si no hay archivo o es un archivo ya optimizado por nosotros, no hacer nada
-            if (!file || file._optimized) return;
+            if (!file) return;
 
-            processImage(file, input, previewDiv, previewImg, loadingDiv);
+            loadingDiv.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                previewImg.src = event.target.result;
+                
+                previewDiv.classList.remove('hidden');
+                loadingDiv.classList.add('hidden');
+            };
+            
+            reader.readAsDataURL(file);
         });
     });
-
-    function processImage(file, input, previewDiv, previewImg, loadingDiv) {
-        processingCount++;
-        toggleSubmitButton();
-        loadingDiv.classList.remove('hidden');
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                // He bajado a 3000 como punto intermedio de calidad
-                const TARGET_SIZE = 3000; 
-                const QUALITY = 0.8;
-                let w = img.width, h = img.height;
-
-                if (w > h ? w > TARGET_SIZE : h > TARGET_SIZE) {
-                    const factor = TARGET_SIZE / Math.max(w, h);
-                    w *= factor; h *= factor;
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, w, h);
-
-                canvas.toBlob(function(blob) {
-                    const optimizedFile = new File([blob], "opt_" + file.name.split('.')[0] + ".jpg", {
-                        type: 'image/jpeg',
-                        lastModified: Date.now()
-                    });
-
-                    // MARCADOR CLAVE: Marcamos el archivo como optimizado para que el 
-                    // evento 'change' no lo vuelva a procesar al inyectarlo
-                    optimizedFile._optimized = true;
-
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(optimizedFile);
-                    input.files = dataTransfer.files;
-
-                    previewImg.src = URL.createObjectURL(optimizedFile);
-                    previewDiv.classList.remove('hidden');
-                    loadingDiv.classList.add('hidden');
-                    
-                    processingCount--;
-                    toggleSubmitButton();
-                }, 'image/jpeg', QUALITY);
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function toggleSubmitButton() {
-        if (processingCount > 0) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<i class="bi bi-hourglass-split animate-spin"></i> Procesando...`;
-            submitBtn.classList.add('opacity-50');
-        } else {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `<i class="bi bi-check2-circle"></i> Finalizar Registro`;
-            submitBtn.classList.remove('opacity-50');
-        }
-    }
 });
-
 </script>
 
 <style>

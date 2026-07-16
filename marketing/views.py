@@ -104,7 +104,7 @@ def eliminar_evento(request, pk):
         
     return render(
         request, 
-        'marketing/eventos/confirmar_eliminar.html', 
+        'marketing/eventos/eliminar.html', 
         {'objeto': evento, 'tipo': 'evento'}
     )
 
@@ -279,40 +279,20 @@ def nueva_publicacion(request):
 @user_passes_test(es_admin_check)
 def editar_publicacion(request, pk):
 
-    publicacion = get_object_or_404(
-        Publicacion,
-        pk=pk
-    )
+    publicacion = get_object_or_404(Publicacion,pk=pk)
 
     if request.method == "POST":
 
-        form = PublicacionForm(
-            request.POST,
-            request.FILES,
-            instance=publicacion
-        )
-
-        copy_formset = CopyFormSet(
-            request.POST,
-            instance=publicacion,
-            prefix="copies"
-        )
-
-        archivo_formset = ArchivoFormSet(
-            request.POST,
-            request.FILES,
-            instance=publicacion,
-            prefix="archivos"
-        )
+        form = PublicacionForm(request.POST,request.FILES,instance=publicacion)
+        copy_formset = CopyFormSet(request.POST,instance=publicacion,prefix="copies")
+        archivo_formset = ArchivoFormSet(request.POST,request.FILES,instance=publicacion,prefix="archivos"        )
 
         if (
             form.is_valid()
             and copy_formset.is_valid()
             and archivo_formset.is_valid()
         ):
-
             with transaction.atomic():
-
                 publicacion = PublicacionService.actualizar(
                     publicacion=publicacion,
                     form=form,
@@ -416,9 +396,8 @@ def galeria_alumnos(request):
             Q(nombres_completos__icontains=q) | Q(codigo__icontains=q)
         )
 
-    total_resultados = alumnos.count()
-
-    fotos = []
+    alumnos_con_fotos = []
+    
     for alumno in alumnos:
         fotos_expediente = [
             ('Previa', alumno.foto_previa),
@@ -427,6 +406,9 @@ def galeria_alumnos(request):
             ('Corte', alumno.foto_corte),
         ]
 
+        lista_fotos_alumno = []
+        urls_descarga = []
+        
         for tipo, foto in fotos_expediente:
             if not foto:
                 continue
@@ -435,26 +417,34 @@ def galeria_alumnos(request):
             try:
                 ruta = Path(foto.path)
                 thumb = ruta.with_name(ruta.stem + '_thumb.jpg')
-
                 if thumb.exists():
                     nombre_thumb = Path(foto.name).stem + '_thumb.jpg'
                     thumb_url = Path(foto.url).parent.as_posix() + '/' + nombre_thumb
             except Exception:
                 pass
 
-            fotos.append({
-                'alumno': alumno,
+            lista_fotos_alumno.append({
                 'tipo': tipo,
                 'url': foto.url,
-                'thumb_url': thumb_url,
+                'thumb_url': thumb_url
+            })
+            urls_descarga.append(foto.url)
+
+        # Solo incluimos al alumno si posee al menos una fotografía registrada
+        if lista_fotos_alumno:
+            alumnos_con_fotos.append({
+                'objeto': alumno,
+                'fotos': lista_fotos_alumno,
+                # Guardamos las URLs separadas por comas para leerlas fácil en JS
+                'urls_combinadas': ",".join(urls_descarga), 
+                'foto_principal': lista_fotos_alumno[0]['thumb_url']
             })
 
     context = {
-        'fotos': fotos,
+        'alumnos': alumnos_con_fotos,
         'titulo': titulo,
         'grupo_actual': grupo_seleccionado,
         'q': q,
-        'total_resultados': total_resultados,
     }
     
     return render(request, 'marketing/alumnos/galeria.html', context)
