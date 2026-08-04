@@ -51,6 +51,7 @@ def ver_procedimiento(request, id):
     })
 
 # EDITAR
+# EDITAR
 @login_required
 def editar_procedimiento(request, id):
     procedimiento = get_object_or_404(Procedimiento, id=id)
@@ -61,16 +62,20 @@ def editar_procedimiento(request, id):
 
         if form.is_valid() and pasos_formset.is_valid():
             form.save()
-
-            pasos = pasos_formset.save(commit=False)
+            pasos_formset.save(commit=False)
 
             for obj in pasos_formset.deleted_objects:
                 obj.delete()
 
-            for i, paso in enumerate(pasos, start=1):
-                paso.procedimiento = procedimiento
-                paso.orden = i
-                paso.save()
+            orden_actual = 1
+            for form_paso in pasos_formset.forms:
+                if form_paso not in pasos_formset.deleted_forms:
+                    if form_paso.instance.pk or form_paso.has_changed():
+                        paso = form_paso.instance
+                        paso.procedimiento = procedimiento
+                        paso.orden = orden_actual
+                        paso.save()
+                        orden_actual += 1
         
             return redirect('matriculas:ver_procedimiento', id=procedimiento.id)
 

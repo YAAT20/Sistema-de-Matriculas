@@ -231,25 +231,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- 3. DETECCIÓN DE CAMBIOS, COLORES Y TECLADO ---
     const selects = Array.from(document.querySelectorAll('select[name^="pago_"]'));
-    
-    selects.forEach((select, index) => {
-        select.addEventListener('change', function() {
-            marcarCambios();
-            actualizarColorEstado(this); // <-- FALTA IMPORTANTE: Actualizar el color al cambiar
-        });
+        selects.forEach((select, index) => {
+            select.addEventListener('change', function() {
+                marcarCambios();
+                actualizarColorEstado(this); 
+                
+                const gemelos = document.querySelectorAll(`select[name="${this.name}"]`);
+                gemelos.forEach(gemelo => {
+                    if (gemelo !== this) {
+                        gemelo.value = this.value;
+                        actualizarColorEstado(gemelo);
+                    }
+                });
+            });
 
-        select.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowDown' && index < selects.length - 1) {
-                e.preventDefault();
-                selects[index + 1].focus();
-            } else if (e.key === 'ArrowUp' && index > 0) {
-                e.preventDefault();
-                selects[index - 1].focus();
-            }
+            select.addEventListener('keydown', function(e) {
+                // Lógica de flechas para navegar (se mantiene igual)
+                if (e.key === 'ArrowDown' && index < selects.length - 1) {
+                    e.preventDefault();
+                    selects[index + 1].focus();
+                } else if (e.key === 'ArrowUp' && index > 0) {
+                    e.preventDefault();
+                    selects[index - 1].focus();
+                }
+            });
         });
-    });
 
     // --- 4. BÚSQUEDA DE ALUMNOS (Optimizado) ---
     if(inputBusqueda) {
@@ -277,17 +284,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- 5. ENVÍO SEGURO DEL FORMULARIO ---
     if (formAsistencia && btnGuardar) {
         formAsistencia.addEventListener('submit', function(e) {
-            if (btnGuardar.disabled) return e.preventDefault(); // Doble protección
+            if (btnGuardar.disabled) return e.preventDefault();
 
             cambiosSinGuardar = false; 
 
-            selects.forEach(select => {
-                // Importante: No deshabilitamos los selects visibles para que se envíen
-                if (select.offsetParent === null) {
-                    select.disabled = true;
-                }
-            });
+            // 1. Inyectamos la señal para Django (lo que arreglamos en el paso anterior)
+            const inputOculto = document.createElement('input');
+            inputOculto.type = 'hidden';
+            inputOculto.name = 'guardar_asistencia';
+            inputOculto.value = '1';
+            formAsistencia.appendChild(inputOculto);
 
+            // 2. NUEVA LÓGICA: Deshabilitamos según el dispositivo, NO según el buscador
+            const esVistaDesktop = window.innerWidth >= 768; // 768px es el breakpoint 'md' de Tailwind
+            
+            const tablaDesktop = document.querySelector('.hidden.md\\:block');
+            const listaMobile = document.querySelector('.md\\:hidden');
+
+            if (esVistaDesktop && listaMobile) {
+                // Si estamos en PC, deshabilitamos TODOS los selects del contenedor móvil
+                listaMobile.querySelectorAll('select').forEach(s => s.disabled = true);
+            } else if (!esVistaDesktop && tablaDesktop) {
+                // Si estamos en celular, deshabilitamos TODOS los selects del contenedor PC
+                tablaDesktop.querySelectorAll('select').forEach(s => s.disabled = true);
+            }
+            // De esta forma, los alumnos ocultos por la barra de búsqueda 
+            // seguirán enviando sus datos sin problema.
+
+            // 3. Bloqueamos el botón para evitar doble envío
             btnGuardar.disabled = true;
             btnGuardar.classList.remove('btn-alerta');
             btnText.textContent = 'Procesando Cobros...';

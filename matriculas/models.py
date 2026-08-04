@@ -194,7 +194,14 @@ class CodigoManager:
         else:
             prefijo = 'MXF' if es_fondo else 'MX'
 
-        return f"{prefijo}{numero}"
+        codigo_base = f"{prefijo}{numero}"
+        codigo_final = codigo_base
+        contador = 1
+        while Matricula.objects.filter(codigo=codigo_final).exists():
+            contador += 1
+            codigo_final = f"{codigo_base}-{contador}"
+
+        return codigo_final
 
 class Alumno(models.Model):
     GRADO_OPCIONES = [

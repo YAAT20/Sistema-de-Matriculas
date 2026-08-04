@@ -3,18 +3,11 @@
 {% block content %}
 <div class="max-w-4xl mx-auto py-10 px-4">
     <div class="mb-8">
-
         <a href="{% url 'matriculas:ver_procedimiento' procedimiento.id %}"
-        class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
+            class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-blue-600 transition mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
-                <path stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M15 19l-7-7 7-7"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             Volver al procedimiento
         </a>
@@ -22,11 +15,9 @@
         <h1 class="text-3xl font-extrabold text-gray-900">
             Editar Procedimiento
         </h1>
-
         <p class="text-gray-500 mt-1">
             Gestión de pasos y documentación técnica.
         </p>
-
     </div>
 
     <form method="post" enctype="multipart/form-data" class="space-y-8" id="form-procedimiento">
@@ -36,26 +27,18 @@
             <h2 class="text-lg font-bold text-gray-800 flex items-center">
                 <span class="mr-2">📝</span> Información General
             </h2>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="lg:col-span-2">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Título
-                    </label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Título</label>
                     {{ form.titulo }}
                 </div>
-
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Descripción
-                    </label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
                     {{ form.descripcion }}
                 </div>
-
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Observación
-                    </label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Observación</label>
                     {{ form.observacion }}
                 </div>
             </div>
@@ -64,7 +47,7 @@
         <div id="section-pasos" class="space-y-4">
             <div class="flex justify-between items-center">
                 <h2 class="text-lg font-bold text-gray-800">Pasos del procedimiento</h2>
-                <button type="button" id="add-paso" 
+                <button type="button" id="add-paso"
                     class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition shadow-md">
                     + Agregar paso
                 </button>
@@ -74,29 +57,40 @@
             <div id="contenedor-pasos" class="space-y-4">
                 {% for form in pasos_formset %}
                 <div class="paso-item bg-white border border-gray-200 rounded-xl p-5 shadow-sm transition-all hover:border-blue-300">
-                    {{ form.id }}
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        <div class="lg:col-span-3">
-                            <label class="text-xs font-bold uppercase tracking-wide text-gray-400">
-                                Descripción del paso
-                            </label>
-                            {{ form.descripcion }}
-                        </div>
-
-                        <div class="lg:col-span-2">
-                            <label class="text-xs font-bold uppercase tracking-wide text-gray-400">
-                                Archivo
-                            </label>
-                            {{ form.archivo }}
-                        </div>
-
-                        <div>
-                            <label class="text-xs font-bold uppercase tracking-wide text-gray-400">
-                                Video
-                            </label>
-                            {{ form.enlace_video }}
+                    
+                    <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 bg-gray-50 -mx-5 -mt-5 px-5 pt-4 rounded-t-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="cursor-move drag-handle text-gray-400 hover:text-blue-600 transition" title="Arrastrar para reordenar">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                </svg>
+                            </div>
+                            <span class="text-sm font-extrabold text-gray-700 uppercase tracking-wider">
+                                Paso <span class="numero-paso text-blue-600">#</span>
+                            </span>
                         </div>
                     </div>
+
+                    {{ form.id }}
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                        <div class="lg:col-span-3 flex flex-col">
+                            <label class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Descripción del paso</label>
+                            <div class="flex-grow">
+                                {{ form.descripcion }}
+                            </div>
+                        </div>
+                        <div class="lg:col-span-2 flex flex-col space-y-4 justify-between">
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Archivo</label>
+                                {{ form.archivo }}
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Video</label>
+                                {{ form.enlace_video }}
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="mt-4 pt-4 border-t flex justify-end">
                         <label class="flex items-center gap-2 text-red-600 text-sm font-medium cursor-pointer">
                             {{ form.DELETE }} Eliminar
@@ -116,25 +110,101 @@
     </form>
 </div>
 
-<script>
-    document.getElementById('add-paso').addEventListener('click', function() {
-        const totalForms = document.getElementById('id_pasos-TOTAL_FORMS');
-        const container = document.getElementById('contenedor-pasos');
-        const currentCount = parseInt(totalForms.value);
+<div id="empty-form" class="hidden">
+    <div class="paso-item bg-white border border-gray-200 rounded-xl p-5 shadow-sm transition-all hover:border-blue-300">
         
-        // Clonar el primer elemento como plantilla
-        const template = container.querySelector('.paso-item').cloneNode(true);
-        
-        // Limpiar inputs clonados
-        template.querySelectorAll('input, textarea').forEach(input => {
-            if (input.type === 'checkbox') input.checked = false;
-            else input.value = '';
-            input.name = input.name.replace(/-0-/, `-${currentCount}-`);
-            input.id = input.id.replace(/-0-/, `-${currentCount}-`);
-        });
+        <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-100 bg-gray-50 -mx-5 -mt-5 px-5 pt-4 rounded-t-xl">
+            <div class="flex items-center gap-3">
+                <div class="cursor-move drag-handle text-gray-400 hover:text-blue-600 transition" title="Arrastrar para reordenar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                    </svg>
+                </div>
+                <span class="text-sm font-extrabold text-gray-700 uppercase tracking-wider">
+                    Paso <span class="numero-paso text-blue-600">#</span>
+                </span>
+            </div>
+        </div>
 
-        container.appendChild(template);
-        totalForms.value = currentCount + 1;
+        {{ pasos_formset.empty_form.id }}
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div class="lg:col-span-3 flex flex-col">
+                <label class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Descripción del paso</label>
+                <div class="flex-grow">
+                    {{ pasos_formset.empty_form.descripcion }}
+                </div>
+            </div>
+            <div class="lg:col-span-2 flex flex-col space-y-4 justify-between">
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Archivo</label>
+                    {{ pasos_formset.empty_form.archivo }}
+                </div>
+                <div>
+                    <label class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Video</label>
+                    {{ pasos_formset.empty_form.enlace_video }}
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 pt-4 border-t flex justify-end">
+            <label class="flex items-center gap-2 text-red-600 text-sm font-medium cursor-pointer">
+                {{ pasos_formset.empty_form.DELETE }} Eliminar
+            </label>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+function actualizarNumeracion() {
+    const pasos = document.querySelectorAll('#contenedor-pasos .paso-item:not(.hidden)');
+    pasos.forEach((paso, index) => {
+        const elementoNumero = paso.querySelector('.numero-paso');
+        if (elementoNumero) {
+            elementoNumero.textContent = index + 1;
+        }
     });
+}
+
+document.getElementById('add-paso').addEventListener('click', function () {
+    const totalForms = document.getElementById('id_pasos-TOTAL_FORMS');
+    const container = document.getElementById('contenedor-pasos');
+    const currentCount = parseInt(totalForms.value);
+
+    const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+    const newFormHtml = emptyFormHtml.replace(/__prefix__/g, currentCount);
+
+    container.insertAdjacentHTML('beforeend', newFormHtml);
+    totalForms.value = currentCount + 1;
+    
+    actualizarNumeracion(); 
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const contenedorPasos = document.getElementById('contenedor-pasos');
+    
+    actualizarNumeracion();
+    
+    new Sortable(contenedorPasos, {
+        animation: 150, 
+        handle: '.drag-handle', 
+        ghostClass: 'bg-blue-50', 
+        dragClass: 'shadow-2xl', 
+        onChoose: function (evt) { evt.item.classList.add('cursor-grabbing'); },
+        onUnchoose: function(evt) { evt.item.classList.remove('cursor-grabbing'); },
+        onEnd: function() {
+            actualizarNumeracion();
+        }
+    });
+
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('input[type="checkbox"][name$="-DELETE"]')) {
+            const pasoItem = e.target.closest('.paso-item');
+            if (e.target.checked) {
+                pasoItem.classList.add('hidden');
+                actualizarNumeracion(); 
+            }
+        }
+    });
+});
 </script>
 {% endblock %}

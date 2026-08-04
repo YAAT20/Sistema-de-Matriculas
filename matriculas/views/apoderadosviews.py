@@ -17,7 +17,6 @@ from django.http import HttpResponse
 
 from matriculas.views.admin import es_admin_check, SoloAdminMixin
 
-# Vistas para Apoderados
 class ApoderadoListView(LoginRequiredMixin, ListView):
     model = Apoderado
     template_name = 'matriculas/apoderados/apoderado_list.html'
@@ -30,28 +29,34 @@ class ApoderadoListView(LoginRequiredMixin, ListView):
         search_query = self.request.GET.get('search')
         estado = self.request.GET.get('estado', 'activo')
 
+        # Filtro estricto según la pestaña seleccionada
+        if estado == 'activo':
+            queryset = queryset.filter(
+                alumnos__matriculas__estado='activa',
+                activo=True
+            ).distinct()
+        elif estado == 'inactivo':
+            queryset = queryset.filter(activo=False).distinct()
+
         if search_query:
             queryset = queryset.filter(
                 Q(nombre_completo__icontains=search_query) |
                 Q(dni__icontains=search_query) |
                 Q(codigo__icontains=search_query) |
                 Q(celular__icontains=search_query)
-            )
-
-        if estado == 'activo':
-            queryset = queryset.filter(activo=True)
-        elif estado == 'inactivo':
-            queryset = queryset.filter(activo=False)
+            ).distinct()
 
         return queryset.order_by('codigo')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         base = Apoderado.objects.all()
 
         context['total_apoderados'] = base.count()
-        context['activos_apoderados'] = base.filter(activo=True).count()
+        context['activos_apoderados'] = base.filter(
+            alumnos__matriculas__estado='activa', 
+            activo=True
+        ).distinct().count()
         context['inactivos_apoderados'] = base.filter(activo=False).count()
 
         return context

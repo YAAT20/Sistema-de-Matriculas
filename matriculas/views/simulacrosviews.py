@@ -82,7 +82,7 @@ def gestionar_simulacro(request, simulacro_id):
                     errores += 1
         
         if actualizado > 0:
-            messages.success(request, f"✅ {actualizado} pago(s) actualizado(s) correctamente.")
+            messages.success(request, f"Pago(s) actualizado(s) correctamente.")
         if errores > 0:
             messages.warning(request, f"⚠️ {errores} error(es) al actualizar.")
         if actualizado == 0 and errores == 0:
