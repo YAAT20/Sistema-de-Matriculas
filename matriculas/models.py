@@ -127,16 +127,7 @@ class Turno(models.Model):
 class CodigoManager:
     @staticmethod
     def generar_codigo_alumno(grado_estudios, fondo_social=False):
-        grado_map = {
-            'pre': 'RP6',
-            '5s': 'RS5',
-            '4s': 'RS4',
-            '3s': 'RS3',
-            '2s': 'RS2',
-            '1s': 'RS1',
-            '6p': 'EP6',
-            '5p': 'EP5',
-        }
+        grado_map = {'pre': 'RP6', '5s': 'RS5', '4s': 'RS4', '3s': 'RS3', '2s': 'RS2', '1s': 'RS1', '6p': 'EP6', '5p': 'EP5', }
 
         base_prefijo = grado_map.get(grado_estudios, 'RSX')
 
@@ -148,13 +139,10 @@ class CodigoManager:
             digitos = 3
 
         sufijo_max = (
-            Alumno.objects
-            .filter(codigo__regex=rf'^{prefijo}\d+$')
-            .annotate(
-                num_sufijo=Cast(Substr('codigo', len(prefijo) + 1), IntegerField())
-            )
-            .aggregate(Max('num_sufijo'))['num_sufijo__max']
-        )
+            Alumno.objects.filter(
+                codigo__regex=rf'^{prefijo}\d+$')
+                .annotate( num_sufijo=Cast(Substr('codigo', len(prefijo) + 1), IntegerField()))
+                .aggregate(Max('num_sufijo'))['num_sufijo__max'])
 
         numero = (sufijo_max or 0) + 1
 
@@ -170,11 +158,12 @@ class CodigoManager:
             elif codigo_alumno.startswith('EPF'):
                 return f"AEF{codigo_alumno[3:]}"
         
-        # Casos Regulares
         if codigo_alumno.startswith('RP'):
             return f"AP{codigo_alumno[2:]}"
-        elif codigo_alumno.startswith(('RS', 'EP')):
+        elif codigo_alumno.startswith('RS'):
             return f"AS{codigo_alumno[2:]}"
+        elif codigo_alumno.startswith('EP'):
+            return f"AE{codigo_alumno[2:]}"
         
         return f"AX{codigo_alumno[2:]}"
 
@@ -189,18 +178,20 @@ class CodigoManager:
 
         if codigo_alumno.startswith('RP'):
             prefijo = 'MPF' if es_fondo else 'MP'
-        elif codigo_alumno.startswith(('RS', 'EP')):
+        elif codigo_alumno.startswith('RS'):
             prefijo = 'MSF' if es_fondo else 'MS'
+        elif codigo_alumno.startswith('EP'):
+            prefijo = 'MEF' if es_fondo else 'ME'
         else:
             prefijo = 'MXF' if es_fondo else 'MX'
 
         codigo_base = f"{prefijo}{numero}"
         codigo_final = codigo_base
         contador = 1
+        
         while Matricula.objects.filter(codigo=codigo_final).exists():
             contador += 1
             codigo_final = f"{codigo_base}-{contador}"
-
         return codigo_final
 
 class Alumno(models.Model):

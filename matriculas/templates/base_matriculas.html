@@ -504,50 +504,6 @@
         </div>
     </div>
 
-    <!--{% if breadcrumb %}
-    <div class="mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
-            <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <nav aria-label="Breadcrumb">
-                    <ol class="flex flex-wrap items-center gap-2 text-sm">
-                        <li>
-                            <a href="{% url 'matriculas:home' %}"
-                            class="flex items-center gap-2 text-gray-500 hover:text-blue-600 transition">
-                                <i class="bi bi-house-door-fill"></i>
-                                Inicio
-                            </a>
-                        </li>
-                        {% for item in breadcrumb %}
-                            <li class="text-gray-300">
-                                <i class="bi bi-chevron-right"></i>
-                            </li>
-                            <li>
-                                {% if item.url %}
-                                    <a href="{{ item.url }}"
-                                    class="text-gray-600 hover:text-blue-600 transition font-medium">
-                                        {{ item.titulo }}
-                                    </a>
-                                {% else %}
-                                    <span class="text-blue-600 font-semibold">
-                                        {{ item.titulo }}
-                                    </span>
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ol>
-                </nav>
-                <button
-                    type="button"
-                    onclick="history.back()"
-                    class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition">
-                    <i class="bi bi-arrow-left"></i>
-                    Volver
-                </button>
-            </div>
-        </div>
-    </div>
-    {% endif %} -->
-
     <!-- Main Content -->
     <main class="flex-grow container mx-auto px-4 py-6">
         <!-- Messages -->
@@ -652,8 +608,15 @@
                 <button id="btnConfirmarEliminar" type="button"
                     class="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all">
                     <i class="bi bi-trash mr-2"></i>
-                    Eliminar
+                    <span id="textoBtnEliminar">Eliminar</span>
                 </button>
+                
+                <button id="btnFinalizarMatricula" type="button"
+                    class="hidden w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-yellow-500 text-base font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition-all">
+                    <i class="bi bi-archive-fill mr-2"></i>
+                    Finalizar Matrícula
+                </button>
+
                 <button type="button" onclick="closeModal('deleteModal')"
                     class="w-full sm:w-auto inline-flex justify-center items-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
                     <i class="bi bi-x-circle mr-2"></i>
@@ -771,9 +734,28 @@
             tipoEntidad = tipo;
             const nameEl = document.getElementById('entityName');
             if (nameEl) nameEl.textContent = nombre || 'este registro';
+
+            // Lógica para mostrar/ocultar los botones según el tipo de registro
+            const btnFinalizar = document.getElementById('btnFinalizarMatricula');
+            const textoBtnEliminar = document.getElementById('textoBtnEliminar');
+            const mensajeAdvertencia = document.querySelector('#deleteModal .bg-red-50 p');
+
+            if (tipo === 'matricula') {
+                // Si es matrícula, mostramos el botón amarillo y cambiamos el texto del rojo
+                if(btnFinalizar) btnFinalizar.classList.remove('hidden');
+                if(textoBtnEliminar) textoBtnEliminar.textContent = 'Eliminar Permanentemente';
+                if(mensajeAdvertencia) mensajeAdvertencia.innerHTML = '<i class="bi bi-exclamation-triangle-fill mr-2"></i> Puedes "Finalizarla" para conservar el historial, o "Eliminarla" para borrarla por completo.';
+            } else {
+                // Si es alumno o apoderado, ocultamos el botón amarillo
+                if(btnFinalizar) btnFinalizar.classList.add('hidden');
+                if(textoBtnEliminar) textoBtnEliminar.textContent = 'Eliminar';
+                if(mensajeAdvertencia) mensajeAdvertencia.innerHTML = '<i class="bi bi-exclamation-triangle-fill mr-2"></i> Esta acción no se puede deshacer.';
+            }
+
             openModal('deleteModal');
         }
 
+        // Escuchador dinámico para abrir el modal
         document.addEventListener('click', (e) => {
             const btn = e.target.closest('.btn-delete-alumno, .btn-delete-apoderado, .btn-delete-matricula');
             if (!btn) return;
@@ -782,60 +764,69 @@
             configurarModalEliminar(btn.dataset.id, btn.dataset.nombre || btn.dataset.name || btn.dataset.nombre_completo, tipo);
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('btnConfirmarEliminar')?.addEventListener('click', () => {
-                if (!idSeleccionado || !tipoEntidad) return;
+        // Función centralizada para enviar el fetch
+        function procesarPeticionEliminar(tipoAccion) {
+            if (!idSeleccionado || !tipoEntidad) return;
 
-                let url = '';
-                switch (tipoEntidad) {
-                    case 'alumno':
-                        url = `/matriculas/alumnos/eliminar/${idSeleccionado}/`;
-                        break;
-                    case 'apoderado':
-                        url = `/matriculas/apoderados/eliminar/${idSeleccionado}/`;
-                        break;
-                    case 'matricula':
-                        url = `/matriculas/matriculas/eliminar/${idSeleccionado}/`;
-                        break;
-                    default:
-                        console.error('Tipo de entidad no reconocido:', tipoEntidad);
-                        return;
+            let url = '';
+            switch (tipoEntidad) {
+                case 'alumno': url = `/matriculas/alumnos/eliminar/${idSeleccionado}/`; break;
+                case 'apoderado': url = `/matriculas/apoderados/eliminar/${idSeleccionado}/`; break;
+                case 'matricula': url = `/matriculas/matriculas/eliminar/${idSeleccionado}/`; break;
+                default: return;
+            }
+
+            showLoading();
+
+            // Usamos FormData para que Django lo lea perfectamente en request.POST
+            const formData = new FormData();
+            formData.append('tipo_accion', tipoAccion);
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    const fila = document.querySelector(`tr[data-id="${idSeleccionado}"]`);
+                    if (fila) {
+                        fila.style.transition = 'opacity 0.3s, transform 0.3s';
+                        fila.style.opacity = '0';
+                        fila.style.transform = 'translateX(-20px)';
+                        setTimeout(() => fila.remove(), 300);
+                    }
+                    closeModal('deleteModal');
+                    // Usamos el mensaje que manda el backend si existe, sino uno genérico
+                    showSuccessMessage(data.mensaje || 'Registro actualizado correctamente');
+                } else {
+                    showErrorMessage('Error al procesar: ' + (data.error || 'Error desconocido'));
                 }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                showErrorMessage('Error al comunicarse con el servidor');
+            });
+        }
 
-                showLoading();
+        document.addEventListener('DOMContentLoaded', () => {
+            // Evento para el botón Rojo (Eliminar permanentemente)
+            document.getElementById('btnConfirmarEliminar')?.addEventListener('click', () => {
+                procesarPeticionEliminar('eliminar_fisicamente');
+            });
 
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    hideLoading();
-                    if (data.success) {
-                        const fila = document.querySelector(`tr[data-id="${idSeleccionado}"]`);
-                        if (fila) {
-                            fila.style.transition = 'opacity 0.3s, transform 0.3s';
-                            fila.style.opacity = '0';
-                            fila.style.transform = 'translateX(-20px)';
-                            setTimeout(() => fila.remove(), 300);
-                        }
-                        closeModal('deleteModal');
-                        showSuccessMessage('Registro eliminado correctamente');
-                    } else {
-                        showErrorMessage('Error al eliminar: ' + (data.error || 'Error desconocido'));
-                    }
-                })
-                .catch(error => {
-                    hideLoading();
-                    console.error('Error:', error);
-                    showErrorMessage('Error al eliminar el registro');
-                });
+            // Evento para el botón Amarillo (Finalizar - Solo matrículas)
+            document.getElementById('btnFinalizarMatricula')?.addEventListener('click', () => {
+                procesarPeticionEliminar('finalizar');
             });
         });
 

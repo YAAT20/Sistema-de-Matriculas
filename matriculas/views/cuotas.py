@@ -65,17 +65,13 @@ def editar_pago(request, pago_id):
 
 @login_required
 def resumen_general_pagos(request):
-    es_admin = (
-        request.user.is_authenticated and
-        hasattr(request.user, 'perfil') and
-        request.user.perfil.tipo == 'admin'
-    )
-
-    estado_filter = request.GET.get('estado')
+    es_admin = (request.user.is_authenticated and hasattr(request.user, 'perfil') and request.user.perfil.tipo == 'admin')
+    
+    estado_filter = request.GET.get('estado', 'pendientes')
     search_query = request.GET.get('search')
-
     orden = request.GET.get('orden', '-fecha_matricula')
     direccion = request.GET.get('dir', 'asc')
+    ciclo_id = request.GET.get('ciclo')
 
     if direccion == 'desc':
         if not orden.startswith('-'):
@@ -83,102 +79,69 @@ def resumen_general_pagos(request):
     else:
         orden = orden.lstrip('-')
 
-    matriculas = Matricula.objects.select_related(
-        'alumno',
-        'apoderado'
-    ).annotate(
-        total_pagos=Count('pagos'),
+    matriculas = Matricula.objects.select_related('alumno', 'apoderado', 'ciclo').annotate(
+        total_pagos=Count('pagos'), 
         cuotas_pagadas=Count('pagos', filter=Q(pagos__estado='pagado')),
-
-        proximo_vencimiento=Min(
-            'pagos__fecha_vencimiento',
-            filter=~Q(pagos__estado='pagado')
-        ),
-
-        monto_total=Coalesce(
-            Sum('pagos__monto_programado'),
-            Value(0, output_field=DecimalField())
-        ),
-
-        monto_pagado=Coalesce(
-            Sum('pagos__monto_pagado'),
-            Value(0, output_field=DecimalField())
-        ),
+        proximo_vencimiento=Min('pagos__fecha_vencimiento', filter=~Q(pagos__estado='pagado')),
+        monto_total=Coalesce(Sum('pagos__monto_programado'), Value(0, output_field=DecimalField())),
+        monto_pagado=Coalesce(Sum('pagos__monto_pagado'), Value(0, output_field=DecimalField())),
     ).annotate(
-        deuda=ExpressionWrapper(
-            F('monto_total') - F('monto_pagado'),
-            output_field=DecimalField()
-        ),
-    
-        tiene_vencimiento=Case(
-            When(proximo_vencimiento__isnull=True, then=Value(1)),
-            default=Value(0),
-            output_field=IntegerField()
-        )
+        deuda=ExpressionWrapper(F('monto_total') - F('monto_pagado'), output_field=DecimalField()),
+        tiene_vencimiento=Case(When(proximo_vencimiento__isnull=True, then=Value(1)), default=Value(0), output_field=IntegerField())
     )
+
+    ciclos_disponibles = Ciclo.objects.all().order_by('-id')
+    ciclo_actual = None
+
+    if ciclo_id and ciclo_id != 'todos':
+        matriculas = matriculas.filter(ciclo_id=ciclo_id)
+        ciclo_actual = ciclos_disponibles.filter(id=ciclo_id).first()
+    elif not ciclo_id:
+        ciclo_actual = Ciclo.objects.filter(activo=True).first()
+        if ciclo_actual:
+            matriculas = matriculas.filter(ciclo_id=ciclo_actual.id)
 
     if search_query:
         matriculas = matriculas.filter(
-            Q(alumno__nombres_completos__icontains=search_query) |
-            Q(codigo__icontains=search_query) |
-            Q(alumno__numero_whatsapp=search_query) |
+            Q(alumno__nombres_completos__icontains=search_query) | 
+            Q(codigo__icontains=search_query) | 
+            Q(alumno__numero_whatsapp=search_query) | 
             Q(apoderado__celular=search_query)
         )
 
     if estado_filter == 'completado':
-        matriculas = matriculas.filter(
-            cuotas_pagadas=F('total_pagos'),
-            total_pagos__gt=0
-        )
-
+        matriculas = matriculas.filter(cuotas_pagadas=F('total_pagos'), total_pagos__gt=0)
     elif estado_filter == 'parcial':
-        matriculas = matriculas.filter(
-            cuotas_pagadas__gt=0,
-            cuotas_pagadas__lt=F('total_pagos')
-        )
-
+        matriculas = matriculas.filter(cuotas_pagadas__gt=0, cuotas_pagadas__lt=F('total_pagos'))
     elif estado_filter == 'sin_pagos':
         matriculas = matriculas.filter(cuotas_pagadas=0)
+    elif estado_filter == 'pendientes':
+        matriculas = matriculas.filter(cuotas_pagadas__lt=F('total_pagos'))
 
     if not es_admin:
-        matriculas = matriculas.exclude(
-            cuotas_pagadas=F('total_pagos'),
-            total_pagos__gt=0
-        )
+        matriculas = matriculas.exclude(cuotas_pagadas=F('total_pagos'), total_pagos__gt=0)
 
     if orden == 'proximo_vencimiento':
-        matriculas = matriculas.order_by(
-            'tiene_vencimiento',
-            'proximo_vencimiento'
-        )
+        matriculas = matriculas.order_by('tiene_vencimiento', 'proximo_vencimiento')
     else:
         matriculas = matriculas.order_by(orden)
-    datos_globales = matriculas.aggregate(
-        suma_deuda_total=Sum('deuda')
-    )
 
+    datos_globales = matriculas.aggregate(suma_deuda_total=Sum('deuda'))
     total_por_cobrar = datos_globales['suma_deuda_total'] or 0
 
-    return render(
-        request,
-        'matriculas/pagos/lista_general_pagos.html',
-        {
-            'matriculas': matriculas,
-            'total_por_cobrar': total_por_cobrar,
-        }
-    )
+    return render(request, 'matriculas/pagos/lista_general_pagos.html', {
+        'matriculas': matriculas,
+        'total_por_cobrar': total_por_cobrar,
+        'ciclos': ciclos_disponibles, 
+        'ciclo_actual': ciclo_actual,
+        'estado_actual': estado_filter,
+    })
 
 @login_required
 def cobranza_vencidas_view(request):
     hoy = timezone.now().date()
-    # Cuotas vencidas y Qque tovia no estan pagadas
-    cuotas_vencidas = Pago.objects.filter(
-        fecha_vencimiento__lt=hoy,
-        estado='pendiente',
-        tipo_pago='cuota'
-    ).select_related('matricula__alumno', 'matricula__apoderado')
+    cuotas_vencidas = Pago.objects.filter( fecha_vencimiento__lt=hoy, estado='pendiente', tipo_pago='cuota').select_related('matricula__alumno', 'matricula__apoderado')
 
-    # Agrupar por apoderado para reportes
     apoderados = {}
     for cuota in cuotas_vencidas:
         apoderado = cuota.matricula.apoderado
@@ -189,7 +152,6 @@ def cobranza_vencidas_view(request):
                     'cuotas': []
                 }
             apoderados[apoderado.id]['cuotas'].append(cuota)
-
     context = {
         'cuotas_vencidas': cuotas_vencidas,
         'apoderados': apoderados.values(),
@@ -200,12 +162,10 @@ def cobranza_vencidas_view(request):
 def reporte_financiero_anual(request):
     anio_actual = timezone.now().year
     anio_consulta = int(request.GET.get('anio', anio_actual))
-    
     pagos = Pago.objects.filter(
         fecha_vencimiento__year=anio_consulta,
         tipo_pago='cuota'
     )
-
     meses_data = []
     nombres_meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
     
@@ -231,7 +191,6 @@ def reporte_financiero_anual(request):
             pagado = pago.monto_pagado or 0
             temp_pag[mes] += pagado
             total_anual_pagado += pagado
-            
             deuda = pago.monto_programado - pagado
             temp_deu[mes] += deuda
             total_anual_deuda += deuda
@@ -283,14 +242,12 @@ def reporte_financiero_devengado(request):
     total_anual_programado = 0
     total_anual_pagado = 0
     total_anual_deuda = 0
-
     temp_prog = {m: 0 for m in range(1, 13)}
     temp_pag = {m: 0 for m in range(1, 13)}
     temp_deu = {m: 0 for m in range(1, 13)}
 
     for pago in pagos:
         mes = pago.matricula.fecha_matricula.month 
-        
         monto = pago.monto_programado
         temp_prog[mes] += monto
         total_anual_programado += monto
@@ -302,7 +259,6 @@ def reporte_financiero_devengado(request):
             pagado = pago.monto_pagado or 0
             temp_pag[mes] += pagado
             total_anual_pagado += pagado
-            
             deuda = pago.monto_programado - pagado
             temp_deu[mes] += deuda
             total_anual_deuda += deuda

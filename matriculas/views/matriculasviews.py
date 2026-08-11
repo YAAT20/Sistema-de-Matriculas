@@ -37,23 +37,32 @@ class MatriculaListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         estado_filtro = self.request.GET.get('estado', 'vigentes')
-
         if estado_filtro in ['activa', 'congelada', 'finalizada']:
             queryset = queryset.filter(estado=estado_filtro)
         else:
             queryset = queryset.exclude(estado='finalizada')
-
         search_query = self.request.GET.get('search')
         if search_query:
             queryset = queryset.filter(
                 models.Q(alumno__nombres_completos__icontains=search_query) |
                 models.Q(codigo__icontains=search_query)
             )
+            
+        grado_filtro = self.request.GET.get('grado')
+        if grado_filtro:
+            queryset = queryset.filter(alumno__grado_estudios=grado_filtro)
+
+        fondo_filtro = self.request.GET.get('fondo')
+        if fondo_filtro == 'true':
+            queryset = queryset.filter(alumno__fondo_social=True)
+
         return queryset.order_by('-fecha_matricula')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['estado_filtro'] = self.request.GET.get('estado', 'vigentes')
+        context['grado_filtro'] = self.request.GET.get('grado')
+        context['fondo_filtro'] = self.request.GET.get('fondo')
         return context
 
 class MatriculaHistorialListView(LoginRequiredMixin, ListView):
@@ -259,16 +268,37 @@ class MatriculaDeleteView(LoginRequiredMixin, SoloAdminMixin, DeleteView):
     success_url = reverse_lazy('matriculas:matricula_list')
 
     def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        
-        self.object.estado = 'finalizada'
-        self.object.save()
-        if self.object.alumno:
-            self.object.alumno.actualizar_estado()
-        if self.object.apoderado:
-            self.object.apoderado.actualizar_estado()
+        self.object = self.get_object()        
+        tipo_accion = request.POST.get('tipo_accion', 'finalizar')
 
-        return JsonResponse({'success': True})
+        if tipo_accion == 'eliminar_fisicamente':
+            alumno = self.object.alumno
+            apoderado = self.object.apoderado
+            self.object.delete()
+            
+            if alumno:
+                alumno.actualizar_estado()
+            if apoderado:
+                apoderado.actualizar_estado()
+                
+            return JsonResponse({
+                'success': True, 
+                'mensaje': 'Matrícula eliminada permanentemente del sistema.'
+            })
+
+        else:
+            self.object.estado = 'finalizada'
+            self.object.save()
+            
+            if self.object.alumno:
+                self.object.alumno.actualizar_estado()
+            if self.object.apoderado:
+                self.object.apoderado.actualizar_estado()
+
+            return JsonResponse({
+                'success': True, 
+                'mensaje': 'Matrícula marcada como finalizada.'
+            })
 
 def ficha_matricula_pdf(request, pk):
     matricula = get_object_or_404(Matricula, uuid=pk)

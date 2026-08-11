@@ -24,7 +24,7 @@
     </div>
 </div>
 
-<!-- 🔎 SEARCH + ACTIONS -->
+<!-- SEARCH + ACTIONS -->
 <div class="px-4 mb-4">
     <div class="flex flex-col lg:flex-row gap-3 lg:items-center">
 
@@ -83,7 +83,7 @@
     {% if request.GET.grado %}
     <a href="?{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}{% if request.GET.sin_foto %}sin_foto={{ request.GET.sin_foto }}{% endif %}"
        class="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-900 text-white hover:bg-gray-800">
-        ✕ Todos
+        Todos
     </a>
     {% endif %}
 </div>
@@ -104,13 +104,13 @@
            {% else %}
                 bg-white text-gray-600 border-gray-300 hover:bg-amber-50 hover:border-amber-400
            {% endif %}">
-            📷 Sin foto
+            Sin foto
         </a>
 
         {% if request.GET.sin_foto or request.GET.grado or request.GET.search %}
         <a href="?"
            class="px-3 py-1.5 text-xs text-gray-500 hover:text-red-600 border border-gray-200 rounded-full hover:bg-red-50">
-            ✕ Limpiar todo
+            Limpiar todo
         </a>
         {% endif %}
 
