@@ -9,72 +9,136 @@
     {{ matricula.codigo }} - {{ matricula.alumno.nombres_completos }}
 </p>
 
-<div class="overflow-x-auto bg-white shadow rounded-lg">
-    <table class="min-w-full text-sm text-center border border-gray-200 divide-y divide-gray-200 table-auto">
-        <thead class="bg-blue-100 text-gray-700 uppercase text-xs font-semibold">
+<div class="overflow-x-hidden md:overflow-x-auto bg-transparent md:bg-white shadow-none md:shadow rounded-lg">
+    <table class="min-w-full text-sm border-none md:border md:border-gray-200 md:divide-y md:divide-gray-200 block md:table">
+        <thead class="bg-blue-100 text-gray-700 uppercase text-xs font-semibold hidden md:table-header-group">
             <tr>
-                <th class="px-4 py-3"># Cuota</th>
-                <th class="px-4 py-3">Tipo</th>
-                <th class="px-4 py-3">Monto</th>
-                <th class="px-4 py-3">Pagado</th>
-                <th class="px-4 py-3">Vencimiento</th>
-                <th class="px-4 py-3">Fecha Pago</th>
-                <th class="px-4 py-3">Estado</th>
-                <th class="px-4 py-3">Forma</th>        
-                <th class="px-4 py-3">Obs.</th>
-                <th class="px-4 py-3">Comprobante</th>
-                <th class="px-4 py-3">Acciones</th>
+                <th class="px-4 py-3 text-center"># Cuota</th>
+                <th class="px-4 py-3 text-center">Tipo</th>
+                <th class="px-4 py-3 text-center">Monto</th>
+                <th class="px-4 py-3 text-center">Pagado</th>
+                <th class="px-4 py-3 text-center">Vencimiento</th>
+                <th class="px-4 py-3 text-center">Fecha Pago</th>
+                <th class="px-4 py-3 text-center">Estado</th>
+                <th class="px-4 py-3 text-center">Forma</th>        
+                <th class="px-4 py-3 text-center">Obs.</th>
+                <th class="px-4 py-3 text-center">Comprobante</th>
+                <th class="px-4 py-3 text-center">SUNAT</th>
+                <th class="px-4 py-3 text-center">Acciones</th>
             </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
+        <tbody class="block md:table-row-group space-y-4 md:space-y-0 bg-transparent md:bg-white">
             {% for pago in pagos %}
-            <tr id="pago-row-{{ pago.id }}" class="hover:bg-gray-50">
-                <td class="px-4 py-2">{{ pago.numero_cuota|default:"-" }}</td>
-                <td class="px-4 py-2">{{ pago.get_tipo_pago_display }}</td>
-                <td class="px-4 py-2 font-bold text-gray-700">S/ {{ pago.monto_programado }}</td>
-                <td class="px-4 py-2">S/ {{ pago.monto_pagado }}</td>
-                <td class="px-4 py-2">{{ pago.fecha_vencimiento }}</td>
-                <td class="px-4 py-2">{{ pago.fecha_pago|default:"-" }}</td>
-                <td class="px-4 py-2">
-                    {% if pago.estado == 'pagado' %}
-                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded"><i class="bi bi-check-circle-fill"></i> Pagado</span>
-                    {% elif pago.estado == 'pendiente' %}
-                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded"><i class="bi bi-hourglass-split"></i> Pendiente</span>
-                    {% else %}
-                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded">Observado</span>
-                    {% endif %}
+            <tr id="pago-row-{{ pago.id }}" class="block md:table-row bg-white border border-gray-200 md:border-none rounded-xl md:rounded-none shadow-sm md:shadow-none hover:bg-gray-50 overflow-hidden">
+                
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase"># Cuota</span>
+                    <span>{{ pago.numero_cuota|default:"-" }}</span>
                 </td>
-                <td class="px-4 py-2 text-gray-600 italic">{{ pago.forma_pago|default:"-" }}</td>        
-                <td class="px-4 py-2 text-gray-600">{{ pago.observacion|truncatewords:5|default:"-" }}</td>
-                <td class="px-4 py-2 text-center">
-                    {% if pago.foto_comprobante %}
-                        <button type="button"
-                            class="text-blue-600 hover:text-blue-800 text-sm btn-ver-comprobante"
-                            data-url="{{ pago.foto_comprobante.url }}">
-                            <i class="bi bi-eye"></i> Ver
+                
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Tipo</span>
+                    <span>{{ pago.get_tipo_pago_display }}</span>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Monto</span>
+                    <span class="font-bold text-gray-700">S/ {{ pago.monto_programado }}</span>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center bg-gray-50 md:bg-transparent">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Pagado</span>
+                    <span class="val-pagado font-bold text-blue-700 md:text-gray-900 md:font-normal">S/ {{ pago.monto_pagado }}</span>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Vencimiento</span>
+                    <span>{{ pago.fecha_vencimiento }}</span>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Fecha Pago</span>
+                    <span class="val-fecha">{{ pago.fecha_pago|default:"-" }}</span>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Estado</span>
+                    <div class="val-estado">
+                        {% if pago.estado == 'pagado' %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded"><i class="bi bi-check-circle-fill"></i> Pagado</span>
+                        {% elif pago.estado == 'pendiente' %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-200 rounded"><i class="bi bi-hourglass-split"></i> Pendiente</span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-500 rounded">Observado</span>
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Forma</span>
+                    <span class="val-forma text-gray-600 italic">{{ pago.forma_pago|default:"-" }}</span>
+                </td>        
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Obs.</span>
+                    <span class="val-obs text-gray-600">{{ pago.observacion|truncatewords:5|default:"-" }}</span>
+                </td>
+
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Comprobante</span>
+                    <div>
+                        {% if pago.foto_comprobante %}
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm btn-ver-comprobante" data-url="{{ pago.foto_comprobante.url }}">
+                                <i class="bi bi-eye"></i> Ver
+                            </button>
+                        {% else %}
+                            <span class="text-gray-300 text-xs">Aún no</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="flex justify-between md:table-cell items-center px-4 py-2 border-b border-gray-100 md:border-none text-left md:text-center">
+                    <span class="md:hidden text-xs font-bold text-gray-400 uppercase">Comprobante</span>
+                    <div>
+                        {% if pago.boleta_sunat %}
+                            <button type="button" class="text-blue-600 hover:text-blue-800 text-sm btn-ver-comprobante" data-url="{{ pago.boleta_sunat.url }}">
+                                <i class="bi bi-eye"></i> Ver
+                            </button>
+                        {% else %}
+                            <span class="text-gray-300 text-xs">Aún no</span>
+                        {% endif %}
+                    </div>
+                </td>
+
+                <td class="block md:table-cell px-4 py-4 md:py-2 bg-gray-50 md:bg-transparent text-center border-t md:border-none border-gray-100">
+                    <div class="flex flex-col sm:flex-row md:flex-col gap-2">
+                    {% if pago.estado == 'pendiente' %}
+                        <button class="w-full inline-flex items-center justify-center gap-1 text-sm text-white bg-green-600 rounded-md px-2 py-2 md:py-1 hover:bg-green-700 btn-abrir-pago shadow-sm md:shadow-none font-bold md:font-normal" 
+                                data-id="{{ pago.id }}" 
+                                data-monto="{{ pago.monto_programado }}">
+                            <i class="bi bi-cash"></i> Pagar
                         </button>
                     {% else %}
-                        <span class="text-gray-300 text-xs">Aún no registrado</span>
+                        <div class="w-full">
+                            <span class="text-green-600 text-xs font-bold flex items-center justify-center gap-1 mb-1 md:mb-1 mt-1 md:mt-0">
+                                <i class="bi bi-check2-all"></i> Pagado
+                            </span>
+                            <button class="w-full inline-flex items-center justify-center gap-1 text-sm text-white bg-green-500 rounded-md px-2 py-2 md:py-1 hover:bg-green-600 btn-reenviar-wsp mb-0 md:mb-1 transition-colors shadow-sm md:shadow-none" 
+                                    data-id="{{ pago.id }}">
+                                <i class="bi bi-whatsapp"></i> Enviar
+                            </button>
+                        </div>
                     {% endif %}
-                </td>
-                <td class="px-4 py-2 space-y-1">
-                {% if pago.estado == 'pendiente' %}
-                    <button class="w-full inline-flex items-center justify-center gap-1 text-sm text-white bg-green-600 rounded-md px-2 py-1 hover:bg-green-700 btn-abrir-pago" 
-                            data-id="{{ pago.id }}" 
-                            data-monto="{{ pago.monto_programado }}">
-                        <i class="bi bi-cash"></i> Pagar
-                    </button>
-                {% else %}
-                    <span class="text-gray-400 text-xs">✔ Ya pagado</span>
-                {% endif %}
-                    <a href="{% url 'matriculas:editar_pago' pago.id %}"
-                        class="w-full inline-flex items-center justify-center gap-1 text-sm text-gray-700 border border-gray-300 rounded-md px-2 py-1 hover:bg-gray-100">
-                        <i class="bi bi-pencil"></i> Editar
-                    </a>
+                        <a href="{% url 'matriculas:editar_pago' pago.id %}"
+                            class="w-full inline-flex items-center justify-center gap-1 text-sm text-gray-700 border border-gray-300 bg-white rounded-md px-2 py-2 md:py-1 hover:bg-gray-100 shadow-sm md:shadow-none">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="10" class="px-4 py-6 text-gray-400">No hay pagos registrados.</td></tr>
+            <tr class="block md:table-row">
+                <td colspan="11" class="block md:table-cell px-4 py-6 text-gray-400 text-center bg-white rounded-lg shadow-sm">No hay pagos registrados.</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
@@ -154,100 +218,159 @@
     let pagoIdActual = null;
     const tokenDjango = '{{ csrf_token }}';
 
+    // Función reutilizable para armar y abrir WhatsApp
+    function enviarMensajeWhatsapp(whatsapp) {
+        let mensaje =
+            `\u2705 *PAGO CONFIRMADO*\n\n` +
+            `\u{1F464} *Alumno:* ${whatsapp.alumno}\n` +
+            `\u{1F194} *Código:* ${whatsapp.codigo_alumno}\n` +
+            `\u{1F4DD} *Cuota:* ${whatsapp.cuota}\n` +
+            `\u{1F4B0} *Monto:* S/ ${whatsapp.monto}\n` +
+            `\u{1F4B3} *Forma de pago:* ${whatsapp.forma_pago}\n` +
+            `\u{1F4C5} *Fecha:* ${whatsapp.fecha_pago}\n` +
+            `\u{1F550} *Hora:* ${whatsapp.hora_pago}\n` +
+            `\u{1F4C4} *Boleta SUNAT:* ${whatsapp.estado_boleta}\n` + 
+            `\u{1F468}\u200D\u{1F4BB} *Registrado por:* ${whatsapp.usuario}`;
+
+        if (whatsapp.observacion && whatsapp.observacion !== '-') {
+            mensaje += `\n\u{1F4CC} *Obs:* ${whatsapp.observacion}`;
+        }
+
+        const mensajeCodificado = encodeURIComponent(mensaje);
+        const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        let urlWhatsApp = esMovil 
+            ? `https://wa.me/${whatsapp.numero}?text=${mensajeCodificado}`
+            : `https://web.whatsapp.com/send?phone=${whatsapp.numero}&text=${mensajeCodificado}`;
+
+        window.open(urlWhatsApp, '_blank');
+    }
+
+    function cerrarModalPago() {
+        document.getElementById('modalPago_v2').classList.add('hidden');
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const modal = document.getElementById('modalPago_v2');
         const btnEnviar = document.getElementById('btn_enviar_cobro_final');
         const selectForma = document.getElementById('select_forma_pago_final');
         const inputObs = document.getElementById('txt_observacion_final');
 
-        // 1. Configurar botones de apertura
+        // 1. Configurar botones de apertura del modal de pago
         document.querySelectorAll('.btn-abrir-pago').forEach(btn => {
             btn.addEventListener('click', function () {
                 pagoIdActual = this.dataset.id;
                 document.getElementById('input_pago_id_final').value = pagoIdActual;
                 document.getElementById('txt_monto_display_final').innerText = `S/ ${this.dataset.monto}`;
                 
-                // Limpiar form
                 selectForma.value = 'Efectivo';
                 inputObs.value = '';
-                
                 modal.classList.remove('hidden');
             });
         });
 
-        // 2. Enviar datos (Evento Click)
+        // 2. Enviar datos (Confirmar Pago)
         if (btnEnviar) {
             btnEnviar.addEventListener('click', function (e) {
-                e.preventDefault(); // Detener cualquier acción por defecto
-
-                const valForma = selectForma.value;
-                const valObs = inputObs.value.trim();
+                e.preventDefault();
 
                 if (!pagoIdActual) return;
+                const valForma = selectForma.value;
+                const valObs = inputObs.value.trim();
 
                 btnEnviar.disabled = true;
                 btnEnviar.innerHTML = 'Guardando...';
 
                 fetch(`/matriculas/ajax/confirmar-pago/${pagoIdActual}/`, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'X-CSRFToken': tokenDjango 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': tokenDjango
                     },
-                    body: JSON.stringify({ 
-                        forma_pago: valForma, 
-                        observacion: valObs 
+                    body: JSON.stringify({
+                        forma_pago: valForma,
+                        observacion: valObs
                     })
                 })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
                         const fila = document.getElementById(`pago-row-${pagoIdActual}`);
-                        
                         if (fila) {
-                            const montoCobrado = document.getElementById('txt_monto_display_final').innerText;
-                            fila.cells[3].innerText = montoCobrado;
-
-                            const hoy = new Date();
-                            fila.cells[5].innerText = hoy.toLocaleDateString('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-                            fila.cells[6].innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded"><i class="bi bi-check-circle-fill"></i> Pagado</span>';
-
-                            fila.cells[7].innerText = valForma;
-                            fila.cells[8].innerText = valObs ? valObs : '-';
-
-                            const btnPagar = fila.querySelector('.btn-abrir-pago');
-                            if (btnPagar) {
-                                btnPagar.outerHTML = '<span class="text-gray-400 text-xs block text-center mb-1">✔ Ya pagado</span>';
-                            }
+                            // Actualizamos usando las clases en lugar de los índices (para no romper la vista móvil)
+                            const elPagado = fila.querySelector('.val-pagado');
+                            if (elPagado) elPagado.innerText = `S/ ${document.getElementById('txt_monto_display_final').innerText.replace('S/ ', '')}`;
+                            
+                            const elFecha = fila.querySelector('.val-fecha');
+                            if (elFecha) elFecha.innerText = new Date().toLocaleDateString('es-PE', {day: '2-digit', month: '2-digit', year: 'numeric'});
+                            
+                            const elEstado = fila.querySelector('.val-estado');
+                            if (elEstado) elEstado.innerHTML = '<span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-green-500 rounded"><i class="bi bi-check-circle-fill"></i> Pagado</span>';
+                            
+                            const elForma = fila.querySelector('.val-forma');
+                            if (elForma) elForma.innerText = valForma;
+                            
+                            const elObs = fila.querySelector('.val-obs');
+                            if (elObs) elObs.innerText = valObs || '-';
+                            
+                            // Forzamos recarga para que el botón de WhatsApp se active correctamente con sus eventos
+                            location.reload(); 
                         }
 
                         cerrarModalPago();
-                        btnEnviar.disabled = false;
-                        btnEnviar.innerHTML = 'Confirmar Pago';
-
+                        
                         if (typeof window.showSuccessMessage === 'function') {
                             window.showSuccessMessage('Pago registrado exitosamente');
                         }
 
+                        // LLAMAMOS A LA FUNCIÓN EN VEZ DE REPETIR EL CÓDIGO
+                        if (data.whatsapp) {
+                            enviarMensajeWhatsapp(data.whatsapp);
+                        }
                     } else {
                         alert('Error: ' + data.error);
-                        btnEnviar.disabled = false;
-                        btnEnviar.innerHTML = 'Confirmar Pago';
                     }
                 })
                 .catch(e => {
+                    console.error('Error:', e);
                     alert('Error de conexión al servidor');
+                })
+                .finally(() => {
                     btnEnviar.disabled = false;
                     btnEnviar.innerHTML = 'Confirmar Pago';
                 });
             });
         }
-    });
 
-    function cerrarModalPago() {
-        document.getElementById('modalPago_v2').classList.add('hidden');
-    }    
+        // 3. Evento para los botones de REENVIAR WhatsApp (ya pagados)
+        document.querySelectorAll('.btn-reenviar-wsp').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const pagoId = this.dataset.id;
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-hourglass-split"></i>...';
+                this.disabled = true;
+
+                fetch(`/matriculas/ajax/pago/${pagoId}/whatsapp/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                        
+                        if(data.success) {
+                            enviarMensajeWhatsapp(data.whatsapp);
+                        } else {
+                            alert('Error del servidor: ' + data.error);
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e);
+                        this.innerHTML = originalHtml;
+                        this.disabled = false;
+                        alert('Error de conexión');
+                    });
+            });
+        });
+    });
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

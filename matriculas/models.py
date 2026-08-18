@@ -467,12 +467,15 @@ class Pago(models.Model):
     monto_pagado = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fecha_vencimiento = models.DateField()
     fecha_pago = models.DateField(null=True, blank=True)
+    fecha_confirmacion = models.DateTimeField(null=True,blank=True)
     estado = models.CharField(max_length=20, choices=ESTADO_PAGO, default='pendiente')
     observacion = models.TextField(blank=True)
     usuario_registro = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='pagos_registrados')
     fecha_registro = models.DateTimeField(auto_now_add=True)
     foto_comprobante = models.FileField(upload_to="pagos/comprobantes/", blank=True, null=True)
-
+    boleta_sunat = models.FileField(upload_to="pagos/boletas_sunat/", blank=True, null=True)
+    cod_boleta_sunat = models.CharField(max_length=50, blank=True, null=True)
+    
     class Meta:
         verbose_name = "Pago"
         verbose_name_plural = "Pagos"

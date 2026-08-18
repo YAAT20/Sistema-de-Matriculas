@@ -1,10 +1,8 @@
 {% extends 'base_matriculas.html' %}
 
 {% block content %}
-
 <div class="max-w-6xl mx-auto p-6">
 
-    <!-- Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-800">
             {% if publicacion %}
@@ -13,7 +11,6 @@
                 Nueva publicación
             {% endif %}
         </h1>
-
         <p class="text-gray-500 mt-1">
             Complete la información de la publicación, los copys y los archivos.
         </p>
@@ -21,75 +18,125 @@
 
     <form method="POST" enctype="multipart/form-data" class="space-y-8">
         {% csrf_token %}
-        <section class="bg-white rounded-xl shadow border border-gray-200">
-
-            <div class="border-b px-6 py-4 bg-gray-50">
-                <h2 class="text-lg font-semibold">
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="border-b border-gray-200 px-6 py-4 bg-gray-50/50">
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     Información de la publicación
                 </h2>
             </div>
 
-            <div class="p-6 grid md:grid-cols-2 gap-5">
-
-                <div>
-                    <label class="block text-sm font-medium mb-2">
-                        Título
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                
+                <div class="md:col-span-2 space-y-2">
+                    <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-semibold text-gray-700">
+                        Título <span class="text-red-500">*</span>
                     </label>
                     {{ form.titulo }}
+                    {% if form.titulo.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.titulo.errors.0 }}
+                        </p>
+                    {% endif %}
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-2">
-                        Evento
+                <div class="space-y-2">
+                    <label for="{{ form.evento.id_for_label }}" class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span>Evento</span>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
                     </label>
                     {{ form.evento }}
+                    {% if form.evento.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.evento.errors.0 }}
+                        </p>
+                    {% endif %}
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-2">
-                        Estado
+                <div class="space-y-2">
+                    <label for="{{ form.alcance.id_for_label }}" class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span>Alcance</span>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
+                    </label>
+                    
+                    {{ form.alcance }}
+                    
+                    <p class="text-xs text-gray-400 mt-1">Si necesitas un alcance que no está en la lista, créalo desde la lista principal de publicaciones.</p>
+
+                    {% if form.alcance.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.alcance.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="space-y-2">
+                    <label for="{{ form.estado.id_for_label }}" class="block text-sm font-semibold text-gray-700">
+                        Estado <span class="text-red-500">*</span>
                     </label>
                     {{ form.estado }}
+                    {% if form.estado.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.estado.errors.0 }}
+                        </p>
+                    {% endif %}
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-2">
-                        Fecha programada
+                <div class="space-y-2">
+                    <label for="{{ form.fecha_programada.id_for_label }}" class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span>Fecha programada</span>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
                     </label>
                     {{ form.fecha_programada }}
+                    {% if form.fecha_programada.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.fecha_programada.errors.0 }}
+                        </p>
+                    {% endif %}
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium mb-2">
-                        Fecha publicación
+                <div class="space-y-2">
+                    <label for="{{ form.fecha_publicacion.id_for_label }}" class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span>Fecha publicación</span>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
                     </label>
                     {{ form.fecha_publicacion }}
+                    {% if form.fecha_publicacion.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.fecha_publicacion.errors.0 }}
+                        </p>
+                    {% endif %}
                 </div>
 
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium mb-2">
-                        Observaciones
+                <div class="md:col-span-2 space-y-2">
+                    <label for="{{ form.observaciones.id_for_label }}" class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                        <span>Observaciones</span>
+                        <span class="text-[10px] uppercase tracking-wide font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Opcional</span>
                     </label>
                     {{ form.observaciones }}
+                    {% if form.observaciones.errors %}
+                        <p class="flex items-center gap-1 text-sm text-red-600 mt-1">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 10-2 0v4a1 1 0 102 0V6zm-1 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                            {{ form.observaciones.errors.0 }}
+                        </p>
+                    {% endif %}
                 </div>
 
             </div>
-
         </section>
 
         <section class="bg-white rounded-xl shadow border border-gray-200">
             <div class="border-b px-6 py-4 bg-gray-50 flex justify-between items-center">
-                <h2 class="text-lg font-semibold">
-                    Copys
-                </h2>
-
-                <button
-                    type="button"
-                    id="add-copy"
-                    class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <h2 class="text-lg font-semibold">Copys</h2>
+                <button type="button" id="add-copy" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     + Agregar
                 </button>
-
             </div>
 
             <div class="p-6">
@@ -98,32 +145,40 @@
                     {% for form in copy_formset %}
                     <div class="copy-form border rounded-lg p-4 bg-gray-50">
                         {{ form.id }}
-                        <div class="grid md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium mb-2">
-                                    Plataforma
-                                </label>
-
-                                {{ form.plataforma }}
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Plataforma</label>
+                                    {{ form.plataforma }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Título</label>
+                                    {{ form.titulo }}
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="block text-sm font-medium mb-2">Texto principal</label>
+                                <div class="flex-grow">
+                                    {{ form.texto_principal }}
+                                </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium mb-2">
-                                    Copy
-                                </label>
-
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium mb-2">Copy</label>
                                 {{ form.copy }}
                             </div>
+                            
                         </div>
 
-                        {% if form.instance.pk %}
-                        <div class="mt-4">
-                            <label class="flex items-center gap-2 text-red-600">
-                                {{ form.DELETE }}
-                                Eliminar
-                            </label>
+                        <div class="mt-4 flex justify-end">
+                            {% if form.instance.pk %}
+                                <label class="flex items-center gap-2 text-red-600 text-sm cursor-pointer hover:underline">
+                                    {{ form.DELETE }} Eliminar registro guardado
+                                </label>
+                            {% else %}
+                                <button type="button" class="btn-remove-form text-red-600 text-sm font-medium hover:underline">Eliminar</button>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -132,57 +187,64 @@
 
         <section class="bg-white rounded-xl shadow border border-gray-200">
             <div class="border-b px-6 py-4 bg-gray-50 flex justify-between items-center">
-                <h2 class="text-lg font-semibold">
-                    Archivos
-                </h2>
-                <button
-                    type="button"
-                    id="add-file"
-                    class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-
-                    + Agregar
+                <h2 class="text-lg font-semibold">Archivos</h2>
+                <button type="button" id="add-file" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm transition-colors">
+                    + Agregar archivo
                 </button>
             </div>
 
             <div class="p-6">
                 {{ archivo_formset.management_form }}
-                <div id="files-container" class="space-y-6">
+                <div id="files-container" class="space-y-4">
                     {% for form in archivo_formset %}
-                    <div class="archivo-form border rounded-lg p-4 bg-gray-50">
+                    <div class="archivo-form border rounded-lg p-5 bg-white shadow-sm transition-all hover:border-blue-300">
                         {{ form.id }}
-                        <div class="grid md:grid-cols-3 gap-4">
-
-                            <div>
-                                <label class="block text-sm font-medium mb-2">
-                                    Archivo
-                                </label>
-
-                                {{ form.archivo }}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                            
+                            <div class="md:col-span-5">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Archivo</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-grow overflow-hidden">
+                                        {{ form.archivo }}
+                                    </div>
+                                    
+                                    {% if form.instance.archivo %}
+                                    <button type="button" 
+                                            onclick="mostrarPreview('{{ form.instance.archivo.url }}')" 
+                                            class="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors shrink-0"
+                                            title="Ver archivo sin salir de la página">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                    </button>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">
-                                    Descripción
-                                </label>
+                            
+                            <div class="md:col-span-5">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
                                 {{ form.descripcion }}
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">
-                                    Orden
-                                </label>
+                            
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Orden</label>
                                 {{ form.orden }}
                             </div>
                         </div>
-                        {% if form.instance.pk %}
-                        <div class="mt-4">
-                            <label class="flex items-center gap-2 text-red-600">
 
-                                {{ form.DELETE }}
-
-                                Eliminar
-
-                            </label>
+                        <div class="mt-4 pt-4 border-t flex justify-end">
+                            {% if form.instance.pk %}
+                                <label class="flex items-center gap-2 text-red-600 text-sm font-medium cursor-pointer hover:text-red-800 transition-colors">
+                                    {{ form.DELETE }} Eliminar archivo guardado
+                                </label>
+                            {% else %}
+                                <button type="button" class="btn-remove-form text-red-600 text-sm font-medium hover:text-red-800 transition-colors">
+                                    Eliminar
+                                </button>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -190,83 +252,180 @@
         </section>
 
         <div class="flex justify-end gap-4">
-
-            <a
-                href="{% url 'marketing:marketing_publicaciones' %}"
-                class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+            <a href="{% url 'marketing:marketing_publicaciones' %}" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
                 Cancelar
             </a>
-
-            <button
-                type="submit"
-                class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+            <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
                 Guardar publicación
             </button>
         </div>
     </form>
 </div>
 
+<div id="modal-preview" class="fixed inset-0 z-[100] hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+        <div class="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
+            <h3 class="text-lg font-bold text-gray-800">Vista previa del archivo</h3>
+            <button type="button" onclick="cerrarPreview()" class="text-gray-400 hover:text-red-500 transition-colors bg-gray-200 hover:bg-red-100 rounded-full p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="p-6 flex-grow flex justify-center items-center bg-gray-200 min-h-[60vh] overflow-auto">
+            <img id="preview-img" class="max-w-full max-h-[70vh] rounded shadow-md hidden object-contain" src="" alt="Vista previa">
+            <iframe id="preview-frame" class="w-full h-[70vh] hidden rounded shadow-md bg-white" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+</div>
+
+<template id="copy-template">
+    <div class="copy-form border rounded-lg p-4 bg-gray-50">
+        {{ copy_formset.empty_form.id }}
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Plataforma</label>
+                {{ copy_formset.empty_form.plataforma }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Título</label>
+                {{ copy_formset.empty_form.titulo }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-2">Texto principal</label>
+                {{ copy_formset.empty_form.texto_principal }}
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium mb-2">Copy</label>
+                {{ copy_formset.empty_form.copy }}
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end">
+            <button type="button" class="btn-remove-form text-red-600 text-sm font-medium hover:underline">Eliminar</button>
+        </div>
+    </div>
+</template>
+
+<template id="archivo-template">
+    <div class="archivo-form border rounded-lg p-5 bg-white shadow-sm transition-all hover:border-blue-300">
+        {{ archivo_formset.empty_form.id }}
+        
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+            <div class="md:col-span-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Archivo</label>
+                {{ archivo_formset.empty_form.archivo }}
+            </div>
+            
+            <div class="md:col-span-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                {{ archivo_formset.empty_form.descripcion }}
+            </div>
+            
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Orden</label>
+                {{ archivo_formset.empty_form.orden }}
+            </div>
+        </div>
+        
+        <div class="mt-4 pt-4 border-t flex justify-end">
+            <button type="button" class="btn-remove-form text-red-600 text-sm font-medium hover:text-red-800 transition-colors">
+                Eliminar
+            </button>
+        </div>
+    </div>
+</template>
+
 <script>
+// Funciones de Preview
+function mostrarPreview(url) {
+    const modal = document.getElementById('modal-preview');
+    const img = document.getElementById('preview-img');
+    const frame = document.getElementById('preview-frame');
+
+    if (url.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i)) {
+        img.src = url;
+        img.classList.remove('hidden');
+        frame.classList.add('hidden');
+    } else {
+        frame.src = url;
+        frame.classList.remove('hidden');
+        img.classList.add('hidden');
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function cerrarPreview() {
+    const modal = document.getElementById('modal-preview');
+    modal.classList.add('hidden');
+    
+    document.getElementById('preview-img').src = '';
+    document.getElementById('preview-frame').src = '';
+}
+
+// Inicialización de Formsets y lógica general
 document.addEventListener("DOMContentLoaded", function() {
     
-    function setupFormset(btnId, containerId, formClass) {
+    function setupFormset(btnId, containerId, templateId, prefix) {
         const btn = document.getElementById(btnId);
         const container = document.getElementById(containerId);
-
-        if (!btn || !container) return;
+        const template = document.getElementById(templateId);
+        
+        if (!btn || !container || !template) return;
 
         btn.addEventListener("click", function(e) {
             e.preventDefault();
 
-            const forms = container.querySelectorAll('.' + formClass);
-            const formCount = forms.length;
+            const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+            const formCount = parseInt(totalFormsInput.value);
+            const newFormHtml = template.innerHTML.replace(/__prefix__/g, formCount);
+            container.insertAdjacentHTML('beforeend', newFormHtml);
 
-            if (formCount === 0) return;
-
-            const lastForm = forms[formCount - 1];
-            const newForm = lastForm.cloneNode(true);
-            const regex = new RegExp(`-(\\d+)-`, 'g');
-
-            const inputs = newForm.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                if (input.name) {
-                    input.name = input.name.replace(regex, `-${formCount}-`);
-                    input.id = input.id.replace(regex, `-${formCount}-`);
-                }
-                
-                if (input.type !== 'hidden' && input.type !== 'checkbox' && input.type !== 'radio') {
-                    input.value = '';
-                } else if (input.type === 'checkbox' || input.type === 'radio') {
-                    input.checked = false;
-                }
-            });
-
-            const labels = newForm.querySelectorAll('label');
-            labels.forEach(label => {
-                const htmlFor = label.getAttribute('for');
-                if (htmlFor) {
-                    label.setAttribute('for', htmlFor.replace(regex, `-${formCount}-`));
-                }
-            });
-
-            container.appendChild(newForm);
-
-            const firstInput = forms[0].querySelector('input, select, textarea');
-            if (firstInput && firstInput.name) {
-                const prefixMatch = firstInput.name.match(/^(.*?)-\d+-/);
-                if (prefixMatch) {
-                    const prefix = prefixMatch[1];
-                    const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
-                    if (totalFormsInput) {
-                        totalFormsInput.value = formCount + 1;
+            if (prefix === 'archivos') {
+                const ordenInputs = container.querySelectorAll('input[id$="-orden"]');
+                let maxOrden = 0;
+                for (let i = 0; i < ordenInputs.length - 1; i++) {
+                    let currentVal = parseInt(ordenInputs[i].value);
+                    if (!isNaN(currentVal) && currentVal > maxOrden) {
+                        maxOrden = currentVal;
                     }
                 }
+                if (ordenInputs.length > 0) {
+                    ordenInputs[ordenInputs.length - 1].value = maxOrden + 1;
+                }
             }
+            totalFormsInput.value = formCount + 1;
         });
     }
 
-    setupFormset('add-copy', 'copies-container', 'copy-form');
-    setupFormset('add-file', 'files-container', 'archivo-form');
+    setupFormset('add-copy', 'copies-container', 'copy-template', 'copies');
+    setupFormset('add-file', 'files-container', 'archivo-template', 'archivos');
+
+    document.body.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('btn-remove-form')) {
+            const formContainer = e.target.closest('.copy-form, .archivo-form');
+            if (formContainer) {
+                formContainer.remove();
+            }
+        }
+    });
+
+    function resizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+
+    document.addEventListener('input', function(e) {
+        if (e.target.tagName.toLowerCase() === 'textarea' && e.target.classList.contains('auto-resize')) {
+            resizeTextarea(e.target);
+        }
+    });
+
+    const textareas = document.querySelectorAll('.auto-resize');
+    textareas.forEach(textarea => {
+        setTimeout(() => resizeTextarea(textarea), 10);
+    });
 });
 </script>
 

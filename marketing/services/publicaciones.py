@@ -10,35 +10,22 @@ class PublicacionService:
 
     @staticmethod
     def listar():
-        return PublicacionService._base_queryset()
-
+        return PublicacionService._base_queryset().order_by('alcance', '-creado_en')
     @staticmethod
     def obtener(pk):
         return PublicacionService._base_queryset().get(pk=pk)
-
     @staticmethod
     def pendientes():
-        return PublicacionService._base_queryset().filter(
-            estado="pendiente"
-        )
-
+        return PublicacionService._base_queryset().filter(estado="pendiente")
     @staticmethod
     def borradores():
-        return PublicacionService._base_queryset().filter(
-            estado="borrador"
-        )
-
+        return PublicacionService._base_queryset().filter(estado="borrador")
     @staticmethod
     def aprobadas():
-        return PublicacionService._base_queryset().filter(
-            estado="aprobada"
-        )
-
+        return PublicacionService._base_queryset().filter(estado="aprobada")
     @staticmethod
     def publicadas():
-        return PublicacionService._base_queryset().filter(
-            estado="publicada"
-        )
+        return PublicacionService._base_queryset().filter(estado="publicada")
 
     @staticmethod
     @transaction.atomic

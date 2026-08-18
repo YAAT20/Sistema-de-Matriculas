@@ -130,11 +130,48 @@
                 <!-- Desktop Navigation -->
                 <nav class="hidden lg:flex items-center space-x-1">
                     {% if user.perfil.tipo == 'admin' or user.perfil.tipo == 'marketing' %}
-                    <a href="{% url 'marketing:marketing_dashboard' %}"
-                        class="nav-link flex items-center space-x-2 hover:bg-white/20 px-4 py-3 rounded-lg font-medium">
-                        <i class="bi bi-megaphone-fill text-lg"></i>
-                        <span>Marketing</span>
-                    </a>
+                    <div class="group relative">
+                        <!-- Enlace principal (Tu código base adaptado) -->
+                        <a href="{% url 'marketing:marketing_dashboard' %}"
+                            class="nav-link flex items-center justify-between hover:bg-white/20 px-4 py-3 rounded-lg font-medium cursor-pointer transition-colors">
+                            <div class="flex items-center space-x-2">
+                                <i class="bi bi-megaphone-fill text-lg"></i>
+                                <span>Marketing</span>
+                            </div>
+                            <!-- Flecha indicadora que gira al pasar el mouse -->
+                            <i class="bi bi-chevron-down text-sm opacity-70 transition-transform duration-200 group-hover:rotate-180"></i>
+                        </a>
+
+                        <!-- Submenú desplegable (Flotante) -->
+                        <div class="hidden group-hover:block absolute z-50 left-0 mt-1 w-56 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden">
+                            <nav class="flex flex-col py-1">
+                                <!-- Sección Azul -->
+                                <a href="{% url 'marketing:marketing_galeria_alumnos' %}"
+                                class="px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors text-sm border-l-4 border-transparent hover:border-blue-500">
+                                Galería alumnos
+                                </a>
+                                
+                                <a href="{% url 'marketing:marketing_eventos' %}"
+                                class="px-4 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors text-sm border-l-4 border-transparent hover:border-blue-500">
+                                Ver Eventos
+                                </a>
+
+                                <!-- Separador -->
+                                <div class="h-px bg-gray-100 my-1 mx-3"></div>
+
+                                <!-- Sección Verde -->
+                                <a href="{% url 'marketing:marketing_publicaciones' %}"
+                                class="px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors text-sm border-l-4 border-transparent hover:border-green-500">
+                                Publicaciones
+                                </a>
+                                
+                                <a href="{% url 'marketing:marketing_recursos' %}"
+                                class="px-4 py-2.5 text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors text-sm border-l-4 border-transparent hover:border-green-500">
+                                Recursos Visuales
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
                     {% endif %}
                     {% if user.perfil.tipo != 'marketing' %}                                   
                     <!-- Enlaces principales -->

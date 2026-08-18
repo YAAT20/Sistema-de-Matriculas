@@ -1,135 +1,122 @@
 {% extends 'base_matriculas.html' %}
 {% block content %}
-
 <div class="max-w-7xl mx-auto p-6 space-y-6">
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">
-                {{ evento.nombre }}
-            </h1>
-            <p class="text-sm text-gray-500 mt-1">
-                Estado: <span class="font-medium text-gray-700">{{ evento.get_estado_display }}</span>
-            </p>
+            <h1 class="text-3xl font-bold text-gray-900">{{ evento.nombre }}</h1>
+            <p class="text-lg text-gray-500 mt-1">Estado: <span class="font-medium text-gray-700">{{ evento.get_estado_display }}</span></p>
         </div>
-
         <div class="flex gap-2">
-            <a href="{% url 'marketing:marketing_editar_evento' evento.pk %}"
-               class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
-                Editar
-            </a>
+            <a href="{% url 'marketing:marketing_editar_evento' evento.pk %}" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">Editar</a>
         </div>
     </div>
 
     <!-- INFO PRINCIPAL -->
     <div class="grid lg:grid-cols-3 gap-6">
-
         <!-- DETALLES -->
         <div class="lg:col-span-2 bg-white rounded-xl shadow p-6 space-y-6">
-
-            <h2 class="text-lg font-semibold text-gray-800">
-                Información del evento
-            </h2>
-
+            <h2 class="text-lg font-semibold text-gray-800">Información del evento</h2>
             <div class="grid md:grid-cols-2 gap-4 text-sm">
                 <div>
                     <p class="text-gray-500">Fecha inicio</p>
-                    <p class="font-medium">
-                        {{ evento.fecha_inicio|date:"d/m/Y H:i" }}
-                    </p>
+                    <p class="font-medium">{{ evento.fecha_inicio|date:"d/m/Y H:i" }}</p>
                 </div>
                 <div>
                     <p class="text-gray-500">Lugar</p>
-                    <p class="font-medium">
-                        {{ evento.lugar|default:"No especificado" }}
-                    </p>
+                    <p class="font-medium">{{ evento.lugar|default:"No especificado" }}</p>
                 </div>
                 <div>
                     <p class="text-gray-500">Alcance</p>
-                    <p class="font-medium">
-                        {{ evento.cantidad_estimada_personas|default:"No especificado" }}
-                    </p>
+                    <p class="font-medium">{{ evento.cantidad_estimada_personas|default:"No especificado" }}</p>
                 </div>
-
             </div>
 
             {% if evento.descripcion %}
             <div>
                 <p class="text-gray-500 text-sm mb-1">Descripción</p>
-                <p class="text-gray-700 whitespace-pre-line">
-                    {{ evento.descripcion }}
-                </p>
+                <p class="text-gray-700 whitespace-pre-line">{{ evento.descripcion }}</p>
             </div>
             {% endif %}
 
             {% if evento.observaciones %}
             <div>
                 <p class="text-gray-500 text-sm mb-1">Observaciones</p>
-                <p class="text-gray-700 whitespace-pre-line">
-                    {{ evento.observaciones }}
-                </p>
+                <p class="text-gray-700 whitespace-pre-line">{{ evento.observaciones }}</p>
             </div>
             {% endif %}
         </div>
 
         <!-- MÉTRICAS -->
         <div class="space-y-4">
-
             <div class="bg-white rounded-xl shadow p-6 text-center">
                 <p class="text-gray-500 text-sm">Fotografías</p>
-                <p class="text-3xl font-bold text-gray-900">
-                    {{ evento.fotos.count }}
-                </p>
+                <p class="text-3xl font-bold text-gray-900">{{ evento.fotos.count }}</p>
             </div>
-
             <div class="bg-white rounded-xl shadow p-6 text-center">
                 <p class="text-gray-500 text-sm">Publicaciones</p>
-                <p class="text-3xl font-bold text-gray-900">
-                    {{ evento.publicaciones.count }}
-                </p>
+                <p class="text-3xl font-bold text-gray-900">{{ evento.publicaciones.count }}</p>
             </div>
-
             <div class="bg-white rounded-xl shadow p-6 text-center">
                 <p class="text-gray-500 text-sm">Estado actual</p>
-                <p class="text-lg font-semibold text-gray-800">
-                    {{ evento.get_estado_display }}
-                </p>
+                <p class="text-lg font-semibold text-gray-800">{{ evento.get_estado_display }}</p>
             </div>
         </div>
     </div>
 
     <!-- FOTOS -->
     <div class="bg-white rounded-xl shadow p-6 space-y-4">
-
         <div class="flex justify-between items-center">
-            <h2 class="text-lg font-semibold text-gray-800">
-                Fotografías
-            </h2>
-
-            <a href="{% url 'marketing:marketing_fotos_evento' evento.pk %}"
-               class="text-blue-600 hover:underline">
-                Ver y   Agregar fotografías 
-            </a>
+            <h2 class="text-lg font-semibold text-gray-800">Fotografías</h2>
+            <a href="{% url 'marketing:marketing_fotos_evento' evento.pk %}" class="text-blue-600 hover:underline">Ver y agregar contenido</a>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
 
-            {% for foto in evento.fotos.all|slice:":8" %}
-                <img src="{{ foto.imagen.url }}"
-                     class="h-40 w-full object-cover rounded-lg hover:scale-105 transition">
-            {% empty %}
-                <div class="col-span-full text-center text-gray-500 py-6">
-                    No hay fotografías registradas.
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% for foto in evento.fotos.all|slice:":16" %}
+            <div
+                onclick="abrirVistaPrevia('{{ foto.imagen.url }}','{{ foto.descripcion|default:'Sin descripción'|escapejs }}','{% if foto.imagen.name|lower|slice:'-4:' == '.mp4' or foto.imagen.name|lower|slice:'-5:' == '.webm' or foto.imagen.name|lower|slice:'-4:' == '.mov' %}video{% else %}imagen{% endif %}')"
+                class="group relative block overflow-hidden rounded-lg cursor-zoom-in bg-gray-100">
+
+                {% if foto.thumbnail %}
+                <img src="{{ foto.thumbnail.url }}" alt="{{ foto.descripcion|default:'Fotografía del evento' }}" loading="lazy" class="h-40 w-full object-cover rounded-lg group-hover:scale-105 transition duration-200">
+                {% else %}
+                    {% if foto.imagen.name|lower|slice:'-4:' == '.mp4' or foto.imagen.name|lower|slice:'-5:' == '.webm' or foto.imagen.name|lower|slice:'-4:' == '.mov' %}
+                    <div class="h-40 w-full flex items-center justify-center bg-gray-900 rounded-lg">
+                        <svg class="w-12 h-12 text-white/80" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                    {% else %}
+                    <img src="{{ foto.imagen.url }}" alt="{{ foto.descripcion|default:'Fotografía del evento' }}" loading="lazy" class="h-40 w-full object-cover rounded-lg group-hover:scale-105 transition duration-200">
+                    {% endif %}
+                {% endif %}
+
+                <!-- OVERLAY -->
+                <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-lg">
+                    <svg class="w-8 h-8 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
+                    </svg>
                 </div>
+
+                <!-- INDICADOR VIDEO -->
+                {% if foto.imagen.name|lower|slice:'-4:' == '.mp4' or foto.imagen.name|lower|slice:'-5:' == '.webm' or foto.imagen.name|lower|slice:'-4:' == '.mov' %}
+                <div class="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    Video
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center text-gray-500 py-6">No hay fotografías registradas.</div>
             {% endfor %}
         </div>
     </div>
 
     <!-- PUBLICACIONES -->
     <div class="bg-white rounded-xl shadow p-6 space-y-4">
-
-        <h2 class="text-lg font-semibold text-gray-800">
-            Publicaciones relacionadas
-        </h2>
+        <h2 class="text-lg font-semibold text-gray-800">Publicaciones relacionadas</h2>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-center text-gray-500 border-b">
@@ -139,28 +126,18 @@
                         <th class="py-2">Fecha</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     {% for publicacion in evento.publicaciones.all %}
                     <tr class="border-b hover:bg-gray-50">
                         <td class="py-2">
-                            <a href="{% url 'marketing:marketing_publicacion' publicacion.pk %}"
-                               class="text-blue-600 hover:underline">
-                                {{ publicacion.titulo }}
-                            </a>
+                            <a href="{% url 'marketing:marketing_publicacion' publicacion.pk %}" class="text-blue-600 hover:underline">{{ publicacion.titulo }}</a>
                         </td>
-                        <td class="py-2">
-                            {{ publicacion.get_estado_display }}
-                        </td>
-                        <td class="py-2">
-                            {{ publicacion.creado_en|date:"d/m/Y" }}
-                        </td>
+                        <td class="py-2">{{ publicacion.get_estado_display }}</td>
+                        <td class="py-2">{{ publicacion.creado_en|date:"d/m/Y" }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="3" class="text-center py-6 text-gray-500">
-                            No existen publicaciones asociadas.
-                        </td>
+                        <td colspan="3" class="text-center py-6 text-gray-500">No existen publicaciones asociadas.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -168,4 +145,112 @@
         </div>
     </div>
 </div>
+
+<div id="modalVistaPrevia" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="cerrarVistaPrevia()">
+    <!-- Botón de cerrar -->
+    <button class="absolute top-4 right-4 text-white/80 hover:text-white transition p-2 bg-black/40 rounded-full hover:bg-black/60 z-50" onclick="cerrarVistaPrevia()">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    
+    <div class="relative w-full max-w-5xl max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+        
+        <!-- Contenedor de la Imagen (Oculto por defecto) -->
+        <img id="imgModal" src="" alt="Vista previa" class="hidden max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl select-none">
+        
+        <!-- Contenedor del Video (Oculto por defecto) -->
+        <video id="videoModal" controls class="hidden max-w-full max-h-[80vh] rounded-lg shadow-2xl outline-none bg-black">
+            Tu navegador no soporta el elemento de video.
+        </video>
+
+        <!-- Descripción -->
+        <p id="txtModal" class="text-white text-sm bg-black/60 backdrop-blur-md px-6 py-2 rounded-full mt-4 max-w-prose text-center"></p>
+    </div>
+</div>
+
+<script>
+    function abrirVistaPrevia(url, descripcion, tipo = null) {
+
+        const modal = document.getElementById('modalVistaPrevia');
+        const img = document.getElementById('imgModal');
+        const video = document.getElementById('videoModal');
+        const txt = document.getElementById('txtModal');
+
+        // Limpiar contenido anterior
+        img.src = '';
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+
+        img.classList.add('hidden');
+        video.classList.add('hidden');
+
+        txt.textContent = descripcion || '';
+
+        // Si conocemos el tipo, usamos directamente ese valor
+        if (tipo === 'video') {
+
+            video.src = url;
+            video.classList.remove('hidden');
+
+        } else if (tipo === 'imagen') {
+
+            img.src = url;
+            img.classList.remove('hidden');
+
+        } else {
+
+            // Detectar por extensión si no se envió el tipo
+            const extension = url
+                .split('?')[0]
+                .split('.')
+                .pop()
+                .toLowerCase();
+
+            const extensionesVideo = [
+                'mp4',
+                'webm',
+                'ogg',
+                'mov',
+                'm4v'
+            ];
+
+            if (extensionesVideo.includes(extension)) {
+
+                video.src = url;
+                video.classList.remove('hidden');
+
+            } else {
+
+                img.src = url;
+                img.classList.remove('hidden');
+            }
+        }
+        // Mostrar modal
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+        }, 10);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarVistaPrevia() {
+        const modal = document.getElementById('modalVistaPrevia');
+        const video = document.getElementById('videoModal');
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        modal.classList.add('opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+        document.body.style.overflow = '';
+    }
+
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            cerrarVistaPrevia();
+        }
+    });
+</script>
 {% endblock %}

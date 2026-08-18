@@ -6,7 +6,7 @@
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-gray-100 pb-5">
         <div>
             <h1 class="text-3xl font-bold text-gray-800">Fotografías del Evento</h1>
-            <p class="text-gray-500 text-sm mt-1">{{ evento.nombre }}</p>
+            <p class="text-gray-500 font-bold text-lg mt-1">{{ evento.nombre }}</p>
         </div>
         <div class="flex items-center gap-2">
             {% if evento.fotos.all %}
@@ -23,104 +23,220 @@
     </div>
 
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-        <form method="post" enctype="multipart/form-data" class="space-y-4">
+        <!-- Agregamos un ID al form -->
+        <form id="formSubida" method="post" enctype="multipart/form-data" class="space-y-4">
             {% csrf_token %}
             <label class="block text-sm font-medium text-gray-700 mb-1">Subir nuevas imágenes</label>
-            <input type="file" name="imagenes" multiple 
+            <input type="file" name="imagenes" id="inputImagenes" multiple 
                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-200 rounded-lg p-2 cursor-pointer">
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
+            <button type="submit" id="btnSubir" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm">
                 Subir fotos
             </button>
         </form>
+
+        <!-- Barra de Progreso (Oculta por defecto) -->
+        <div id="contenedorProgreso" class="hidden mt-6 space-y-2 border-t pt-4">
+            <div class="flex justify-between text-sm font-medium text-gray-700">
+                <span id="textoPorcentaje">Subiendo: 0%</span>
+                <span id="textoMegabytes" class="text-gray-500">0.00 MB / 0.00 MB</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div id="barraProgreso" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {% for foto in evento.fotos.all %}
         <div class="group bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-            <div onclick="abrirVistaPrevia('{{ foto.imagen.url }}', '{{ foto.descripcion|default:'Sin descripción' }}')" 
-                 class="relative aspect-square w-full bg-gray-50 overflow-hidden cursor-zoom-in">
-                <img src="{{ foto.imagen.url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+            <!-- VISTA PREVIA -->
+            <div onclick="abrirVistaPrevia('{{ foto.imagen.url }}','{{ foto.descripcion|default:'Sin descripción'|escapejs }}','{% if foto.imagen.name|lower|slice:'-4:' == '.mp4' or foto.imagen.name|lower|slice:'-5:' == '.webm' or foto.imagen.name|lower|slice:'-4:' == '.mov' %}video{% else %}imagen{% endif %}')" class="relative aspect-square w-full bg-gray-50 overflow-hidden cursor-zoom-in">
+                {% if foto.thumbnail %}
+                <img src="{{ foto.thumbnail.url }}" alt="{{ foto.descripcion|default:'Sin descripción' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+                {% else %}
+                    {% if foto.imagen.name|lower|slice:'-4:' == '.mp4' or foto.imagen.name|lower|slice:'-5:' == '.webm' or foto.imagen.name|lower|slice:'-4:' == '.mov' %}
+                    <div class="w-full h-full flex items-center justify-center bg-gray-900">
+                        <svg class="w-16 h-16 text-white/80" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </div>
+                    {% else %}
+                    <img src="{{ foto.imagen.url }}" alt="{{ foto.descripcion|default:'Sin descripción' }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
+                    {% endif %}
+                {% endif %}
+
+                <!-- OVERLAY -->
                 <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <svg class="w-6 h-6 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+                    <svg class="w-8 h-8 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7z"/>
+                    </svg>
                 </div>
+
+                <!-- INDICADOR VIDEO -->
+                {% if foto.imagen.name|lower|slice:'-4:' == '.mp4' or foto.imagen.name|lower|slice:'-5:' == '.webm' or foto.imagen.name|lower|slice:'-4:' == '.mov' %}
+                <div class="absolute bottom-2 left-2 bg-black/70 text-white px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    Video
+                </div>
+                {% endif %}
             </div>
 
+            <!-- INFORMACIÓN -->
             <div class="p-3 space-y-2">
-                <p class="text-xs text-gray-500 truncate" title="{{ foto.descripcion|default:'Sin descripción' }}">
-                    {{ foto.descripcion|default:"Sin descripción" }}
-                </p>
-
+                <p class="text-xs text-gray-500 truncate" title="{{ foto.descripcion|default:'Sin descripción' }}">{{ foto.descripcion|default:"Sin descripción" }}</p>
                 <div class="flex items-center justify-between border-t border-gray-50 pt-2 text-xs font-semibold">
-                    <a href="{{ foto.imagen.url }}" 
-                       download="foto_{{ foto.pk }}.jpg"
-                       onclick="event.stopPropagation(); fetch(this.href).then(res => res.blob()).then(blob => {
-                           const url = window.URL.createObjectURL(blob);
-                           const a = document.createElement('a');
-                           a.href = url;
-                           a.download = 'foto_{{ foto.pk }}.jpg';
-                           document.body.appendChild(a);
-                           a.click();
-                           window.URL.revokeObjectURL(url);
-                       }).catch(() => {}); return false;" 
-                       class="text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                        Descargar
-                    </a>
+                    <!-- DESCARGAR -->
+                    <a href="{{ foto.imagen.url }}" download onclick="event.stopPropagation();" class="text-blue-600 hover:text-blue-800 flex items-center gap-1">Descargar</a>
 
-                    <a href="{% url 'marketing:marketing_eliminar_foto_evento' foto.pk %}"
-                       onclick="event.stopPropagation(); return confirm('¿Eliminar fotografía?')" 
-                       class="text-gray-400 hover:text-red-600 transition p-0.5 rounded">
-                        Eliminar
-                    </a>
+                    <!-- ELIMINAR -->
+                    <a href="{% url 'marketing:marketing_eliminar_foto_evento' foto.pk %}" onclick="event.stopPropagation(); return confirm('¿Eliminar archivo?')" class="text-gray-400 hover:text-red-600 transition p-0.5 rounded">Eliminar</a>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-span-full text-center py-16 bg-white border border-gray-100 rounded-xl text-gray-400">
-            <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
             <p class="font-medium">No hay fotografías registradas en este evento.</p>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<div id="modalVistaPrevia" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs transition-opacity duration-300 opacity-0" onclick="cerrarVistaPrevia()">
-    <button class="absolute top-4 right-4 text-white/80 hover:text-white transition p-2 bg-black/20 rounded-full hover:bg-black/40" onclick="cerrarVistaPrevia()">
-        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+<div id="modalVistaPrevia"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center p-4
+            bg-black/80 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+     onclick="cerrarVistaPrevia()">
+
+    <button type="button"
+            class="absolute top-4 right-4 text-white/80 hover:text-white
+                   transition p-2 bg-black/20 rounded-full hover:bg-black/40"
+            onclick="cerrarVistaPrevia()">
+
+        <svg class="w-7 h-7" fill="none" stroke="currentColor"
+             viewBox="0 0 24 24">
+
+            <path stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"/>
+
+        </svg>
     </button>
-    
-    <div class="relative max-w-4xl max-h-[85vh] flex flex-col items-center" onclick="event.stopPropagation()">
-        <img id="imgModal" src="" alt="Vista previa" class="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl select-none">
-        <p id="txtModal" class="text-white text-sm bg-black/50 backdrop-blur-xs px-4 py-2 rounded-full mt-4 max-w-prose text-center truncate"></p>
+
+    <div class="relative max-w-5xl max-h-[90vh] flex flex-col items-center"
+         onclick="event.stopPropagation()">
+
+        <!-- IMAGEN -->
+        <img id="imgModal"
+             src=""
+             alt="Vista previa"
+             class="hidden max-w-full max-h-[75vh] object-contain
+                    rounded-lg shadow-2xl select-none">
+
+        <!-- VIDEO -->
+        <video id="videoModal"
+               controls
+               playsinline
+               preload="metadata"
+               class="hidden max-w-full max-h-[75vh]
+                      rounded-lg shadow-2xl bg-black">
+
+            Tu navegador no soporta la reproducción de videos.
+        </video>
+
+        <!-- DESCRIPCIÓN -->
+        <p id="txtModal"
+           class="text-white text-sm bg-black/50 backdrop-blur-sm
+                  px-4 py-2 rounded-full mt-4 max-w-prose
+                  text-center truncate">
+        </p>
+
     </div>
 </div>
 
 <script>
-    function abrirVistaPrevia(url, descripcion) {
+    function abrirVistaPrevia(url, descripcion, tipo = null) {
+
         const modal = document.getElementById('modalVistaPrevia');
         const img = document.getElementById('imgModal');
+        const video = document.getElementById('videoModal');
         const txt = document.getElementById('txtModal');
-        
-        img.src = url;
-        txt.textContent = descripcion;
-        
+
+        // Limpiar contenido anterior
+        img.src = '';
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+
+        img.classList.add('hidden');
+        video.classList.add('hidden');
+
+        txt.textContent = descripcion || '';
+
+        // Si conocemos el tipo, usamos directamente ese valor
+        if (tipo === 'video') {
+
+            video.src = url;
+            video.classList.remove('hidden');
+
+        } else if (tipo === 'imagen') {
+
+            img.src = url;
+            img.classList.remove('hidden');
+
+        } else {
+
+            // Detectar por extensión si no se envió el tipo
+            const extension = url
+                .split('?')[0]
+                .split('.')
+                .pop()
+                .toLowerCase();
+
+            const extensionesVideo = [
+                'mp4',
+                'webm',
+                'ogg',
+                'mov',
+                'm4v'
+            ];
+
+            if (extensionesVideo.includes(extension)) {
+
+                video.src = url;
+                video.classList.remove('hidden');
+
+            } else {
+
+                img.src = url;
+                img.classList.remove('hidden');
+            }
+        }
+        // Mostrar modal
         modal.classList.remove('hidden');
         setTimeout(() => {
             modal.classList.remove('opacity-0');
         }, 10);
-        
         document.body.style.overflow = 'hidden';
     }
 
     function cerrarVistaPrevia() {
         const modal = document.getElementById('modalVistaPrevia');
-        
+        const video = document.getElementById('videoModal');
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
         modal.classList.add('opacity-0');
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 300);
-        
         document.body.style.overflow = '';
     }
+
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
@@ -128,4 +244,73 @@
         }
     });
 </script>
+<script>
+    document.getElementById('formSubida').addEventListener('submit', function(e) {
+        e.preventDefault(); // Evitamos que el navegador recargue la página inmediatamente
+
+        const inputArchivos = document.getElementById('inputImagenes');
+        if (inputArchivos.files.length === 0) return;
+
+        const btnSubir = document.getElementById('btnSubir');
+        const contenedorProgreso = document.getElementById('contenedorProgreso');
+        const barraProgreso = document.getElementById('barraProgreso');
+        const textoPorcentaje = document.getElementById('textoPorcentaje');
+        const textoMegabytes = document.getElementById('textoMegabytes');
+
+        // Preparamos los datos del formulario
+        const formData = new FormData(this);
+        const xhr = new XMLHttpRequest();
+
+        // Configuramos la petición
+        xhr.open('POST', window.location.href, true);
+
+        // Cambiamos el estado de la UI
+        btnSubir.disabled = true;
+        btnSubir.classList.add('opacity-50', 'cursor-not-allowed');
+        btnSubir.textContent = 'Subiendo...';
+        contenedorProgreso.classList.remove('hidden');
+
+        // Escuchamos el evento de progreso de subida
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                // Calculamos porcentaje y megabytes
+                const porcentaje = Math.round((e.loaded / e.total) * 100);
+                const subidoMB = (e.loaded / (1024 * 1024)).toFixed(2);
+                const totalMB = (e.total / (1024 * 1024)).toFixed(2);
+
+                // Actualizamos la barra y los textos
+                barraProgreso.style.width = porcentaje + '%';
+                textoPorcentaje.textContent = `Subiendo: ${porcentaje}%`;
+                textoMegabytes.textContent = `${subidoMB} MB / ${totalMB} MB`;
+            }
+        });
+
+        // Cuando la petición termina (éxito o fallo)
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                textoPorcentaje.textContent = '¡Archivos guardados con éxito!';
+                barraProgreso.classList.replace('bg-blue-600', 'bg-emerald-500');
+                
+                // Recargamos la página tras medio segundo para que vea el éxito
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                textoPorcentaje.textContent = 'Error al subir los archivos.';
+                barraProgreso.classList.replace('bg-blue-600', 'bg-red-500');
+                btnSubir.disabled = false;
+                btnSubir.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnSubir.textContent = 'Intentar de nuevo';
+            }
+        };
+
+        // Si se cae la conexión
+        xhr.onerror = function() {
+            textoPorcentaje.textContent = 'Error de conexión con el servidor.';
+            barraProgreso.classList.replace('bg-blue-600', 'bg-red-500');
+        };
+
+        // Enviamos la petición
+        xhr.send(formData);
+    });
+</script>
+
 {% endblock %}

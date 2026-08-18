@@ -1,8 +1,12 @@
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "appPrincipal.settings")
+django.setup()
 from django.core.management.base import BaseCommand
 from pathlib import Path
 from PIL import Image
 from matriculas.models import Alumno
-
 
 class Command(BaseCommand):
     help = "Genera thumbnails de fotos de alumnos"

@@ -9,13 +9,14 @@ from matriculas.models import Alumno
 from django.db.models import Q
 from pathlib import Path
 from django.db import transaction
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
 from matriculas.views.admin import es_admin_check
-from django.http import Http404, FileResponse, HttpResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 import io, zipfile, os
 from django.utils.text import slugify
+from django.views.decorators.http import require_POST
+import json
 
 @login_required
 @user_passes_test(es_admin_check)
@@ -36,29 +37,16 @@ def eventos(request):
 @user_passes_test(es_admin_check)
 def nuevo_evento(request):
     if request.method == 'POST':
-
-        form = EventoForm( request.POST)
+        form = EventoForm(request.POST)
         if form.is_valid():
-
             form.save()
-            messages.success(
-                request,
-                'Evento registrado correctamente.'
-            )
-            return redirect(
-                'marketing:marketing_eventos'
-            )
+            messages.success(request, 'Evento registrado correctamente.')
+            return redirect('marketing:marketing_eventos')
     else:
         form = EventoForm()
-    return render(
-        request,
-        'marketing/eventos/formulario.html',
-        {
-            'form': form,
-            'evento': None
-        }
-    )
 
+    return render(request, 'marketing/eventos/formulario.html', {'form': form, 'evento': None})
+    
 @login_required
 @user_passes_test(es_admin_check)
 def evento(request, pk):
@@ -111,47 +99,29 @@ def eliminar_evento(request, pk):
 @login_required
 @user_passes_test(es_admin_check)
 def fotos_evento(request, pk):
+    evento = get_object_or_404(Evento.objects.prefetch_related('fotos'), pk=pk)
 
-    evento = get_object_or_404(
-        Evento.objects.prefetch_related('fotos'),
-        pk=pk
-    )
     if request.method == 'POST':
-
         archivos = request.FILES.getlist('imagenes')
-
-        ultimo_orden = (
-            evento.fotos
-            .order_by('-orden')
-            .values_list('orden', flat=True)
-            .first()
-        ) or 0
+        ultimo_orden = evento.fotos.order_by('-orden').values_list('orden', flat=True).first() or 0
 
         for indice, archivo in enumerate(archivos, start=1):
-
-            FotoEvento.objects.create(
-                evento=evento,
-                imagen=archivo,
+            foto = FotoEvento.objects.create(
+                evento=evento, 
+                imagen=archivo, 
                 orden=ultimo_orden + indice
             )
+            
+            ThumbnailService.generar(foto)            
+            foto.save()
 
-        messages.success(
-            request,
-            f'{len(archivos)} fotos cargadas correctamente.'
-        )
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'status': 'success', 'mensaje': f'{len(archivos)} archivos cargados correctamente.'})
 
-        return redirect(
-            'marketing:marketing_fotos_evento',
-            pk=evento.pk
-        )
+        messages.success(request, f'{len(archivos)} archivos cargados correctamente.')
+        return redirect('marketing:marketing_fotos_evento', pk=evento.pk)
 
-    return render(
-        request,
-        'marketing/eventos/fotos.html',
-        {
-            'evento': evento
-        }
-    )
+    return render(request, 'marketing/eventos/fotos.html', {'evento': evento})
 
 @login_required
 @user_passes_test(es_admin_check)
@@ -196,16 +166,73 @@ def descargar_todas_fotos(request, pk):
     
     return response
 
+#ALCANCES
+@login_required
+@require_POST
+def crear_alcance(request):
+    try:
+        data = json.loads(request.body)
+        nombre = data.get('nombre', '').strip()
+
+        if not nombre:
+            return JsonResponse({'success': False, 'error': 'El nombre no puede estar vacío.'})
+
+        alcance, created = Alcance.objects.get_or_create(
+            nombre__iexact=nombre, 
+            defaults={'nombre': nombre}
+        )
+
+        return JsonResponse({
+            'success': True,
+            'id': alcance.id,
+            'nombre': alcance.nombre,
+            'created': created
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def editar_alcance(request, pk):
+    try:
+        data = json.loads(request.body)
+        nuevo_nombre = data.get('nombre', '').strip()
+        
+        if not nuevo_nombre:
+            return JsonResponse({'success': False, 'error': 'El nombre no puede estar vacío.'})
+            
+        alcance = get_object_or_404(Alcance, pk=pk)
+        alcance.nombre = nuevo_nombre
+        alcance.save()
+        
+        return JsonResponse({'success': True, 'id': alcance.id, 'nombre': alcance.nombre})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def eliminar_alcance(request, pk):
+    try:
+        alcance = get_object_or_404(Alcance, pk=pk)
+        alcance.delete()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
 #PUBLICACIONES
 @login_required
 @user_passes_test(es_admin_check)
 def publicaciones(request):
-
     publicaciones = PublicacionService.listar()
+    alcances_globales = list(Alcance.objects.values('id', 'nombre').order_by('nombre'))
+    
     return render(
         request,
         "marketing/publicaciones/lista.html",
-        {"publicaciones": publicaciones}
+        {
+            "publicaciones": publicaciones,
+            "alcances_globales": alcances_globales,
+        }
     )
 
 @login_required
@@ -221,44 +248,22 @@ def publicacion(request, pk):
 @login_required
 @user_passes_test(es_admin_check)
 def nueva_publicacion(request):
-
     if request.method == "POST":
-
         form = PublicacionForm(request.POST, request.FILES)
-
-        # instancia vacía para los formsets
         publicacion = Publicacion()
+        
+        copy_formset = CopyFormSet(request.POST, instance=publicacion, prefix="copies")
+        archivo_formset = ArchivoFormSet(request.POST, request.FILES, instance=publicacion, prefix="archivos")
 
-        copy_formset = CopyFormSet(
-            request.POST,
-            instance=publicacion,
-            prefix="copies"
-        )
-
-        archivo_formset = ArchivoFormSet(
-            request.POST,
-            request.FILES,
-            instance=publicacion,
-            prefix="archivos"
-        )
-
-        if (
-            form.is_valid()
-            and copy_formset.is_valid()
-            and archivo_formset.is_valid()
-        ):
-
+        if form.is_valid() and copy_formset.is_valid() and archivo_formset.is_valid():
             with transaction.atomic():
-
                 publicacion = PublicacionService.crear(
                     form=form,
                     copy_formset=copy_formset,
                     archivo_formset=archivo_formset
                 )
-
-            messages.success(request,"La publicación fue creada correctamente.")
-
-            return redirect("marketing:marketing_publicacion",pk=publicacion.pk)
+            messages.success(request, "La publicación fue creada correctamente.")
+            return redirect("marketing:marketing_publicacion", pk=publicacion.pk)
 
     else:
         form = PublicacionForm()
@@ -278,20 +283,14 @@ def nueva_publicacion(request):
 @login_required
 @user_passes_test(es_admin_check)
 def editar_publicacion(request, pk):
-
-    publicacion = get_object_or_404(Publicacion,pk=pk)
-
+    publicacion = get_object_or_404(Publicacion, pk=pk)
+    
     if request.method == "POST":
+        form = PublicacionForm(request.POST, request.FILES, instance=publicacion)
+        copy_formset = CopyFormSet(request.POST, instance=publicacion, prefix="copies")
+        archivo_formset = ArchivoFormSet(request.POST, request.FILES, instance=publicacion, prefix="archivos")
 
-        form = PublicacionForm(request.POST,request.FILES,instance=publicacion)
-        copy_formset = CopyFormSet(request.POST,instance=publicacion,prefix="copies")
-        archivo_formset = ArchivoFormSet(request.POST,request.FILES,instance=publicacion,prefix="archivos"        )
-
-        if (
-            form.is_valid()
-            and copy_formset.is_valid()
-            and archivo_formset.is_valid()
-        ):
+        if form.is_valid() and copy_formset.is_valid() and archivo_formset.is_valid():
             with transaction.atomic():
                 publicacion = PublicacionService.actualizar(
                     publicacion=publicacion,
@@ -300,13 +299,13 @@ def editar_publicacion(request, pk):
                     archivo_formset=archivo_formset
                 )
 
-            messages.success(request,"La publicación fue actualizada correctamente.")
-            return redirect("marketing:marketing_publicacion",pk=publicacion.pk)
+            messages.success(request, "La publicación fue actualizada correctamente.")
+            return redirect("marketing:marketing_publicacion", pk=publicacion.pk)
 
     else:
         form = PublicacionForm(instance=publicacion)
-        copy_formset = CopyFormSet(instance=publicacion,prefix="copies")
-        archivo_formset = ArchivoFormSet(instance=publicacion,prefix="archivos")
+        copy_formset = CopyFormSet(instance=publicacion, prefix="copies")
+        archivo_formset = ArchivoFormSet(instance=publicacion, prefix="archivos")
 
     return render(
         request,

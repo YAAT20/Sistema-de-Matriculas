@@ -335,13 +335,9 @@ def api_seguimiento(request, matricula_id):
         )
 
         fecha_local = timezone.localtime(nuevo.fecha_registro)
-
         alumno = matricula.alumno
-
         resumen = (texto[:100] + '...') if len(texto) > 100 else texto
-
         titulo = "Nuevo seguimiento registrado"
-
         cuerpo = (
             f"{alumno.codigo} - {alumno.nombres_completos} | "
             f"{matricula.codigo} | "

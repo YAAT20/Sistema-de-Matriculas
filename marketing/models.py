@@ -31,21 +31,45 @@ class Evento(models.Model):
     
 class FotoEvento(models.Model):
 
-    evento = models.ForeignKey(Evento,on_delete=models.CASCADE,related_name='fotos')
-    imagen = models.ImageField( upload_to='marketing/eventos/fotos/')
-    descripcion = models.CharField( max_length=255, blank=True)
-    fecha_captura = models.DateTimeField( null=True, blank=True)
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='fotos')
+    imagen = models.FileField(upload_to='marketing/eventos/media/') 
+    thumbnail = models.ImageField(upload_to='marketing/eventos/thumbnails/', null=True, blank=True)
+    descripcion = models.CharField(max_length=255, blank=True)
+    fecha_captura = models.DateTimeField(null=True, blank=True)
     orden = models.PositiveIntegerField(default=1)
     creado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Foto de Evento'
-        verbose_name_plural = 'Fotos de Eventos'
+        verbose_name = 'Media de Evento'
+        verbose_name_plural = 'Media de Eventos'
         ordering = ['orden']
 
     def __str__(self):
         return self.descripcion or f'Foto {self.pk}'
-    
+
+    def save(self, *args, **kwargs):
+        nuevo = self._state.adding
+
+        super().save(*args, **kwargs)
+
+        if nuevo and self.imagen and not self.thumbnail:
+            from marketing.services.thumbnails import ThumbnailService
+
+            if ThumbnailService.generar(self):
+                super().save(update_fields=["thumbnail"])
+
+
+class Alcance(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = "Alcance"
+        verbose_name_plural = "Alcances"
+        ordering = ['nombre']
+            
 class Publicacion(models.Model):
 
     ESTADOS = [
@@ -64,7 +88,8 @@ class Publicacion(models.Model):
     observaciones = models.TextField(blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
-
+    alcance = models.ForeignKey(Alcance, on_delete=models.SET_NULL, null=True, blank=True, related_name='publicaciones')
+    
     class Meta:
         verbose_name = 'Publicación'
         verbose_name_plural = 'Publicaciones'
@@ -113,6 +138,8 @@ class CopyPublicacion(models.Model):
 
     publicacion = models.ForeignKey(Publicacion,on_delete=models.CASCADE,related_name='copies')
     plataforma = models.CharField(max_length=20,choices=PLATAFORMAS)
+    titulo = models.CharField(max_length=255, blank=True)
+    texto_principal = models.TextField(blank=True)
     copy = models.TextField()
     creado_en = models.DateTimeField(auto_now_add=True)
 
@@ -147,17 +174,20 @@ class ArchivoPublicacion(models.Model):
         return self.descripcion or f"Archivo {self.pk}"
 
     def save(self, *args, **kwargs):
-        print("SAVE ArchivoPublicacion")
         archivo_nuevo = self._state.adding
+
         super().save(*args, **kwargs)
+
         if (
             archivo_nuevo
+            and self.archivo
             and not self.thumbnail
-            and self.tipo == "imagen"
+            and self.tipo in ("imagen", "video")
         ):
-            print("Generando thumbnail...")
-            ThumbnailService.generar(self)
-            super().save(update_fields=["thumbnail"])
+            from marketing.services.thumbnails import ThumbnailService
+
+            if ThumbnailService.generar(self):
+                super().save(update_fields=["thumbnail"])   
             
     @property
     def extension(self):
@@ -217,7 +247,7 @@ class RecursoMarketing(models.Model):
     categoria = models.CharField(max_length=20,choices=CATEGORIAS)
     archivo = models.FileField(upload_to='marketing/recursos/')
     creado_en = models.DateTimeField(auto_now_add=True)
-
+    thumbnail = models.ImageField( upload_to="marketing/recursos/thumbnails/", null=True, blank=True,)
     class Meta:
         verbose_name = 'Recurso de Marketing'
         verbose_name_plural = 'Recursos de Marketing'

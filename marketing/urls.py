@@ -18,6 +18,11 @@ urlpatterns = [
     # Fotos de Eventos
     path('fotos/<int:pk>/eliminar/', views.eliminar_foto_evento, name='marketing_eliminar_foto_evento'),   
 
+    #Alcances
+    path('alcance/crear/', views.crear_alcance, name='crear_alcance'),
+    path('alcance/<int:pk>/editar/', views.editar_alcance, name='editar_alcance'),
+    path('alcance/<int:pk>/eliminar/', views.eliminar_alcance, name='eliminar_alcance'),
+
     # Publicaciones
     path('publicaciones/', views.publicaciones, name='marketing_publicaciones'),
     path('publicaciones/nueva/', views.nueva_publicacion, name='marketing_nueva_publicacion'),

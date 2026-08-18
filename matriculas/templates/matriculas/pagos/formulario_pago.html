@@ -1,41 +1,125 @@
 {% extends "base_matriculas.html" %}
 
 {% block content %}
-<div class="max-w-xl mx-auto mt-10 bg-white border border-gray-200 rounded-lg shadow p-6">
-    <h2 class="text-2xl font-bold text-gray-700 mb-6">
-        {% if form.instance.pk %}
-            ✏️ Editar Pago
-        {% else %}
-            💰 Registrar Pago
-        {% endif %}
-        <span class="block text-sm text-gray-500 mt-1">Matrícula: {{ matricula.codigo }}</span>
-    </h2>
-
-    <form method="post" enctype="multipart/form-data" class="space-y-5">
-        {% csrf_token %}
-        
-        {% for field in form %}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-                {{ field.label_tag }}
-            </label>
-            {{ field }}
-            
-            {% if field.errors %}
-                <p class="text-sm text-red-500">{{ field.errors|striptags }}</p>
+<div class="max-w-4xl mx-auto mt-8 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+    
+    <!-- Cabecera del Formulario -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            {% if form.instance.pk %}
+                <i class="bi bi-pencil-square text-2xl"></i> Editar Detalles del Pago
+            {% else %}
+                <i class="bi bi-cash-coin text-2xl"></i> Registrar Nuevo Pago
             {% endif %}
-        </div>
-        {% endfor %}
+        </h2>
+        <span class="bg-white text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+            Matrícula: {{ matricula.codigo }}
+        </span>
+    </div>
 
-        <div class="flex justify-start space-x-4 pt-4">
-            <button type="submit"
-                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
-                Guardar
-            </button>
+    <form method="post" enctype="multipart/form-data" class="p-6 md:p-8">
+        {% csrf_token %}
+
+        <!-- SECCIÓN 1: Detalles del Cobro -->
+        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-5 flex items-center gap-2">
+            <i class="bi bi-info-circle text-blue-500"></i> Información del Cobro
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Número de Cuota</label>
+                {{ form.numero_cuota }}
+                {% if form.numero_cuota.errors %}<p class="text-xs text-red-500 mt-1">{{ form.numero_cuota.errors|striptags }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pago</label>
+                {{ form.tipo_pago }}
+                {% if form.tipo_pago.errors %}<p class="text-xs text-red-500 mt-1">{{ form.tipo_pago.errors|striptags }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Monto Programado (S/)</label>
+                {{ form.monto_programado }}
+                {% if form.monto_programado.errors %}<p class="text-xs text-red-500 mt-1">{{ form.monto_programado.errors|striptags }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Monto Pagado (S/)</label>
+                {{ form.monto_pagado }}
+                {% if form.monto_pagado.errors %}<p class="text-xs text-red-500 mt-1">{{ form.monto_pagado.errors|striptags }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: Fechas y Estado -->
+        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-5 flex items-center gap-2">
+            <i class="bi bi-calendar-check text-blue-500"></i> Estado y Fechas
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Vencimiento</label>
+                {{ form.fecha_vencimiento }}
+                {% if form.fecha_vencimiento.errors %}<p class="text-xs text-red-500 mt-1">{{ form.fecha_vencimiento.errors|striptags }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Fecha de Pago</label>
+                {{ form.fecha_pago }}
+                {% if form.fecha_pago.errors %}<p class="text-xs text-red-500 mt-1">{{ form.fecha_pago.errors|striptags }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Forma de Pago</label>
+                {{ form.forma_pago }}
+                {% if form.forma_pago.errors %}<p class="text-xs text-red-500 mt-1">{{ form.forma_pago.errors|striptags }}</p>{% endif %}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                {{ form.estado }}
+                {% if form.estado.errors %}<p class="text-xs text-red-500 mt-1">{{ form.estado.errors|striptags }}</p>{% endif %}
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: Archivos y Observaciones -->
+        <h3 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-5 flex items-center gap-2">
+            <i class="bi bi-paperclip text-blue-500"></i> Soportes y Observaciones
+        </h3>
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Observación</label>
+            {{ form.observacion }}
+            {% if form.observacion.errors %}<p class="text-xs text-red-500 mt-1">{{ form.observacion.errors|striptags }}</p>{% endif %}
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <div class="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="bi bi-image text-green-600"></i> Comprobante del Cliente
+                </label>
+                {{ form.foto_comprobante }}
+                {% if form.foto_comprobante.errors %}<p class="text-xs text-red-500 mt-1">{{ form.foto_comprobante.errors|striptags }}</p>{% endif %}
+                {% if form.instance.foto_comprobante %}
+                    <p class="text-xs text-gray-500 mt-2">Soporte actual: <a href="{{ form.instance.foto_comprobante.url }}" target="_blank" class="text-blue-500 underline">Ver archivo</a></p>
+                {% endif %}
+            </div>
+            
+            <div class="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="bi bi-file-earmark-pdf text-red-500"></i> Boleta SUNAT
+                </label>
+                {{ form.cod_boleta_sunat }}
+                {% if form.cod_boleta_sunat.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cod_boleta_sunat.errors|striptags }}</p>{% endif %}
+                {{ form.boleta_sunat }}
+                {% if form.boleta_sunat.errors %}<p class="text-xs text-red-500 mt-1">{{ form.boleta_sunat.errors|striptags }}</p>{% endif %}
+                {% if form.instance.boleta_sunat %}
+                    <p class="text-xs text-gray-500 mt-2">Boleta actual: <a href="{{ form.instance.boleta_sunat.url }}" target="_blank" class="text-blue-500 underline">Ver boleta</a></p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
             <a href="{% url 'matriculas:lista_pagos_matricula' matricula.id %}"
-                class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                class="inline-flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none transition-all">
                 Cancelar
             </a>
+            <button type="submit"
+                class="inline-flex justify-center items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all">
+                <i class="bi bi-save"></i> Guardar Pago
+            </button>
         </div>
     </form>
 </div>

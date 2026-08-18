@@ -19,8 +19,10 @@ messaging.onBackgroundMessage((payload) => {
 
     const notificationTitle = payload.notification?.title || payload.data?.title;
     const notificationOptions = {
-        body: payload.notification?.body || payload.data?.body,
+        body: payload.data.body,
         icon: '/static/matriculas/images/NewLogoSinFondo.png',
+        badge: '/static/matriculas/images/NewLogoSinFondo.png',
+        tag: payload.data.tag || "default-tag",
         data: payload.data
     };
 

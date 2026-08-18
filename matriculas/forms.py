@@ -502,40 +502,47 @@ class PagoForm(forms.ModelForm):
 
         es_admin = False
         if self.user and self.user.is_authenticated:
-            if self.user.is_superuser:
-                es_admin = True
-            elif hasattr(self.user, 'perfil') and self.user.perfil.tipo == 'admin':
+            if self.user.is_superuser or (hasattr(self.user, 'perfil') and self.user.perfil.tipo == 'admin'):
                 es_admin = True
 
         if not es_admin:
             disabled_fields.extend(campos_delicados)
 
         for field_name, field in self.fields.items():
-            field.widget.attrs.update({
-                'class': 'w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500'
-            })
+            if isinstance(field.widget, forms.FileInput):
+                base_class = (
+                    "block w-full text-sm text-gray-600 "
+                    "file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 "
+                    "file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 "
+                    "hover:file:bg-blue-100 cursor-pointer transition-colors"
+                )
+            else:
+                base_class = "w-full border border-gray-300 rounded-md px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+
+            field.widget.attrs.update({'class': base_class})
 
             if field_name in disabled_fields:
                 field.disabled = True 
                 field.widget.attrs.update({
-                    'class': field.widget.attrs['class'] + ' bg-gray-100 cursor-not-allowed text-gray-500'
+                    'class': field.widget.attrs['class'] + ' bg-gray-100 cursor-not-allowed text-gray-500 opacity-80'
                 })
         
         self.fields['foto_comprobante'].required = False
+        self.fields['boleta_sunat'].required = False
 
     class Meta:
         model = Pago
         fields = [
             'numero_cuota', 'tipo_pago', 'monto_programado',
             'monto_pagado', 'fecha_vencimiento', 'fecha_pago',
-            'estado', 'forma_pago', 'observacion', 'foto_comprobante'
+            'estado', 'forma_pago', 'observacion', 'foto_comprobante', 'boleta_sunat', 'cod_boleta_sunat'
         ]
-        
         widgets = {
             'fecha_vencimiento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
             'fecha_pago': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'observacion': forms.Textarea(attrs={'rows': 2}),
+            'observacion': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Añade alguna nota u observación (opcional)...'}),
             'foto_comprobante': forms.FileInput(),
+            'boleta_sunat': forms.FileInput(), 'cod_boleta_sunat': forms.TextInput(attrs={'placeholder': 'Código de boleta SUNAT (opcional)'})
         }
 
 class UsuarioCreateForm(forms.ModelForm):
