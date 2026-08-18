@@ -125,31 +125,39 @@ class Turno(models.Model):
         return self.nombre
 
 class CodigoManager:
+
     @staticmethod
     def generar_codigo_alumno(grado_estudios, fondo_social=False):
-        grado_map = {'pre': 'RP6', '5s': 'RS5', '4s': 'RS4', '3s': 'RS3', '2s': 'RS2', '1s': 'RS1', '6p': 'EP6', '5p': 'EP5', }
+        grado_map = {'pre': 'RP6', '5s': 'RS5', '4s': 'RS4', '3s': 'RS3', '2s': 'RS2', '1s': 'RS1', '6p': 'EP6', '5p': 'EP5',}
 
         base_prefijo = grado_map.get(grado_estudios, 'RSX')
-
         if fondo_social:
             prefijo = base_prefijo[:2] + 'F' + base_prefijo[2:]
-            digitos = 2 
+            digitos = 2
         else:
             prefijo = base_prefijo
             digitos = 3
 
         sufijo_max = (
-            Alumno.objects.filter(
-                codigo__regex=rf'^{prefijo}\d+$')
-                .annotate( num_sufijo=Cast(Substr('codigo', len(prefijo) + 1), IntegerField()))
-                .aggregate(Max('num_sufijo'))['num_sufijo__max'])
-
+            Alumno.objects.filter(codigo__regex=rf'^{prefijo}\d+$').annotate(
+                num_sufijo=Cast(
+                    Substr(
+                        'codigo',
+                        len(prefijo) + 1
+                    ),
+                    models.IntegerField()
+                )
+            )
+            .aggregate(
+                Max('num_sufijo')
+            )['num_sufijo__max']
+        )
         numero = (sufijo_max or 0) + 1
-
         return f"{prefijo}{numero:0{digitos}d}"
 
     @staticmethod
     def generar_codigo_apoderado(codigo_alumno):
+
         if 'F' in codigo_alumno[:4]:
             if codigo_alumno.startswith('RPF'):
                 return f"APF{codigo_alumno[3:]}"
@@ -157,18 +165,18 @@ class CodigoManager:
                 return f"ASF{codigo_alumno[3:]}"
             elif codigo_alumno.startswith('EPF'):
                 return f"AEF{codigo_alumno[3:]}"
-        
+
         if codigo_alumno.startswith('RP'):
             return f"AP{codigo_alumno[2:]}"
         elif codigo_alumno.startswith('RS'):
             return f"AS{codigo_alumno[2:]}"
         elif codigo_alumno.startswith('EP'):
             return f"AE{codigo_alumno[2:]}"
-        
         return f"AX{codigo_alumno[2:]}"
 
     @staticmethod
-    def generar_codigo_matricula(codigo_alumno):
+    def generar_codigo_matricula(alumno):
+        codigo_alumno = alumno.codigo
         es_fondo = 'F' in codigo_alumno[:4]
 
         if es_fondo:
@@ -183,16 +191,18 @@ class CodigoManager:
         elif codigo_alumno.startswith('EP'):
             prefijo = 'MEF' if es_fondo else 'ME'
         else:
+
             prefijo = 'MXF' if es_fondo else 'MX'
 
         codigo_base = f"{prefijo}{numero}"
-        codigo_final = codigo_base
-        contador = 1
-        
-        while Matricula.objects.filter(codigo=codigo_final).exists():
-            contador += 1
-            codigo_final = f"{codigo_base}-{contador}"
-        return codigo_final
+        cantidad_matriculas = Matricula.objects.filter(
+            alumno=alumno
+        ).count()
+
+        if cantidad_matriculas == 0:
+            return codigo_base
+
+        return f"{codigo_base}-{cantidad_matriculas + 1}"
 
 class Alumno(models.Model):
     GRADO_OPCIONES = [
@@ -334,24 +344,14 @@ class Apoderado(models.Model):
         return f"{self.codigo} - {self.nombre_completo}"
 
 class Matricula(models.Model):
-    ESTADO_CHOICES = [
-        ('activa', 'Activa'), ('congelada', 'Congelada'), ('finalizada', 'Finalizada'),]
-    MODALIDADES = [('presencial', 'Presencial'), ('virtual', 'Virtual'),('mixta', 'Mixta')]
-    TIPOS_MATRICULA = [ ('regular', 'REGULAR'), ('promocion', 'PROMOCION'), ('beca50', 'BECA 50%'), ('beca100', 'BECA 100%'), ('fondo_social', 'FONDO SOCIAL'),('exalumno', 'EXALUMNO'),('gerencia', 'GERENCIA')]
+    ESTADO_CHOICES = [('activa', 'Activa'), ('congelada', 'Congelada'), ('finalizada', 'Finalizada')]
+    MODALIDADES = [('presencial', 'Presencial'), ('virtual', 'Virtual'), ('mixta', 'Mixta')]
+    TIPOS_MATRICULA = [('regular', 'REGULAR'), ('promocion', 'PROMOCION'), ('beca50', 'BECA 50%'), ('beca100', 'BECA 100%'), ('fondo_social', 'FONDO SOCIAL'), ('exalumno', 'EXALUMNO'), ('gerencia', 'GERENCIA')]
+    TIPOS_ALUMNO = [('pre_uni_promo', 'Pre Universitario Promoción'), ('pre_uni_excelencia', 'Pre Universitario Excelencia'), ('pre_uni_provincia', 'Pre Universitario Provincia'), ('pre_uni_virtual', 'Pre Universitario Virtual'), ('3_4_5_preferente', '3ro, 4to y 5to Preferente'), ('1_2_3_basico', '1ro, 2do y 3ro Básico'), ('cepunc_manana', 'CEPUNC Mañana'), ('cepunc_tarde', 'CEPUNC Tarde')]
 
-    TIPOS_ALUMNO = [
-        ('pre_uni_promo', 'Pre Universitario Promoción'),
-        ('pre_uni_excelencia', 'Pre Universitario Excelencia'),
-        ('pre_uni_provincia', 'Pre Universitario Provincia'),
-        ('pre_uni_virtual', 'Pre Universitario Virtual'),
-        ('3_4_5_preferente', '3ro, 4to y 5to Preferente'),
-        ('1_2_3_basico', '1ro, 2do y 3ro Básico'),
-        ('cepunc_manana', 'CEPUNC Mañana'),
-        ('cepunc_tarde', 'CEPUNC Tarde')]
-    
     tipo_alumno = models.CharField(max_length=20, choices=TIPOS_ALUMNO, default='pre_uni_promo')
     uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    codigo = models.CharField(max_length=10, unique=True, blank=True, editable=False)
+    codigo = models.CharField(max_length=20, unique=True, blank=True, editable=False)
     alumno = models.ForeignKey(Alumno, on_delete=models.CASCADE, related_name='matriculas')
     apoderado = models.ForeignKey(Apoderado, on_delete=models.CASCADE)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
@@ -364,37 +364,31 @@ class Matricula(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activa')
     tipo_matricula = models.CharField(max_length=20, choices=TIPOS_MATRICULA, default='regular')
     usuario_registro = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='matriculas_registradas')
-    
+
     class Meta:
         verbose_name = "Matrícula"
         verbose_name_plural = "Matrículas"
 
     def clean(self):
-        if not self.codigo and hasattr(self, 'alumno'):
-            self.codigo = CodigoManager.generar_codigo_matricula(self.alumno.codigo)
-
-        if Matricula.objects.filter(codigo=self.codigo).exclude(pk=self.pk).exists():
+        if not self.codigo and self.alumno_id:
+            self.codigo = CodigoManager.generar_codigo_matricula(self.alumno)
+        if self.codigo and Matricula.objects.filter(codigo=self.codigo).exclude(pk=self.pk).exists():
             raise ValidationError({'codigo': 'Este código ya está en uso'})
 
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
-
         if self.alumno:
             self.alumno.actualizar_estado()
-
         if self.apoderado:
             self.apoderado.actualizar_estado()
 
     def delete(self, *args, **kwargs):
         alumno = self.alumno
         apoderado = self.apoderado
-
         super().delete(*args, **kwargs)
-
         if alumno:
             alumno.actualizar_estado()
-
         if apoderado:
             apoderado.actualizar_estado()
 
@@ -405,16 +399,12 @@ class Matricula(models.Model):
         return f"{self.codigo} - {self.alumno.nombres_completos}"
 
     def reactivar_para_nuevo_ciclo(self, nuevo_ciclo, nuevo_turno, nuevo_horario, usuario):
-        """
-        Reactiva una matrícula para un nuevo ciclo
-        """
         if self.estado != 'finalizada':
             raise ValidationError("Solo se pueden reactivar matrículas finalizadas")
         if not nuevo_ciclo.activo:
             raise ValidationError("El nuevo ciclo no está activo")
         if nuevo_turno not in nuevo_ciclo.turnos.all():
             raise ValidationError("El turno seleccionado no está disponible en este ciclo")
-            
         nueva_matricula = Matricula.objects.create(
             alumno=self.alumno,
             apoderado=self.apoderado,
@@ -428,7 +418,6 @@ class Matricula(models.Model):
             tipo_alumno=self.tipo_alumno,
             usuario_registro=usuario
         )
-        
         return nueva_matricula
 
 # Modelo para guardar el template editable del mensaje de WhatsApp

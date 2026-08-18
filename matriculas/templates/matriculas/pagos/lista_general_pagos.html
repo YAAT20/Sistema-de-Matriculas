@@ -46,67 +46,67 @@
             class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
             
             <div @click.outside="modalSunatOpen = false" 
-                class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl transform transition-all">
+                class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl transform transition-all">
                 
                 <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-                    <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
                         <i class="bi bi-info-circle-fill text-indigo-600"></i>
                         Tutorial SUNAT SOL (Paso <span x-text="pasoActual"></span> de <span x-text="totalPasos"></span>)
                     </h3>
-                    <button @click="modalSunatOpen = false" class="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+                    <button @click="modalSunatOpen = false" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
                 </div>
 
                 <div class="py-4 text-center">
                     
                     <div x-show="pasoActual === 1">
-                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-64 flex items-center justify-center mb-3 overflow-hidden shadow-inner">
+                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-80 md:h-[500px] flex items-center justify-center mb-4 overflow-hidden shadow-inner">
                             <img src="{% static 'pasos_sunat/Paso 1.jpeg' %}" alt="Paso 1" class="object-contain h-full w-full">
                         </div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Paso 1</h4>
+                        <h4 class="font-semibold text-gray-800 text-base">Paso 1</h4>
                     </div>
 
                     <div x-show="pasoActual === 2" style="display: none;">
-                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-64 flex items-center justify-center mb-3 overflow-hidden shadow-inner">
+                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-80 md:h-[500px] flex items-center justify-center mb-4 overflow-hidden shadow-inner">
                             <img src="{% static 'pasos_sunat/Paso 2.jpeg' %}" alt="Paso 2" class="object-contain h-full w-full">
                         </div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Paso 2</h4>
+                        <h4 class="font-semibold text-gray-800 text-base">Paso 2</h4>
                     </div>
 
                     <div x-show="pasoActual === 3" style="display: none;">
-                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-64 flex items-center justify-center mb-3 overflow-hidden shadow-inner">
-                            <img src="{% static 'pasos_sunat/Paso 3.jpeg' %}" alt="Paso 3" class="object-contain h-full w-full">
+                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-80 md:h-[500px] flex items-center justify-center mb-4 overflow-hidden shadow-inner">
+                            <img src="{% static 'pasos_sunat/Paso 4.jpeg' %}" alt="Paso 3" class="object-contain h-full w-full">
                         </div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Paso 3</h4>
+                        <h4 class="font-semibold text-gray-800 text-base">Paso 3</h4>
                     </div>
 
                     <div x-show="pasoActual === 4" style="display: none;">
-                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-64 flex items-center justify-center mb-3 overflow-hidden shadow-inner">
-                            <img src="{% static 'pasos_sunat/Paso 4.jpeg' %}" alt="Paso 4" class="object-contain h-full w-full">
+                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-80 md:h-[500px] flex items-center justify-center mb-4 overflow-hidden shadow-inner">
+                            <img src="{% static 'pasos_sunat/Paso 3.jpeg' %}" alt="Paso 4" class="object-contain h-full w-full">
                         </div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Paso 4</h4>
+                        <h4 class="font-semibold text-gray-800 text-base">Paso 4</h4>
                     </div>
 
                     <div x-show="pasoActual === 5" style="display: none;">
-                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-64 flex items-center justify-center mb-3 overflow-hidden shadow-inner">
+                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-80 md:h-[500px] flex items-center justify-center mb-4 overflow-hidden shadow-inner">
                             <img src="{% static 'pasos_sunat/Paso 5.jpeg' %}" alt="Paso 5" class="object-contain h-full w-full">
                         </div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Paso 5</h4>
+                        <h4 class="font-semibold text-gray-800 text-base">Paso 5</h4>
                     </div>
 
                     <div x-show="pasoActual === 6" style="display: none;">
-                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-64 flex items-center justify-center mb-3 overflow-hidden shadow-inner">
+                        <div class="bg-gray-100 border border-gray-200 rounded-xl h-80 md:h-[500px] flex items-center justify-center mb-4 overflow-hidden shadow-inner">
                             <img src="{% static 'pasos_sunat/Paso 6.jpeg' %}" alt="Paso 6" class="object-contain h-full w-full">
                         </div>
-                        <h4 class="font-semibold text-gray-800 text-sm">Paso 6: ¡Listo para ingresar!</h4>
+                        <h4 class="font-semibold text-gray-800 text-base">Paso 6: ¡Listo para ingresar!</h4>
                     </div>
 
                 </div>
 
-                <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-2">
                     <button @click="if(pasoActual > 1) pasoActual--" 
                             x-show="pasoActual > 1"
                             type="button"
-                            class="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50">
+                            class="px-5 py-2.5 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors">
                         Anterior
                     </button>
                     <div x-show="pasoActual === 1"></div>
@@ -115,7 +115,7 @@
                         <button @click="if(pasoActual < totalPasos) pasoActual++" 
                                 x-show="pasoActual < totalPasos"
                                 type="button"
-                                class="px-5 py-2 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">
+                                class="px-6 py-2.5 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-colors">
                             Siguiente
                         </button>
 
@@ -124,9 +124,9 @@
                         @click="modalSunatOpen = false"
                         x-show="pasoActual === totalPasos"
                         style="display: none;"
-                        class="px-5 py-2 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-2 shadow-sm">
+                        class="px-6 py-2.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-2 shadow-sm transition-colors">
                             <span>Ir a SUNAT</span>
-                            <i class="bi bi-box-arrow-up-right"></i>
+                            <i class="bi bi-box-arrow-up-right font-bold"></i>
                         </a>
                     </div>
                 </div>

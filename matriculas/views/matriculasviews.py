@@ -92,20 +92,25 @@ class MatriculaCreateView(LoginRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         self.alumno_id = request.GET.get('alumno_id')
         self.alumno = None
+
         if self.alumno_id:
             self.alumno = get_object_or_404(Alumno, pk=self.alumno_id)
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
         initial = super().get_initial()
+
         if self.alumno:
             initial['alumno'] = self.alumno
-            # Obtener primer apoderado si existe
+
             apoderado = self.alumno.apoderados.first()
+
             if apoderado:
                 initial['apoderado'] = apoderado
-            # Código generado automáticamente
-            initial['codigo'] = CodigoManager.generar_codigo_matricula(self.alumno.codigo)
+
+            initial['codigo'] = CodigoManager.generar_codigo_matricula(self.alumno)
+
         return initial
 
     def get_form(self, form_class=None):
@@ -113,58 +118,72 @@ class MatriculaCreateView(LoginRequiredMixin, CreateView):
 
         if self.alumno:
             try:
-                form.fields['alumno'].queryset = Alumno.objects.filter(models.Q(activo=True) | models.Q(pk=self.alumno.pk))
+                form.fields['alumno'].queryset = Alumno.objects.filter(
+                    models.Q(activo=True) | models.Q(pk=self.alumno.pk)
+                )
             except Exception:
-                form.fields['alumno'].queryset = Alumno.objects.filter(pk=self.alumno.pk)
+                form.fields['alumno'].queryset = Alumno.objects.filter(
+                    pk=self.alumno.pk
+                )
 
             form.fields['alumno'].initial = self.alumno
-
             apoderado = self.alumno.apoderados.first()
+
             if apoderado:
                 form.fields['apoderado'].initial = apoderado
+
         return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if self.request.POST:
             context['monto_form'] = MontoCuotasForm(self.request.POST)
         else:
-            initial = {'cuotas': 1}
-            context['monto_form'] = MontoCuotasForm(initial=initial)
+            context['monto_form'] = MontoCuotasForm(initial={'cuotas': 1})
+
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
         monto_form = context['monto_form']
-        
+
         if not monto_form.is_valid():
-            return self.render_to_response(self.get_context_data(form=form, monto_form=monto_form))
-        
+            return self.render_to_response(
+                self.get_context_data(form=form, monto_form=monto_form)
+            )
+
         matricula = form.save(commit=False)
         matricula.usuario_registro = self.request.user
-        
-        # Calcular montos
+        matricula.codigo = CodigoManager.generar_codigo_matricula(matricula.alumno)
+
         montos = []
+
         for i in range(1, int(monto_form.cleaned_data['cuotas']) + 1):
-            montos.append(float(monto_form.cleaned_data[f'monto_cuota_{i}']))
-        
+            montos.append(
+                float(monto_form.cleaned_data[f'monto_cuota_{i}'])
+            )
+
         matricula.monto = sum(montos)
         matricula.cuotas = monto_form.cleaned_data['cuotas']
         matricula.save()
 
-        # Crear pagos
         for i, monto in enumerate(montos, start=1):
             Pago.objects.create(
                 matricula=matricula,
                 numero_cuota=i,
                 tipo_pago='cuota',
                 monto_programado=monto_form.cleaned_data[f'monto_cuota_{i}'],
-                fecha_vencimiento = monto_form.cleaned_data[f'fecha_cuota_{i}'],
+                fecha_vencimiento=monto_form.cleaned_data[f'fecha_cuota_{i}'],
                 estado='pendiente',
                 usuario_registro=self.request.user
             )
 
-        messages.success(self.request, f'Matrícula "{matricula.codigo}" registrada exitosamente.')
+        messages.success(
+            self.request,
+            f'Matrícula "{matricula.codigo}" registrada exitosamente.'
+        )
+
         return redirect('matriculas:matricula_detail', pk=matricula.pk)
 
 class MatriculaUpdateView(LoginRequiredMixin, SoloAdminMixin, UpdateView):
